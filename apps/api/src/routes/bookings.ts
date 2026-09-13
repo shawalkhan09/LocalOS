@@ -15,11 +15,25 @@ bookingsRouter.post("/bookings", async (req, res) => {
   }
   const { customerId, serviceId, staffId, startTime, endTime } = parsed.data;
 
-  if (!clientConfig.services.some((s) => s.id === serviceId)) {
+  const service = clientConfig.services.find((s) => s.id === serviceId);
+  if (!service) {
     throw new ApiError(400, `unknown serviceId "${serviceId}"`);
   }
   if (staffId !== undefined && !clientConfig.staff.some((s) => s.id === staffId)) {
     throw new ApiError(400, `unknown staffId "${staffId}"`);
+  }
+
+  // Config-mismatch error, checked before the overlap check: a staff member
+  // who isn't qualified for this service is wrong regardless of whether
+  // they're free at the requested time. Undefined/empty staffIds means the
+  // service has no restriction — unchanged from before this field existed.
+  if (service.staffIds && service.staffIds.length > 0) {
+    if (staffId === undefined || !service.staffIds.includes(staffId)) {
+      throw new ApiError(
+        400,
+        `staffId "${staffId ?? "none"}" is not qualified for service "${serviceId}"`,
+      );
+    }
   }
 
   // Friendly, immediate check — the DB's EXCLUDE constraint (see
