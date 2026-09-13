@@ -1,5 +1,15 @@
 import { z } from "zod";
 
+export const WeekdaySchema = z.enum([
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+]);
+
 export const AddressSchema = z.object({
   street: z.string().min(1),
   city: z.string().min(1),
@@ -65,6 +75,7 @@ export const BaseConfigSchema = z.object({
   features: BaseFeaturesSchema,
 });
 
+export type Weekday = z.infer<typeof WeekdaySchema>;
 export type Address = z.infer<typeof AddressSchema>;
 export type Business = z.infer<typeof BusinessSchema>;
 export type Contact = z.infer<typeof ContactSchema>;

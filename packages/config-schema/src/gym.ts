@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BaseConfigSchema, BaseFeaturesSchema } from "./base.js";
+import { BaseConfigSchema, BaseFeaturesSchema, WeekdaySchema } from "./base.js";
 
 export const GymFeaturesSchema = BaseFeaturesSchema.extend({
   classSchedule: z.boolean().default(true),
@@ -26,16 +26,6 @@ export const TrainerSchema = z.object({
   certifications: z.array(z.string()).optional(),
   photoUrl: z.string().url().optional(),
 });
-
-const WeekdaySchema = z.enum([
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-  "sunday",
-]);
 
 export const ClassScheduleSlotSchema = z.object({
   day: WeekdaySchema,
