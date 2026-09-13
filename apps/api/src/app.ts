@@ -1,5 +1,6 @@
 import express, { type ErrorRequestHandler } from "express";
 import { ApiError } from "./errors.js";
+import { availabilityRouter } from "./routes/availability.js";
 import { bookingsRouter } from "./routes/bookings.js";
 import { catalogRouter } from "./routes/catalog.js";
 import { classBookingsRouter } from "./routes/classBookings.js";
@@ -57,6 +58,7 @@ export function createApp() {
 
   app.use(catalogRouter);
   app.use(customersRouter);
+  app.use(availabilityRouter);
   app.use(bookingsRouter);
   app.use(classBookingsRouter);
   app.use(membershipsRouter);
