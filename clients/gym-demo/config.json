@@ -79,6 +79,14 @@
     "slotIntervalMinutes": 15,
     "requireDeposit": false
   },
+  "businessHours": [
+    { "day": "monday", "openTime": "05:00", "closeTime": "21:00" },
+    { "day": "tuesday", "openTime": "05:00", "closeTime": "21:00" },
+    { "day": "wednesday", "openTime": "05:00", "closeTime": "21:00" },
+    { "day": "thursday", "openTime": "05:00", "closeTime": "21:00" },
+    { "day": "friday", "openTime": "05:00", "closeTime": "20:00" },
+    { "day": "saturday", "openTime": "07:00", "closeTime": "16:00" }
+  ],
   "features": {
     "onlineBooking": true,
     "smsReminders": true,
