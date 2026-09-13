@@ -1,0 +1,53 @@
+.heading {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.subheading {
+  color: var(--ink-muted);
+  margin: 4px 0 0;
+  font-size: 13px;
+}
+
+.section {
+  margin-top: 28px;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.capacity {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--bg);
+  color: var(--ink-muted);
+}
+
+.capacityFull {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.error {
+  color: var(--error);
+  background: var(--error-bg);
+  border: 1px solid var(--error);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 13px;
+}
