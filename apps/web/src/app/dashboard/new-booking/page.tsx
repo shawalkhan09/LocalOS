@@ -63,11 +63,16 @@ export default function NewBookingPage() {
   }, []);
 
   const service = config?.services.find((s) => s.id === serviceId) ?? null;
+  const isStaffRestricted = Boolean(service?.staffIds && service.staffIds.length > 0);
   const eligibleStaff = config
     ? service?.staffIds
       ? config.staff.filter((s) => service.staffIds?.includes(s.id))
       : config.staff
     : [];
+  // A restricted service has no meaningful "any available" — availability
+  // depends on which trainer, so there's nothing to check until one is
+  // picked.
+  const needsStaffSelection = isStaffRestricted && !staffId;
 
   useEffect(() => {
     setStaffId("");
@@ -77,7 +82,7 @@ export default function NewBookingPage() {
     setSelectedSlot(null);
     setSlots([]);
     setSlotsError(null);
-    if (!config || !serviceId || !date) {
+    if (!config || !serviceId || !date || needsStaffSelection) {
       return;
     }
     let cancelled = false;
@@ -117,7 +122,7 @@ export default function NewBookingPage() {
   const timezone = config.business.timezone;
   const minDate = todayInTimezone(timezone);
   const maxDate = addDaysToDateString(minDate, config.booking.advanceBookingDays);
-  const canSubmit = Boolean(service && selectedSlot && customer) && !submitting;
+  const canSubmit = Boolean(service && selectedSlot && customer) && !needsStaffSelection && !submitting;
 
   async function handleSubmit() {
     if (!service || !selectedSlot || !customer) {
@@ -174,7 +179,13 @@ export default function NewBookingPage() {
         <div className={styles.field}>
           <label htmlFor="staff">Staff</label>
           <select id="staff" value={staffId} onChange={(e) => setStaffId(e.target.value)}>
-            <option value="">Any available</option>
+            {isStaffRestricted ? (
+              <option value="" disabled>
+                Select a trainer
+              </option>
+            ) : (
+              <option value="">Any available</option>
+            )}
             {eligibleStaff.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -199,7 +210,9 @@ export default function NewBookingPage() {
           <span id="slots-label" className={styles.fieldLabel}>
             Available times
           </span>
-          {slotsError ? (
+          {needsStaffSelection ? (
+            <p className={styles.slotsEmpty}>Select a trainer to see available times.</p>
+          ) : slotsError ? (
             <p className={pageStyles.error}>{slotsError}</p>
           ) : slots.length === 0 ? (
             <p className={styles.slotsEmpty}>No open times for this selection.</p>
