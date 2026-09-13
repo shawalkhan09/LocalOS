@@ -1,0 +1,159 @@
+{
+  "business": {
+    "name": "Ironclad Fitness",
+    "legalName": "Ironclad Fitness LLC",
+    "timezone": "America/Denver",
+    "currency": "USD",
+    "description": "Neighborhood strength and conditioning gym in Denver, CO."
+  },
+  "contact": {
+    "email": "hello@ironcladfitness.com",
+    "phone": "+1-303-555-0142",
+    "website": "https://ironcladfitness.com",
+    "address": {
+      "street": "1420 Larimer St",
+      "city": "Denver",
+      "state": "CO",
+      "zip": "80202",
+      "country": "US"
+    }
+  },
+  "services": [
+    {
+      "id": "svc-personal-training",
+      "name": "1-on-1 Personal Training",
+      "description": "60-minute personal training session with a certified trainer.",
+      "durationMinutes": 60,
+      "price": 85,
+      "category": "training"
+    },
+    {
+      "id": "svc-drop-in-class",
+      "name": "Drop-In Class",
+      "description": "Single-visit access to any scheduled group class.",
+      "durationMinutes": 45,
+      "price": 25,
+      "category": "class"
+    },
+    {
+      "id": "svc-fitness-assessment",
+      "name": "Fitness Assessment",
+      "description": "Baseline strength, mobility, and conditioning assessment.",
+      "durationMinutes": 30,
+      "price": 40,
+      "category": "assessment"
+    },
+    {
+      "id": "svc-nutrition-consult",
+      "name": "Nutrition Consult",
+      "description": "One-on-one nutrition planning session.",
+      "durationMinutes": 45,
+      "price": 60,
+      "category": "coaching"
+    }
+  ],
+  "staff": [
+    {
+      "id": "staff-jordan",
+      "name": "Jordan Ramirez",
+      "role": "Front Desk / Studio Manager",
+      "email": "jordan@ironcladfitness.com",
+      "phone": "+1-303-555-0143"
+    },
+    {
+      "id": "staff-priya",
+      "name": "Priya Nair",
+      "role": "Head Trainer",
+      "email": "priya@ironcladfitness.com"
+    }
+  ],
+  "booking": {
+    "advanceBookingDays": 14,
+    "cancellationWindowHours": 12,
+    "slotIntervalMinutes": 15,
+    "requireDeposit": false
+  },
+  "features": {
+    "onlineBooking": true,
+    "smsReminders": true,
+    "emailReminders": true,
+    "waitlist": true,
+    "classSchedule": true,
+    "membershipTiers": true,
+    "trainerBooking": true,
+    "dropInBooking": true,
+    "waiverRequired": true
+  },
+  "membershipPlans": [
+    {
+      "id": "plan-monthly-unlimited",
+      "name": "Unlimited Monthly",
+      "price": 129,
+      "billingInterval": "monthly",
+      "description": "Unlimited classes and open gym access, billed monthly.",
+      "perks": ["Unlimited classes", "Open gym access", "Guest pass 1x/month"]
+    },
+    {
+      "id": "plan-annual-unlimited",
+      "name": "Unlimited Annual",
+      "price": 1290,
+      "billingInterval": "annual",
+      "description": "Unlimited classes and open gym access, billed annually (2 months free).",
+      "perks": ["Unlimited classes", "Open gym access", "2 free personal training sessions"]
+    }
+  ],
+  "classes": [
+    {
+      "id": "class-strength-101",
+      "name": "Strength Fundamentals",
+      "trainerId": "trainer-priya",
+      "durationMinutes": 45,
+      "capacity": 12,
+      "category": "strength",
+      "schedule": [
+        { "day": "monday", "startTime": "06:00" },
+        { "day": "wednesday", "startTime": "06:00" },
+        { "day": "friday", "startTime": "06:00" }
+      ]
+    },
+    {
+      "id": "class-hiit-blast",
+      "name": "HIIT Blast",
+      "trainerId": "trainer-marcus",
+      "durationMinutes": 30,
+      "capacity": 16,
+      "category": "conditioning",
+      "schedule": [
+        { "day": "tuesday", "startTime": "17:30" },
+        { "day": "thursday", "startTime": "17:30" }
+      ]
+    },
+    {
+      "id": "class-mobility-flow",
+      "name": "Mobility Flow",
+      "trainerId": "trainer-priya",
+      "durationMinutes": 45,
+      "capacity": 10,
+      "category": "recovery",
+      "schedule": [
+        { "day": "saturday", "startTime": "09:00" }
+      ]
+    }
+  ],
+  "trainers": [
+    {
+      "id": "trainer-priya",
+      "name": "Priya Nair",
+      "bio": "10 years coaching strength and mobility; NASM-CPT certified.",
+      "specialties": ["strength training", "mobility"],
+      "certifications": ["NASM-CPT", "USAW Level 1"]
+    },
+    {
+      "id": "trainer-marcus",
+      "name": "Marcus Webb",
+      "bio": "Former collegiate athlete specializing in high-intensity conditioning.",
+      "specialties": ["HIIT", "conditioning"],
+      "certifications": ["ACE-CPT"]
+    }
+  ]
+}
