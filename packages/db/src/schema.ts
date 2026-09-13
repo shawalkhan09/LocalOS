@@ -121,3 +121,30 @@ export const memberships = pgTable("memberships", {
   creditsRemaining: integer("credits_remaining"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const userRoleEnum = pgEnum("user_role", ["owner", "staff"]);
+
+// staffId is a config.json id (the staff array), same reasoning as
+// bookings.serviceId above: not a FK, since that catalog lives in
+// config.json. It's optional — an owner account need not map to a staff
+// row.
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  role: userRoleEnum("role").notNull(),
+  staffId: text("staff_id"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// id is a random opaque token (see apps/api/src/auth/session.ts), not a
+// serial int — a guessable/enumerable session id would defeat the point of
+// a session cookie.
+export const sessions = pgTable("sessions", {
+  id: text("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
