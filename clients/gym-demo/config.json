@@ -65,6 +65,12 @@
       "name": "Priya Nair",
       "role": "Head Trainer",
       "email": "priya@ironcladfitness.com"
+    },
+    {
+      "id": "staff-marcus",
+      "name": "Marcus Webb",
+      "role": "Conditioning Coach",
+      "email": "marcus@ironcladfitness.com"
     }
   ],
   "booking": {
@@ -143,14 +149,14 @@
   "trainers": [
     {
       "id": "trainer-priya",
-      "name": "Priya Nair",
+      "staffId": "staff-priya",
       "bio": "10 years coaching strength and mobility; NASM-CPT certified.",
       "specialties": ["strength training", "mobility"],
       "certifications": ["NASM-CPT", "USAW Level 1"]
     },
     {
       "id": "trainer-marcus",
-      "name": "Marcus Webb",
+      "staffId": "staff-marcus",
       "bio": "Former collegiate athlete specializing in high-intensity conditioning.",
       "specialties": ["HIIT", "conditioning"],
       "certifications": ["ACE-CPT"]
