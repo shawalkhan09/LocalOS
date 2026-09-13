@@ -57,6 +57,17 @@ export const GymConfigSchema = BaseConfigSchema.extend({
   membershipPlans: z.array(MembershipPlanSchema),
   classes: z.array(GymClassSchema),
   trainers: z.array(TrainerSchema),
+}).superRefine((config, ctx) => {
+  const trainerIds = new Set(config.trainers.map((trainer) => trainer.id));
+  config.classes.forEach((gymClass, index) => {
+    if (!trainerIds.has(gymClass.trainerId)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["classes", index, "trainerId"],
+        message: `trainerId "${gymClass.trainerId}" does not match any trainer id`,
+      });
+    }
+  });
 });
 
 export type GymFeatures = z.infer<typeof GymFeaturesSchema>;
