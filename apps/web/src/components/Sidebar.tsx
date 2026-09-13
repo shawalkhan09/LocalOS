@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getCatalog } from "@/lib/api";
+import { getCatalog, getMe, logout } from "@/lib/api";
 import styles from "./Sidebar.module.css";
 
 const NAV_ITEMS = [
@@ -14,7 +14,9 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [businessName, setBusinessName] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -28,10 +30,27 @@ export function Sidebar() {
         // Sidebar chrome degrades gracefully — the page body surfaces the
         // real fetch error, the sidebar just falls back to a generic label.
       });
+    getMe()
+      .then((user) => {
+        if (!cancelled) {
+          setUserEmail(user.email);
+        }
+      })
+      .catch(() => {
+        // A 401 here already redirects to /login via lib/api.ts.
+      });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  async function handleLogout() {
+    try {
+      await logout();
+    } finally {
+      router.push("/login");
+    }
+  }
 
   return (
     <nav className={styles.sidebar} aria-label="Main">
@@ -51,6 +70,14 @@ export function Sidebar() {
           );
         })}
       </div>
+      {userEmail && (
+        <div className={styles.account}>
+          <p className={styles.accountEmail}>{userEmail}</p>
+          <button type="button" className={styles.logout} onClick={handleLogout}>
+            Log out
+          </button>
+        </div>
+      )}
     </nav>
   );
 }

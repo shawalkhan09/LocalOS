@@ -45,7 +45,45 @@
   border-left: 2px solid var(--accent);
 }
 
+.account {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.accountEmail {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin: 0 0 8px;
+  padding: 0 4px;
+  overflow-wrap: anywhere;
+}
+
+.logout {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.logout:hover {
+  color: var(--ink);
+  background: var(--bg);
+}
+
 @media (max-width: 639px) {
+  .account {
+    display: none;
+  }
+
+
   .sidebar {
     width: 100%;
     flex-direction: row;
