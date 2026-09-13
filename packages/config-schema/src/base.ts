@@ -40,6 +40,9 @@ export const ServiceSchema = z.object({
   durationMinutes: z.number().int().positive(),
   price: z.number().nonnegative(),
   category: z.string().optional(),
+  // Absent/undefined: any staff member can perform this service. Present:
+  // only these staff ids are qualified.
+  staffIds: z.array(z.string().min(1)).optional(),
 });
 
 export const StaffMemberSchema = z.object({
@@ -99,6 +102,26 @@ export function assertBusinessHoursValid(
         message: `closeTime "${slot.closeTime}" must be after openTime "${slot.openTime}"`,
       });
     }
+  });
+}
+
+// Vertical-agnostic, same pattern as assertBusinessHoursValid above: every
+// id in a service's staffIds must actually exist in the staff array.
+export function assertServiceStaffIdsValid(
+  config: { services: Service[]; staff: { id: string }[] },
+  ctx: z.RefinementCtx,
+): void {
+  const staffIds = new Set(config.staff.map((member) => member.id));
+  config.services.forEach((service, serviceIndex) => {
+    service.staffIds?.forEach((staffId, staffIdIndex) => {
+      if (!staffIds.has(staffId)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["services", serviceIndex, "staffIds", staffIdIndex],
+          message: `staffId "${staffId}" does not match any staff id`,
+        });
+      }
+    });
   });
 }
 
