@@ -52,6 +52,24 @@ export const GymClassSchema = z.object({
   category: z.string().optional(),
 });
 
+function assertUniqueIds(
+  items: { id: string }[],
+  arrayName: string,
+  ctx: z.RefinementCtx,
+): void {
+  const seen = new Set<string>();
+  items.forEach((item, index) => {
+    if (seen.has(item.id)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [arrayName, index, "id"],
+        message: `duplicate id "${item.id}" in ${arrayName}`,
+      });
+    }
+    seen.add(item.id);
+  });
+}
+
 function assertClassesReferenceTrainers(
   config: { classes: GymClass[]; trainers: Trainer[] },
   ctx: z.RefinementCtx,
@@ -90,6 +108,12 @@ export const GymConfigSchema = BaseConfigSchema.extend({
   classes: z.array(GymClassSchema),
   trainers: z.array(TrainerSchema),
 }).superRefine((config, ctx) => {
+  assertUniqueIds(config.services, "services", ctx);
+  assertUniqueIds(config.staff, "staff", ctx);
+  assertUniqueIds(config.trainers, "trainers", ctx);
+  assertUniqueIds(config.classes, "classes", ctx);
+  assertUniqueIds(config.membershipPlans, "membershipPlans", ctx);
+
   assertClassesReferenceTrainers(config, ctx);
   assertTrainersReferenceStaff(config, ctx);
 });
