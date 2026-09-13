@@ -17,6 +17,14 @@ export function localTimeToInstant(date: string, timezone: string, time: string)
   });
 }
 
+// The [start, end) instants spanning a whole calendar date as observed in
+// the business's own timezone — e.g. for filtering "today's" bookings
+// without naive UTC date matching.
+export function localDayRange(date: string, timezone: string): { start: DateTime; end: DateTime } {
+  const start = DateTime.fromISO(date, { zone: timezone }).startOf("day");
+  return { start, end: start.plus({ days: 1 }) };
+}
+
 // Weekday of a calendar date as observed in the business's own timezone,
 // not the server's — a date can be a different weekday depending on zone.
 export function localWeekday(date: string, timezone: string): Weekday {

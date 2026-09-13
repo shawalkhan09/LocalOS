@@ -3,7 +3,7 @@ import { and, eq, ne } from "drizzle-orm";
 import { Router } from "express";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
-import { CreateClassBookingSchema } from "../validation.js";
+import { CreateClassBookingSchema, DateQuerySchema } from "../validation.js";
 
 export const classBookingsRouter = Router();
 
@@ -48,7 +48,19 @@ classBookingsRouter.post("/class-bookings", async (req, res) => {
   res.status(201).json(classBooking);
 });
 
-classBookingsRouter.get("/class-bookings", async (_req, res) => {
-  const rows = await db.select().from(classBookings).limit(100);
+classBookingsRouter.get("/class-bookings", async (req, res) => {
+  const parsed = DateQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw new ApiError(400, parsed.error.message);
+  }
+  const { date } = parsed.data;
+
+  // occurrenceDate is a plain date column, not an instant — a direct string
+  // match is correct here, no timezone conversion needed (unlike bookings).
+  const rows = await db
+    .select()
+    .from(classBookings)
+    .where(date !== undefined ? eq(classBookings.occurrenceDate, date) : undefined)
+    .limit(100);
   res.json(rows);
 });
