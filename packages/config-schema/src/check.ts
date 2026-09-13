@@ -23,6 +23,10 @@ assert(
   config.businessHours.every((slot) => slot.closeTime > slot.openTime),
   "every business hours slot must close after it opens",
 );
+assert(
+  config.services.every((s) => (s.staffIds ?? []).every((id) => config.staff.some((m) => m.id === id))),
+  "every service staffId must reference a real staff id",
+);
 console.log("OK: gym-demo config.json is valid");
 
 assert.throws(() => parseClientConfig({ business: {} }), "malformed config should throw");
@@ -43,3 +47,11 @@ assert.throws(
   "closeTime at or before openTime should be rejected",
 );
 console.log("OK: business hours with closeTime <= openTime is rejected");
+
+const unknownServiceStaffId = structuredClone(raw);
+unknownServiceStaffId.services[0].staffIds = ["staff-does-not-exist"];
+assert.throws(
+  () => parseClientConfig(unknownServiceStaffId),
+  "unknown service staffId should be rejected",
+);
+console.log("OK: service staffIds referencing an unknown staff id is rejected");

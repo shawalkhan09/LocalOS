@@ -25,7 +25,8 @@
       "description": "60-minute personal training session with a certified trainer.",
       "durationMinutes": 60,
       "price": 85,
-      "category": "training"
+      "category": "training",
+      "staffIds": ["staff-priya", "staff-marcus"]
     },
     {
       "id": "svc-drop-in-class",
