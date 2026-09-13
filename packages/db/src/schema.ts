@@ -25,7 +25,7 @@ export const customers = pgTable(
     name: text("name").notNull(),
     email: text("email"),
     phone: text("phone"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     emailOrPhoneRequired: check(
@@ -47,6 +47,16 @@ export const bookingStatusEnum = pgEnum("booking_status", [
 // a DB table. They're validated against the loaded config at the API layer
 // in step 3 — do not "fix" this into a FK against a table that doesn't
 // exist.
+//
+// startTime/endTime are timestamptz (withTimezone: true), not plain
+// timestamp: they represent unambiguous instants, and availability/conflict
+// logic across a business.timezone depends on that. There is also a
+// GiST EXCLUDE constraint here — `EXCLUDE USING gist (staff_id WITH =,
+// tstzrange(start_time, end_time) WITH &&) WHERE (staff_id IS NOT NULL)` —
+// preventing two overlapping bookings for the same staffId at the DB level.
+// drizzle-orm's pg-core has no EXCLUDE constraint builder, so it's hand-added
+// to the generated migration SQL (see migrations/) instead of expressed
+// here; it requires the btree_gist extension, also hand-added there.
 export const bookings = pgTable("bookings", {
   id: serial("id").primaryKey(),
   customerId: integer("customer_id")
@@ -54,11 +64,11 @@ export const bookings = pgTable("bookings", {
     .references(() => customers.id),
   serviceId: text("service_id").notNull(),
   staffId: text("staff_id"),
-  startTime: timestamp("start_time").notNull(),
-  endTime: timestamp("end_time").notNull(),
+  startTime: timestamp("start_time", { withTimezone: true }).notNull(),
+  endTime: timestamp("end_time", { withTimezone: true }).notNull(),
   status: bookingStatusEnum("status").default("confirmed"),
   noShowRiskScore: numeric("no_show_risk_score"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 export const classBookingStatusEnum = pgEnum("class_booking_status", [
@@ -80,7 +90,7 @@ export const classBookings = pgTable(
     classId: text("class_id").notNull(),
     occurrenceDate: date("occurrence_date").notNull(),
     status: classBookingStatusEnum("status").default("booked"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
     oneBookingPerOccurrence: unique().on(
@@ -109,5 +119,5 @@ export const memberships = pgTable("memberships", {
   startDate: date("start_date").notNull(),
   renewalDate: date("renewal_date"),
   creditsRemaining: integer("credits_remaining"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
