@@ -17,7 +17,7 @@ import { useToast } from "@/components/Toast";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
 
-type ConfirmedEntry = { id: number; label: string };
+type ConfirmedEntry = { id: number; time: string; customerName: string; serviceName: string };
 
 export default function NewBookingPage() {
   const { showToast } = useToast();
@@ -132,8 +132,15 @@ export default function NewBookingPage() {
         startTime: selectedSlot.startTime,
         endTime: selectedSlot.endTime,
       });
-      const label = `${formatTimeInTimezone(selectedSlot.startTime, timezone)} — ${customer.name} — ${service.name}`;
-      setConfirmed((prev) => [{ id: Date.now(), label }, ...prev]);
+      setConfirmed((prev) => [
+        {
+          id: Date.now(),
+          time: formatTimeInTimezone(selectedSlot.startTime, timezone),
+          customerName: customer.name,
+          serviceName: service.name,
+        },
+        ...prev,
+      ]);
       showToast(`Booking confirmed for ${customer.name}.`, "success");
       setSelectedSlot(null);
       setCustomer(null);
@@ -233,7 +240,9 @@ export default function NewBookingPage() {
           <p className={styles.confirmedTitle}>Confirmed this session</p>
           {confirmed.map((c) => (
             <div key={c.id} className={`${styles.confirmedRow} row-confirm`}>
-              {c.label}
+              <span className={styles.confirmedTime}>{c.time}</span>
+              <span>{c.customerName}</span>
+              <span className={styles.confirmedService}>{c.serviceName}</span>
             </div>
           ))}
         </div>

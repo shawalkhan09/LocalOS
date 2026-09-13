@@ -98,7 +98,13 @@ export default function CustomersPage() {
                   <td>{c.name}</td>
                   <td>{c.email ?? "—"}</td>
                   <td>{c.phone ?? "—"}</td>
-                  <td>{new Date(c.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    {new Date(c.createdAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </td>
                 </tr>
               ))
             )}

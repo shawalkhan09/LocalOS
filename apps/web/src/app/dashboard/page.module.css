@@ -24,7 +24,11 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
+}
+
+.panel table {
+  min-width: 480px;
 }
 
 .capacity {

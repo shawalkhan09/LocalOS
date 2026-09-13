@@ -115,9 +115,24 @@
 }
 
 .confirmedRow {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
   font-size: 13px;
   margin-bottom: 6px;
+}
+
+.confirmedTime {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  width: 68px;
+  flex-shrink: 0;
+}
+
+.confirmedService {
+  color: var(--ink-muted);
+  margin-left: auto;
 }
