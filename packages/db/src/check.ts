@@ -68,3 +68,16 @@ assert(
   "expected unique constraint on class_bookings(customer_id, class_id, occurrence_date)",
 );
 console.log("OK: generated migration SQL matches the single-tenant shape");
+
+// Hand-added pieces (not expressible in schema.ts, see the comment on
+// `bookings` there): the btree_gist extension and the staff-overlap
+// EXCLUDE constraint must both still be present after any regeneration.
+assert(sql.includes("CREATE EXTENSION IF NOT EXISTS btree_gist"), "expected btree_gist extension");
+assert(
+  sql.includes(
+    'EXCLUDE USING gist ("staff_id" WITH =, tstzrange("start_time", "end_time") WITH &&) WHERE ("staff_id" IS NOT NULL)',
+  ),
+  "expected staff-overlap EXCLUDE constraint on bookings",
+);
+assert(/timestamp with time zone/.test(sql), "expected timestamptz columns, not naive timestamp");
+console.log("OK: generated migration SQL includes the hand-added overlap protection");
