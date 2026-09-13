@@ -1,0 +1,8 @@
+{
+  "name": "localos",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
