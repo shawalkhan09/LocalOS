@@ -6,8 +6,23 @@ import { classBookingsRouter } from "./routes/classBookings.js";
 import { customersRouter } from "./routes/customers.js";
 import { membershipsRouter } from "./routes/memberships.js";
 
-function isPgError(err: unknown): err is { code: string; detail?: string } {
-  return typeof err === "object" && err !== null && "code" in err;
+type PgError = { code: string; detail?: string };
+
+function isPgError(value: unknown): value is PgError {
+  return typeof value === "object" && value !== null && "code" in value;
+}
+
+// drizzle-orm wraps the raw postgres.js error in a DrizzleQueryError before
+// throwing it, so the real PostgresError (with `.code`/`.detail`) lives one
+// level deeper, at `err.cause` — not on `err` itself. Check both.
+function findPgError(err: unknown): PgError | undefined {
+  if (isPgError(err)) {
+    return err;
+  }
+  if (err instanceof Error && isPgError(err.cause)) {
+    return err.cause;
+  }
+  return undefined;
 }
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
@@ -15,12 +30,13 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     res.status(err.status).json({ error: err.message });
     return;
   }
-  if (isPgError(err) && err.code === "23505") {
-    res.status(409).json({ error: `duplicate: ${err.detail ?? "constraint violated"}` });
+  const pgError = findPgError(err);
+  if (pgError?.code === "23505") {
+    res.status(409).json({ error: `duplicate: ${pgError.detail ?? "constraint violated"}` });
     return;
   }
-  if (isPgError(err) && err.code === "23503") {
-    res.status(400).json({ error: `referenced row does not exist: ${err.detail ?? ""}` });
+  if (pgError?.code === "23503") {
+    res.status(400).json({ error: `referenced row does not exist: ${pgError.detail ?? ""}` });
     return;
   }
   console.error(err);
