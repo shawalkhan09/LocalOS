@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BaseConfigSchema, BaseFeaturesSchema, WeekdaySchema } from "./base.js";
+import { assertBusinessHoursValid, BaseConfigSchema, BaseFeaturesSchema, WeekdaySchema } from "./base.js";
 
 export const GymFeaturesSchema = BaseFeaturesSchema.extend({
   classSchedule: z.boolean().default(true),
@@ -106,6 +106,7 @@ export const GymConfigSchema = BaseConfigSchema.extend({
 
   assertClassesReferenceTrainers(config, ctx);
   assertTrainersReferenceStaff(config, ctx);
+  assertBusinessHoursValid(config, ctx);
 });
 
 export type GymFeatures = z.infer<typeof GymFeaturesSchema>;

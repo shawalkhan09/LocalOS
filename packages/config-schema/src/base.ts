@@ -51,6 +51,13 @@ export const StaffMemberSchema = z.object({
   bio: z.string().optional(),
 });
 
+// A day with no entry here means closed that day — no separate isClosed flag.
+export const BusinessHoursSlotSchema = z.object({
+  day: WeekdaySchema,
+  openTime: z.string().regex(/^\d{2}:\d{2}$/, "expected HH:MM"),
+  closeTime: z.string().regex(/^\d{2}:\d{2}$/, "expected HH:MM"),
+});
+
 export const BookingSettingsSchema = z.object({
   advanceBookingDays: z.number().int().nonnegative(),
   cancellationWindowHours: z.number().int().nonnegative(),
@@ -72,10 +79,31 @@ export const BaseConfigSchema = z.object({
   services: z.array(ServiceSchema).min(1),
   staff: z.array(StaffMemberSchema),
   booking: BookingSettingsSchema,
+  businessHours: z.array(BusinessHoursSlotSchema),
   features: BaseFeaturesSchema,
 });
 
+// Vertical-agnostic: every business type needs its hours checked, not just
+// gyms. BaseConfigSchema itself stays a plain ZodObject (so verticals can
+// still .extend() it), so this is called from each vertical's own
+// superRefine rather than attached here directly.
+export function assertBusinessHoursValid(
+  config: { businessHours: BusinessHoursSlot[] },
+  ctx: z.RefinementCtx,
+): void {
+  config.businessHours.forEach((slot, index) => {
+    if (slot.closeTime <= slot.openTime) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["businessHours", index, "closeTime"],
+        message: `closeTime "${slot.closeTime}" must be after openTime "${slot.openTime}"`,
+      });
+    }
+  });
+}
+
 export type Weekday = z.infer<typeof WeekdaySchema>;
+export type BusinessHoursSlot = z.infer<typeof BusinessHoursSlotSchema>;
 export type Address = z.infer<typeof AddressSchema>;
 export type Business = z.infer<typeof BusinessSchema>;
 export type Contact = z.infer<typeof ContactSchema>;
