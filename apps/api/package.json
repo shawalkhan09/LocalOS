@@ -1,0 +1,25 @@
+{
+  "name": "@localos/api",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "check": "tsx src/check.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@localos/config-schema": "*",
+    "@localos/db": "*",
+    "express": "^5.2.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "typescript": "^5.5.4",
+    "tsx": "^4.16.2",
+    "@types/node": "^20.14.11"
+  }
+}
