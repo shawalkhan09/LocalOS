@@ -39,6 +39,10 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     res.status(400).json({ error: `referenced row does not exist: ${pgError.detail ?? ""}` });
     return;
   }
+  if (pgError?.code === "23P01") {
+    res.status(409).json({ error: `conflicting booking: ${pgError.detail ?? "overlaps an existing booking"}` });
+    return;
+  }
   console.error(err);
   res.status(500).json({ error: "internal server error" });
 };
