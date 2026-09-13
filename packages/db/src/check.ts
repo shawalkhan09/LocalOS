@@ -13,6 +13,8 @@ const tables = {
   bookings: schema.bookings,
   classBookings: schema.classBookings,
   memberships: schema.memberships,
+  users: schema.users,
+  sessions: schema.sessions,
 } as const;
 
 for (const [name, table] of Object.entries(tables)) {
@@ -27,6 +29,10 @@ assert(
   "classBookings must have an occurrenceDate column",
 );
 assert(getTableColumns(schema.memberships).planId, "memberships must have a planId column");
+assert(getTableColumns(schema.users).email, "users must have an email column");
+assert(getTableColumns(schema.users).passwordHash, "users must have a passwordHash column");
+assert(getTableColumns(schema.sessions).userId, "sessions must have a userId column");
+assert(getTableColumns(schema.sessions).expiresAt, "sessions must have an expiresAt column");
 console.log("OK: schema exposes the expected single-tenant tables and columns");
 
 // Migration output: confirm the catalog tables are really gone and that
@@ -61,6 +67,11 @@ assert(
   ),
   "expected memberships -> customers FK in migration SQL",
 );
+assert(
+  sql.includes('ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk"'),
+  "expected sessions -> users FK in migration SQL",
+);
+assert(sql.includes('CONSTRAINT "users_email_unique" UNIQUE("email")'), "expected unique email on users");
 assert(
   sql.includes(
     'CONSTRAINT "class_bookings_customer_id_class_id_occurrence_date_unique" UNIQUE("customer_id","class_id","occurrence_date")',
