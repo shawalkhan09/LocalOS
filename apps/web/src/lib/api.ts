@@ -11,12 +11,29 @@ export class ApiRequestError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+// redirectOn401 defaults to true: any dashboard data-fetch that gets a 401
+// (session expired or invalidated server-side, stale cookie still present
+// client-side) sends the user back to /login from this one place, rather
+// than every call site duplicating that check. The one call that must NOT
+// redirect is login itself, where a 401 means "wrong password," a normal
+// error to show on the login page, not a reason to leave it.
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  { redirectOn401 = true }: { redirectOn401?: boolean } = {},
+): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: { "Content-Type": "application/json", ...init?.headers },
+    headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web", ...init?.headers },
+    credentials: "include",
     cache: "no-store",
   });
+  if (res.status === 401 && redirectOn401 && typeof window !== "undefined") {
+    window.location.href = "/login";
+  }
+  if (res.status === 204) {
+    return undefined as T;
+  }
   if (!res.ok) {
     const body: unknown = await res.json().catch(() => ({}));
     const message =
@@ -26,6 +43,24 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new ApiRequestError(res.status, message);
   }
   return res.json() as Promise<T>;
+}
+
+export type SessionUser = { email: string; role: "owner" | "staff" };
+
+export function login(email: string, password: string): Promise<SessionUser> {
+  return request<SessionUser>(
+    "/auth/login",
+    { method: "POST", body: JSON.stringify({ email, password }) },
+    { redirectOn401: false },
+  );
+}
+
+export function logout(): Promise<void> {
+  return request<void>("/auth/logout", { method: "POST" }, { redirectOn401: false });
+}
+
+export function getMe(): Promise<SessionUser> {
+  return request<SessionUser>("/auth/me");
 }
 
 export function getCatalog(): Promise<ClientConfig> {
