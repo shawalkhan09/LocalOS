@@ -18,6 +18,11 @@ assert(
   config.trainers.every((t) => config.staff.some((s) => s.id === t.staffId)),
   "every trainer must reference a real staff id",
 );
+assert(config.businessHours.length > 0, "expected at least one business hours slot");
+assert(
+  config.businessHours.every((slot) => slot.closeTime > slot.openTime),
+  "every business hours slot must close after it opens",
+);
 console.log("OK: gym-demo config.json is valid");
 
 assert.throws(() => parseClientConfig({ business: {} }), "malformed config should throw");
@@ -30,3 +35,11 @@ assert.throws(
   "duplicate service id should be rejected",
 );
 console.log("OK: duplicate id within an array is rejected");
+
+const closeTimeBeforeOpenTime = structuredClone(raw);
+closeTimeBeforeOpenTime.businessHours[0].closeTime = "04:00"; // before that day's 05:00 openTime
+assert.throws(
+  () => parseClientConfig(closeTimeBeforeOpenTime),
+  "closeTime at or before openTime should be rejected",
+);
+console.log("OK: business hours with closeTime <= openTime is rejected");
