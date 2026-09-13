@@ -58,4 +58,11 @@ assert.strictEqual(catalog.business.name, clientConfig.business.name);
 assert.strictEqual(catalog.services.length, clientConfig.services.length);
 console.log("OK: /health and /catalog serve the loaded config");
 
+// Auth boundary: a protected route must 401 without a session, and this
+// doesn't need a live DB — no cookie means requireAuth rejects before ever
+// querying the sessions table.
+const unauthed = await fetch(`${baseUrl}/customers`);
+assert.strictEqual(unauthed.status, 401);
+console.log("OK: a protected route rejects requests with no session");
+
 server.close();

@@ -1,11 +1,16 @@
 import express, { type ErrorRequestHandler } from "express";
+import { requireAuth } from "./auth/middleware.js";
 import { ApiError } from "./errors.js";
+import { authRouter } from "./routes/auth.js";
 import { availabilityRouter } from "./routes/availability.js";
 import { bookingsRouter } from "./routes/bookings.js";
 import { catalogRouter } from "./routes/catalog.js";
 import { classBookingsRouter } from "./routes/classBookings.js";
 import { customersRouter } from "./routes/customers.js";
 import { membershipsRouter } from "./routes/memberships.js";
+
+const CLIENT_HEADER_NAME = "x-localos-client";
+const CLIENT_HEADER_VALUE = "web";
 
 type PgError = { code: string; detail?: string };
 
@@ -50,15 +55,21 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
 
 export function createApp() {
   const app = express();
+  // Trust the first hop's X-Forwarded-For (typical single-reverse-proxy
+  // deployment) so req.ip reflects the real client for rate limiting,
+  // rather than the proxy's own address.
+  app.set("trust proxy", 1);
   app.use(express.json());
 
-  // apps/web calls this API cross-origin from the browser. No auth or
-  // cookies exist yet (same accepted gap as the rest of the API), so a
-  // permissive origin is fine for now rather than a dependency for it.
+  // Cookies are now in play (session auth), so the origin can no longer be
+  // a wildcard — browsers refuse to combine "*" with credentialed
+  // requests anyway. ALLOWED_ORIGIN must be the exact frontend origin.
+  const allowedOrigin = process.env.ALLOWED_ORIGIN ?? "http://localhost:3001";
   app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Origin", allowedOrigin);
+    res.header("Access-Control-Allow-Credentials", "true");
     res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type");
+    res.header("Access-Control-Allow-Headers", `Content-Type, ${CLIENT_HEADER_NAME}`);
     if (req.method === "OPTIONS") {
       res.sendStatus(204);
       return;
@@ -66,10 +77,31 @@ export function createApp() {
     next();
   });
 
+  // CSRF mitigation: SameSite=None (required for the cross-origin session
+  // cookie) provides no CSRF protection on its own — a form on any other
+  // site could still submit a cross-site POST with the cookie attached.
+  // Requiring this custom header forces the browser to send a CORS
+  // preflight first, which only succeeds from the allowed origin above.
+  // Not a full CSRF token system, but adequate for this scale.
+  app.use((req, res, next) => {
+    if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") {
+      next();
+      return;
+    }
+    if (req.header(CLIENT_HEADER_NAME) !== CLIENT_HEADER_VALUE) {
+      res.status(403).json({ error: `missing or invalid ${CLIENT_HEADER_NAME} header` });
+      return;
+    }
+    next();
+  });
+
+  app.use(requireAuth);
+
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
   });
 
+  app.use(authRouter);
   app.use(catalogRouter);
   app.use(customersRouter);
   app.use(availabilityRouter);
