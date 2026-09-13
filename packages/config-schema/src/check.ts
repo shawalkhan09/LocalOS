@@ -14,7 +14,19 @@ assert(
   config.classes.every((c) => config.trainers.some((t) => t.id === c.trainerId)),
   "every class must reference a real trainer",
 );
+assert(
+  config.trainers.every((t) => config.staff.some((s) => s.id === t.staffId)),
+  "every trainer must reference a real staff id",
+);
 console.log("OK: gym-demo config.json is valid");
 
 assert.throws(() => parseClientConfig({ business: {} }), "malformed config should throw");
 console.log("OK: malformed config is rejected");
+
+const duplicateServiceId = structuredClone(raw);
+duplicateServiceId.services[1].id = duplicateServiceId.services[0].id;
+assert.throws(
+  () => parseClientConfig(duplicateServiceId),
+  "duplicate service id should be rejected",
+);
+console.log("OK: duplicate id within an array is rejected");
