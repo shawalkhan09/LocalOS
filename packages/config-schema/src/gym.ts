@@ -1,0 +1,67 @@
+import { z } from "zod";
+import { BaseConfigSchema, BaseFeaturesSchema } from "./base.js";
+
+export const GymFeaturesSchema = BaseFeaturesSchema.extend({
+  classSchedule: z.boolean().default(true),
+  membershipTiers: z.boolean().default(true),
+  trainerBooking: z.boolean().default(false),
+  dropInBooking: z.boolean().default(false),
+  waiverRequired: z.boolean().default(false),
+});
+
+export const MembershipPlanSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  price: z.number().nonnegative(),
+  billingInterval: z.enum(["monthly", "annual", "week", "day"]),
+  description: z.string().optional(),
+  perks: z.array(z.string()).optional(),
+});
+
+export const TrainerSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  bio: z.string().optional(),
+  specialties: z.array(z.string()).optional(),
+  certifications: z.array(z.string()).optional(),
+  photoUrl: z.string().url().optional(),
+});
+
+const WeekdaySchema = z.enum([
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+]);
+
+export const ClassScheduleSlotSchema = z.object({
+  day: WeekdaySchema,
+  startTime: z.string().regex(/^\d{2}:\d{2}$/, "expected HH:MM"),
+});
+
+export const GymClassSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  trainerId: z.string().min(1),
+  durationMinutes: z.number().int().positive(),
+  capacity: z.number().int().positive(),
+  schedule: z.array(ClassScheduleSlotSchema).min(1),
+  category: z.string().optional(),
+});
+
+export const GymConfigSchema = BaseConfigSchema.extend({
+  features: GymFeaturesSchema,
+  membershipPlans: z.array(MembershipPlanSchema),
+  classes: z.array(GymClassSchema),
+  trainers: z.array(TrainerSchema),
+});
+
+export type GymFeatures = z.infer<typeof GymFeaturesSchema>;
+export type MembershipPlan = z.infer<typeof MembershipPlanSchema>;
+export type Trainer = z.infer<typeof TrainerSchema>;
+export type ClassScheduleSlot = z.infer<typeof ClassScheduleSlotSchema>;
+export type GymClass = z.infer<typeof GymClassSchema>;
+export type GymConfig = z.infer<typeof GymConfigSchema>;
