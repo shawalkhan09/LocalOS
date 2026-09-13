@@ -1,172 +1,113 @@
+import { sql } from "drizzle-orm";
 import {
-  boolean,
-  foreignKey,
+  check,
+  date,
   integer,
-  jsonb,
   numeric,
   pgEnum,
   pgTable,
-  primaryKey,
   serial,
   text,
   timestamp,
+  unique,
 } from "drizzle-orm/pg-core";
 
-// Every client-owned table is keyed by (clientId, id) rather than a global id:
-// catalog ids come from each client's config.json and are only meant to be
-// unique within that client, same as the zod validation in @localos/config-schema.
+// Single-tenant: one deployment serves exactly one client. Catalog data
+// (services, staff, trainers, classes, membership plans) lives in that
+// client's config.json, loaded via @localos/config-schema at runtime — it
+// is not duplicated here. This schema only persists dynamic, per-customer
+// runtime data.
 
-export const weekdayEnum = pgEnum("weekday", [
-  "monday",
-  "tuesday",
-  "wednesday",
-  "thursday",
-  "friday",
-  "saturday",
-  "sunday",
-]);
-
-export const billingIntervalEnum = pgEnum("billing_interval", [
-  "monthly",
-  "annual",
-  "week",
-  "day",
-]);
-
-export const clients = pgTable("clients", {
-  id: text("id").primaryKey(), // slug, e.g. "gym-demo"
-  businessName: text("business_name").notNull(),
-  legalName: text("legal_name"),
-  timezone: text("timezone").notNull(),
-  currency: text("currency").notNull(),
-  description: text("description"),
-  contactEmail: text("contact_email").notNull(),
-  contactPhone: text("contact_phone").notNull(),
-  contactWebsite: text("contact_website"),
-  addressStreet: text("address_street").notNull(),
-  addressCity: text("address_city").notNull(),
-  addressState: text("address_state").notNull(),
-  addressZip: text("address_zip").notNull(),
-  addressCountry: text("address_country").notNull(),
-  advanceBookingDays: integer("advance_booking_days").notNull(),
-  cancellationWindowHours: integer("cancellation_window_hours").notNull(),
-  slotIntervalMinutes: integer("slot_interval_minutes").notNull(),
-  requireDeposit: boolean("require_deposit").notNull().default(false),
-  depositAmount: numeric("deposit_amount"),
-  features: jsonb("features").notNull().default({}),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
-
-export const services = pgTable(
-  "services",
-  {
-    clientId: text("client_id")
-      .notNull()
-      .references(() => clients.id),
-    id: text("id").notNull(),
-    name: text("name").notNull(),
-    description: text("description"),
-    durationMinutes: integer("duration_minutes").notNull(),
-    price: numeric("price").notNull(),
-    category: text("category"),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.clientId, table.id] }),
-  }),
-);
-
-export const staff = pgTable(
-  "staff",
-  {
-    clientId: text("client_id")
-      .notNull()
-      .references(() => clients.id),
-    id: text("id").notNull(),
-    name: text("name").notNull(),
-    role: text("role").notNull(),
-    email: text("email"),
-    phone: text("phone"),
-    bio: text("bio"),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.clientId, table.id] }),
-  }),
-);
-
-export const trainers = pgTable(
-  "trainers",
-  {
-    clientId: text("client_id").notNull(),
-    id: text("id").notNull(),
-    staffId: text("staff_id").notNull(),
-    bio: text("bio"),
-    specialties: text("specialties").array(),
-    certifications: text("certifications").array(),
-    photoUrl: text("photo_url"),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.clientId, table.id] }),
-    staffFk: foreignKey({
-      columns: [table.clientId, table.staffId],
-      foreignColumns: [staff.clientId, staff.id],
-    }),
-  }),
-);
-
-export const membershipPlans = pgTable(
-  "membership_plans",
-  {
-    clientId: text("client_id")
-      .notNull()
-      .references(() => clients.id),
-    id: text("id").notNull(),
-    name: text("name").notNull(),
-    price: numeric("price").notNull(),
-    billingInterval: billingIntervalEnum("billing_interval").notNull(),
-    description: text("description"),
-    perks: text("perks").array(),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.clientId, table.id] }),
-  }),
-);
-
-export const gymClasses = pgTable(
-  "gym_classes",
-  {
-    clientId: text("client_id").notNull(),
-    id: text("id").notNull(),
-    name: text("name").notNull(),
-    trainerId: text("trainer_id").notNull(),
-    durationMinutes: integer("duration_minutes").notNull(),
-    capacity: integer("capacity").notNull(),
-    category: text("category"),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.clientId, table.id] }),
-    trainerFk: foreignKey({
-      columns: [table.clientId, table.trainerId],
-      foreignColumns: [trainers.clientId, trainers.id],
-    }),
-  }),
-);
-
-// Schedule slots have no natural id in config-schema (just {day, startTime}
-// inside classes[].schedule), so this table alone uses a surrogate key.
-export const classScheduleSlots = pgTable(
-  "class_schedule_slots",
+export const customers = pgTable(
+  "customers",
   {
     id: serial("id").primaryKey(),
-    clientId: text("client_id").notNull(),
-    classId: text("class_id").notNull(),
-    day: weekdayEnum("day").notNull(),
-    startTime: text("start_time").notNull(), // "HH:MM"
+    name: text("name").notNull(),
+    email: text("email"),
+    phone: text("phone"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (table) => ({
-    classFk: foreignKey({
-      columns: [table.clientId, table.classId],
-      foreignColumns: [gymClasses.clientId, gymClasses.id],
-    }),
+    emailOrPhoneRequired: check(
+      "customers_email_or_phone_required",
+      sql`${table.email} IS NOT NULL OR ${table.phone} IS NOT NULL`,
+    ),
   }),
 );
+
+export const bookingStatusEnum = pgEnum("booking_status", [
+  "confirmed",
+  "cancelled",
+  "completed",
+  "no_show",
+]);
+
+// serviceId/staffId are ids from config.json (e.g. "svc-personal-training"),
+// not foreign keys: the catalog they reference lives in config.json, not in
+// a DB table. They're validated against the loaded config at the API layer
+// in step 3 — do not "fix" this into a FK against a table that doesn't
+// exist.
+export const bookings = pgTable("bookings", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id")
+    .notNull()
+    .references(() => customers.id),
+  serviceId: text("service_id").notNull(),
+  staffId: text("staff_id"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  status: bookingStatusEnum("status").default("confirmed"),
+  noShowRiskScore: numeric("no_show_risk_score"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const classBookingStatusEnum = pgEnum("class_booking_status", [
+  "booked",
+  "attended",
+  "no_show",
+  "cancelled",
+]);
+
+// classId is a config.json id, same reasoning as bookings.serviceId above:
+// not a FK, validated against the loaded config at the API layer.
+export const classBookings = pgTable(
+  "class_bookings",
+  {
+    id: serial("id").primaryKey(),
+    customerId: integer("customer_id")
+      .notNull()
+      .references(() => customers.id),
+    classId: text("class_id").notNull(),
+    occurrenceDate: date("occurrence_date").notNull(),
+    status: classBookingStatusEnum("status").default("booked"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    oneBookingPerOccurrence: unique().on(
+      table.customerId,
+      table.classId,
+      table.occurrenceDate,
+    ),
+  }),
+);
+
+export const membershipStatusEnum = pgEnum("membership_status", [
+  "active",
+  "paused",
+  "cancelled",
+]);
+
+// planId is a config.json id, same reasoning as bookings.serviceId above:
+// not a FK, validated against the loaded config at the API layer.
+export const memberships = pgTable("memberships", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id")
+    .notNull()
+    .references(() => customers.id),
+  planId: text("plan_id").notNull(),
+  status: membershipStatusEnum("status").default("active"),
+  startDate: date("start_date").notNull(),
+  renewalDate: date("renewal_date"),
+  creditsRemaining: integer("credits_remaining"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
