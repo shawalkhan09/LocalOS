@@ -20,7 +20,7 @@ export const MembershipPlanSchema = z.object({
 
 export const TrainerSchema = z.object({
   id: z.string().min(1),
-  name: z.string().min(1),
+  staffId: z.string().min(1),
   bio: z.string().optional(),
   specialties: z.array(z.string()).optional(),
   certifications: z.array(z.string()).optional(),
@@ -52,12 +52,10 @@ export const GymClassSchema = z.object({
   category: z.string().optional(),
 });
 
-export const GymConfigSchema = BaseConfigSchema.extend({
-  features: GymFeaturesSchema,
-  membershipPlans: z.array(MembershipPlanSchema),
-  classes: z.array(GymClassSchema),
-  trainers: z.array(TrainerSchema),
-}).superRefine((config, ctx) => {
+function assertClassesReferenceTrainers(
+  config: { classes: GymClass[]; trainers: Trainer[] },
+  ctx: z.RefinementCtx,
+): void {
   const trainerIds = new Set(config.trainers.map((trainer) => trainer.id));
   config.classes.forEach((gymClass, index) => {
     if (!trainerIds.has(gymClass.trainerId)) {
@@ -68,6 +66,32 @@ export const GymConfigSchema = BaseConfigSchema.extend({
       });
     }
   });
+}
+
+function assertTrainersReferenceStaff(
+  config: { trainers: Trainer[]; staff: { id: string }[] },
+  ctx: z.RefinementCtx,
+): void {
+  const staffIds = new Set(config.staff.map((member) => member.id));
+  config.trainers.forEach((trainer, index) => {
+    if (!staffIds.has(trainer.staffId)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["trainers", index, "staffId"],
+        message: `staffId "${trainer.staffId}" does not match any staff id`,
+      });
+    }
+  });
+}
+
+export const GymConfigSchema = BaseConfigSchema.extend({
+  features: GymFeaturesSchema,
+  membershipPlans: z.array(MembershipPlanSchema),
+  classes: z.array(GymClassSchema),
+  trainers: z.array(TrainerSchema),
+}).superRefine((config, ctx) => {
+  assertClassesReferenceTrainers(config, ctx);
+  assertTrainersReferenceStaff(config, ctx);
 });
 
 export type GymFeatures = z.infer<typeof GymFeaturesSchema>;
