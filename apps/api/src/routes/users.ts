@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { Router } from "express";
 import { requireOwner } from "../auth/middleware.js";
 import { hashPassword } from "../auth/password.js";
-import { clientConfig } from "../config.js";
+import { assertStaffExists } from "../bookingRules.js";
 import { ApiError } from "../errors.js";
 import { CreateUserSchema, UpdateUserSchema } from "../validation.js";
 
@@ -34,8 +34,8 @@ usersRouter.post("/users", async (req, res) => {
   }
   const { email, password, staffId } = parsed.data;
 
-  if (staffId !== undefined && !clientConfig.staff.some((s) => s.id === staffId)) {
-    throw new ApiError(400, `unknown staffId "${staffId}"`);
+  if (staffId !== undefined) {
+    await assertStaffExists(staffId);
   }
 
   // A duplicate email hits the existing users.email unique constraint and
@@ -79,8 +79,8 @@ usersRouter.patch("/users/:id", async (req, res) => {
     throw new ApiError(400, "you cannot deactivate your own account");
   }
 
-  if (staffId !== undefined && staffId !== null && !clientConfig.staff.some((s) => s.id === staffId)) {
-    throw new ApiError(400, `unknown staffId "${staffId}"`);
+  if (staffId !== undefined && staffId !== null) {
+    await assertStaffExists(staffId);
   }
 
   // Only include keys that were actually provided — status/staffId are

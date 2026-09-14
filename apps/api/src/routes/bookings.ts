@@ -18,7 +18,7 @@ bookingsRouter.post("/bookings", async (req, res) => {
   const { customerId, serviceId, staffId, startTime, endTime } = parsed.data;
 
   const service = findService(clientConfig, serviceId);
-  assertStaffQualified(clientConfig, service, staffId);
+  await assertStaffQualified(service, staffId);
 
   // Friendly, immediate check — the DB's EXCLUDE constraint (see
   // packages/db/src/schema.ts) is the actual guarantee if two requests race

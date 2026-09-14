@@ -33,7 +33,7 @@ publicRouter.post("/public/bookings", async (req, res) => {
   const { customerName, customerEmail, customerPhone, serviceId, staffId, startTime, endTime } = parsed.data;
 
   const service = findService(clientConfig, serviceId);
-  assertStaffQualified(clientConfig, service, staffId);
+  await assertStaffQualified(service, staffId);
 
   // Same overlap check as the staff route (routes/bookings.ts) via the
   // shared findOverlappingBooking — only the wording differs here, since a

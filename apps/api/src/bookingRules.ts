@@ -1,5 +1,5 @@
-import type { ClientConfig } from "@localos/config-schema";
-import { bookings, classBookings, customers, db, type Customer } from "@localos/db";
+import type { GymConfig } from "@localos/config-schema";
+import { bookings, classBookings, customers, db, staff, type Customer } from "@localos/db";
 import { and, eq, inArray, ne, sql } from "drizzle-orm";
 import { ApiError } from "./errors.js";
 
@@ -14,7 +14,7 @@ import { ApiError } from "./errors.js";
 // are worded per-caller at the route level instead, see routes/bookings.ts
 // and routes/public.ts.
 
-export function findService(config: ClientConfig, serviceId: string): ClientConfig["services"][number] {
+export function findService(config: GymConfig, serviceId: string): GymConfig["services"][number] {
   const service = config.services.find((s) => s.id === serviceId);
   if (!service) {
     throw new ApiError(400, `unknown serviceId "${serviceId}"`);
@@ -22,7 +22,7 @@ export function findService(config: ClientConfig, serviceId: string): ClientConf
   return service;
 }
 
-export function findGymClass(config: ClientConfig, classId: string): ClientConfig["classes"][number] {
+export function findGymClass(config: GymConfig, classId: string): GymConfig["classes"][number] {
   const gymClass = config.classes.find((c) => c.id === classId);
   if (!gymClass) {
     throw new ApiError(400, `unknown classId "${classId}"`);
@@ -30,13 +30,23 @@ export function findGymClass(config: ClientConfig, classId: string): ClientConfi
   return gymClass;
 }
 
-export function assertStaffQualified(
-  config: ClientConfig,
-  service: ClientConfig["services"][number],
-  staffId: string | undefined,
-): void {
-  if (staffId !== undefined && !config.staff.some((s) => s.id === staffId)) {
+// Staff moved from config.json into the database this round (see
+// packages/db's `staff` table), so this is now a DB lookup instead of a
+// config.staff scan — same 400-if-not-found contract as findService/
+// findGymClass above.
+export async function assertStaffExists(staffId: string): Promise<void> {
+  const [row] = await db.select({ id: staff.id }).from(staff).where(eq(staff.id, staffId)).limit(1);
+  if (!row) {
     throw new ApiError(400, `unknown staffId "${staffId}"`);
+  }
+}
+
+export async function assertStaffQualified(
+  service: GymConfig["services"][number],
+  staffId: string | undefined,
+): Promise<void> {
+  if (staffId !== undefined) {
+    await assertStaffExists(staffId);
   }
   if (service.staffIds && service.staffIds.length > 0) {
     if (staffId === undefined || !service.staffIds.includes(staffId)) {

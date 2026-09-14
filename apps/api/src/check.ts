@@ -1,4 +1,5 @@
 import assert from "node:assert";
+import { db } from "@localos/db";
 import { createApp } from "./app.js";
 import { clientConfig } from "./config.js";
 import {
@@ -76,9 +77,10 @@ assert(
 assert(!UpdateUserSchema.safeParse({}).success, "an update with no fields at all should be rejected");
 console.log("OK: request validation rejects and accepts the expected shapes");
 
-// HTTP layer: boot the app on an ephemeral port and exercise the routes that
-// don't need a live DB. Catalog is read-only from the already-validated
-// config; write routes need Postgres and aren't covered by this check.
+// HTTP layer: boot the app on an ephemeral port and exercise it. Catalog
+// now queries Postgres too (staff/trainers are database-backed — see
+// routes/catalog.ts), so unlike the write routes below, this check does
+// need a reachable, migrated DATABASE_URL to pass.
 const app = createApp();
 const server = app.listen(0);
 await new Promise((resolve) => server.once("listening", resolve));
@@ -94,7 +96,12 @@ assert.deepStrictEqual(health, { ok: true });
 const catalog = await fetch(`${baseUrl}/catalog`).then((r) => r.json());
 assert.strictEqual(catalog.business.name, clientConfig.business.name);
 assert.strictEqual(catalog.services.length, clientConfig.services.length);
-console.log("OK: /health and /catalog serve the loaded config");
+assert(Array.isArray(catalog.staff) && catalog.staff.length > 0, "catalog should include staff from the database");
+assert(
+  Array.isArray(catalog.trainers) && catalog.trainers.length > 0,
+  "catalog should include trainers from the database",
+);
+console.log("OK: /health and /catalog serve the loaded config plus database-backed staff/trainers");
 
 // Auth boundary: a protected route must 401 without a session, and this
 // doesn't need a live DB — no cookie means requireAuth rejects before ever
@@ -127,3 +134,9 @@ assert.notStrictEqual(publicClassBookingAttempt.status, 401);
 console.log("OK: public booking routes are reachable without a session");
 
 server.close();
+
+// GET /catalog now queries Postgres (see routes/catalog.ts), so this
+// process holds an open connection pool by the time it gets here — without
+// closing it explicitly, node has no reason to exit and this script would
+// hang forever instead of completing.
+await db.$client.end();

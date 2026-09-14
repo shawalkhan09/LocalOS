@@ -8,6 +8,7 @@ import {
   localWeekday,
   overlaps,
 } from "../availability.js";
+import { assertStaffExists } from "../bookingRules.js";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
 
@@ -30,8 +31,8 @@ availabilityRouter.get("/bookings/check-availability", async (req, res) => {
   if (!service) {
     throw new ApiError(400, `unknown serviceId "${serviceId}"`);
   }
-  if (staffId !== undefined && !clientConfig.staff.some((s) => s.id === staffId)) {
-    throw new ApiError(400, `unknown staffId "${staffId}"`);
+  if (staffId !== undefined) {
+    await assertStaffExists(staffId);
   }
 
   const timezone = clientConfig.business.timezone;
