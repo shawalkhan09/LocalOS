@@ -1,5 +1,5 @@
 {
-  "id": "61070669-6cf0-4d0e-ada3-b95de4080a21",
+  "id": "5089bb9c-3a83-4ce0-ac00-33ded52aaf9e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -372,6 +372,14 @@
           "primaryKey": false,
           "notNull": true
         },
+        "status": {
+          "name": "status",
+          "type": "user_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
         "staff_id": {
           "name": "staff_id",
           "type": "text",
@@ -439,6 +447,14 @@
       "values": [
         "owner",
         "staff"
+      ]
+    },
+    "public.user_status": {
+      "name": "user_status",
+      "schema": "public",
+      "values": [
+        "active",
+        "deactivated"
       ]
     }
   },

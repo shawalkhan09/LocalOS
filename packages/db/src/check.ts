@@ -31,6 +31,7 @@ assert(
 assert(getTableColumns(schema.memberships).planId, "memberships must have a planId column");
 assert(getTableColumns(schema.users).email, "users must have an email column");
 assert(getTableColumns(schema.users).passwordHash, "users must have a passwordHash column");
+assert(getTableColumns(schema.users).status, "users must have a status column");
 assert(getTableColumns(schema.sessions).userId, "sessions must have a userId column");
 assert(getTableColumns(schema.sessions).expiresAt, "sessions must have an expiresAt column");
 console.log("OK: schema exposes the expected single-tenant tables and columns");
@@ -72,6 +73,7 @@ assert(
   "expected sessions -> users FK in migration SQL",
 );
 assert(sql.includes('CONSTRAINT "users_email_unique" UNIQUE("email")'), "expected unique email on users");
+assert(sql.includes(`"status" "user_status" DEFAULT 'active' NOT NULL`), "expected a not-null status column defaulting to active on users");
 assert(
   sql.includes(
     'CONSTRAINT "class_bookings_customer_id_class_id_occurrence_date_unique" UNIQUE("customer_id","class_id","occurrence_date")',

@@ -7,6 +7,7 @@ CREATE TYPE "public"."booking_status" AS ENUM('confirmed', 'cancelled', 'complet
 CREATE TYPE "public"."class_booking_status" AS ENUM('booked', 'attended', 'no_show', 'cancelled');--> statement-breakpoint
 CREATE TYPE "public"."membership_status" AS ENUM('active', 'paused', 'cancelled');--> statement-breakpoint
 CREATE TYPE "public"."user_role" AS ENUM('owner', 'staff');--> statement-breakpoint
+CREATE TYPE "public"."user_status" AS ENUM('active', 'deactivated');--> statement-breakpoint
 CREATE TABLE "bookings" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"customer_id" integer NOT NULL,
@@ -61,6 +62,7 @@ CREATE TABLE "users" (
 	"email" text NOT NULL,
 	"password_hash" text NOT NULL,
 	"role" "user_role" NOT NULL,
+	"status" "user_status" DEFAULT 'active' NOT NULL,
 	"staff_id" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
