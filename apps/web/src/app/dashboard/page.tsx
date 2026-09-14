@@ -21,6 +21,33 @@ import styles from "./page.module.css";
 // the full schedule; that's fine for a single front-desk device today, not
 // for a public deployment.
 
+// Same three-bucket thresholds a client could be told plainly: below 0.34
+// is Low, 0.34–0.66 is Medium, 0.67 and up is High. Staff see a bucket,
+// not a raw decimal — nobody should need to judge 0.34 vs 0.61 at a
+// glance. Bucketing is presentation-only and lives here, not in the API;
+// the score itself (and its formula) is computed once, at booking-creation
+// time, by apps/api/src/bookingRules.ts.
+type RiskBucket = "low" | "medium" | "high";
+
+function riskBucket(score: string | null): RiskBucket | null {
+  if (score === null) {
+    return null;
+  }
+  const value = Number.parseFloat(score);
+  if (Number.isNaN(value)) {
+    return null;
+  }
+  if (value < 0.34) {
+    return "low";
+  }
+  if (value < 0.67) {
+    return "medium";
+  }
+  return "high";
+}
+
+const RISK_LABEL: Record<RiskBucket, string> = { low: "Low", medium: "Medium", high: "High" };
+
 export default function TodayPage() {
   const [config, setConfig] = useState<ClientConfig | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -110,25 +137,38 @@ export default function TodayPage() {
                 <th>Service</th>
                 <th>Staff</th>
                 <th>Status</th>
+                <th>No-show risk</th>
               </tr>
             </thead>
             <tbody>
               {sortedBookings.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className={tableStyles.empty}>
+                  <td colSpan={6} className={tableStyles.empty}>
                     No bookings today.
                   </td>
                 </tr>
               ) : (
-                sortedBookings.map((b) => (
-                  <tr key={b.id}>
-                    <td>{formatTimeInTimezone(b.startTime, timezone)}</td>
-                    <td>{customerById.get(b.customerId)?.name ?? `Customer #${b.customerId}`}</td>
-                    <td>{serviceById.get(b.serviceId)?.name ?? b.serviceId}</td>
-                    <td>{b.staffId ? (staffById.get(b.staffId)?.name ?? b.staffId) : "Unassigned"}</td>
-                    <td>{b.status}</td>
-                  </tr>
-                ))
+                sortedBookings.map((b) => {
+                  const bucket = riskBucket(b.noShowRiskScore);
+                  return (
+                    <tr key={b.id}>
+                      <td>{formatTimeInTimezone(b.startTime, timezone)}</td>
+                      <td>{customerById.get(b.customerId)?.name ?? `Customer #${b.customerId}`}</td>
+                      <td>{serviceById.get(b.serviceId)?.name ?? b.serviceId}</td>
+                      <td>{b.staffId ? (staffById.get(b.staffId)?.name ?? b.staffId) : "Unassigned"}</td>
+                      <td>{b.status}</td>
+                      <td>
+                        {bucket && (
+                          <span
+                            className={`${styles.risk} ${bucket === "medium" ? styles.riskMedium : ""} ${bucket === "high" ? styles.riskHigh : ""}`}
+                          >
+                            {RISK_LABEL[bucket]}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

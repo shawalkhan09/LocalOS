@@ -47,6 +47,32 @@
   color: var(--warn);
 }
 
+/* Same badge shape as .capacity/.capacityFull above, reusing the same
+   amber status accent rather than inventing a new color for risk — Medium
+   uses the same outline treatment as "at capacity," High uses a bolder,
+   filled version of the same amber so the two read as different
+   intensities of one signal, not two different alerts. */
+.risk {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--bg);
+  color: var(--ink-muted);
+}
+
+.riskMedium {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.riskHigh {
+  background: var(--warn);
+  color: #ffffff;
+}
+
 .error {
   color: var(--error);
   background: var(--error-bg);
