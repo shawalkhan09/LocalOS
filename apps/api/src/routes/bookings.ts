@@ -3,7 +3,7 @@ import { and, gte, lt } from "drizzle-orm";
 import { Router } from "express";
 import { DateTime } from "luxon";
 import { findOverlappingBooking, localDayRange } from "../availability.js";
-import { assertStaffQualified, findService } from "../bookingRules.js";
+import { assertStaffQualified, computeNoShowRisk, findService } from "../bookingRules.js";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
 import { CreateBookingSchema, DateQuerySchema } from "../validation.js";
@@ -36,9 +36,15 @@ bookingsRouter.post("/bookings", async (req, res) => {
     );
   }
 
+  // Computed once, at creation time, not recalculated later: the stored
+  // score reflects what was known about this customer when the booking was
+  // made, not their history since. Re-scoring on every read would make the
+  // number silently drift underneath a booking that already happened.
+  const noShowRiskScore = await computeNoShowRisk(customerId, startTime);
+
   const [booking] = await db
     .insert(bookings)
-    .values({ customerId, serviceId, staffId, startTime, endTime })
+    .values({ customerId, serviceId, staffId, startTime, endTime, noShowRiskScore: noShowRiskScore.toString() })
     .returning();
   res.status(201).json(booking);
 });

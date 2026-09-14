@@ -5,6 +5,7 @@ import { isRateLimited, PUBLIC_BOOKING_RATE_LIMIT } from "../auth/rateLimiter.js
 import { findOverlappingBooking } from "../availability.js";
 import {
   assertStaffQualified,
+  computeNoShowRisk,
   findGymClass,
   findOrCreateCustomerByEmail,
   findService,
@@ -52,13 +53,28 @@ publicRouter.post("/public/bookings", async (req, res) => {
     phone: customerPhone,
   });
 
+  // Same rule, same call, as the staff route (routes/bookings.ts) — see
+  // computeNoShowRisk in bookingRules.ts for the formula. Computed once,
+  // at creation time, not recalculated later.
+  const noShowRiskScore = await computeNoShowRisk(customer.id, startTime);
+
   const [booking] = await db
     .insert(bookings)
-    .values({ customerId: customer.id, serviceId, staffId, startTime, endTime })
+    .values({
+      customerId: customer.id,
+      serviceId,
+      staffId,
+      startTime,
+      endTime,
+      noShowRiskScore: noShowRiskScore.toString(),
+    })
     .returning();
   res.status(201).json(booking);
 });
 
+// No-show risk scoring does not apply here: class_bookings has no
+// noShowRiskScore column (only bookings does). Deliberately out of scope
+// rather than something to quietly expand into — not an oversight.
 publicRouter.post("/public/class-bookings", async (req, res) => {
   if (isRateLimited(`public-booking:${req.ip}`, PUBLIC_BOOKING_RATE_LIMIT)) {
     throw new ApiError(429, "Too many booking attempts. Please try again in a few minutes.");
