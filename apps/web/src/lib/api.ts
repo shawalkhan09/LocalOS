@@ -134,3 +134,37 @@ export function checkAvailability(params: {
   );
   return request(`/bookings/check-availability?${qs}`);
 }
+
+// Public (unauthenticated) booking — no session exists on this path, so
+// there's nothing to redirect on 401 for; these never send one anyway
+// (see apps/api's PUBLIC_ROUTES allowlist), but redirectOn401: false keeps
+// this call site honest about not depending on that.
+export function createPublicBooking(data: {
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  serviceId: string;
+  staffId?: string;
+  startTime: string;
+  endTime: string;
+}): Promise<Booking> {
+  return request<Booking>(
+    "/public/bookings",
+    { method: "POST", body: JSON.stringify(data) },
+    { redirectOn401: false },
+  );
+}
+
+export function createPublicClassBooking(data: {
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  classId: string;
+  occurrenceDate: string;
+}): Promise<ClassBooking> {
+  return request<ClassBooking>(
+    "/public/class-bookings",
+    { method: "POST", body: JSON.stringify(data) },
+    { redirectOn401: false },
+  );
+}

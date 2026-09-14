@@ -1,0 +1,83 @@
+.pillButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 24px;
+  border-radius: 999px;
+  border: none;
+  background: var(--public-accent);
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+}
+
+.pillButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pillButtonSecondary {
+  composes: pillButton;
+  background: var(--public-card);
+  color: var(--public-ink);
+  border: 1.5px solid var(--public-border);
+}
+
+.card {
+  background: var(--public-card);
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  padding: 20px;
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.field label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field input,
+.field select {
+  padding: 13px 14px;
+  border: 1.5px solid var(--public-border);
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: var(--font-body);
+  background: var(--public-card);
+  color: var(--public-ink);
+}
+
+.helperText {
+  color: var(--public-ink-muted);
+  font-size: 13px;
+}
+
+.errorText {
+  color: #b3261e;
+  font-size: 13px;
+}
+
+.backLink {
+  display: inline-block;
+  color: var(--public-ink-muted);
+  font-size: 14px;
+  text-decoration: none;
+  margin-bottom: 16px;
+}

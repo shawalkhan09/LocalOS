@@ -1,0 +1,86 @@
+.hero {
+  padding: 40px 20px 32px;
+  text-align: left;
+}
+
+.heroTitle {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 0 0 12px;
+  max-width: 480px;
+}
+
+.heroDescription {
+  color: var(--public-ink-muted);
+  font-size: 16px;
+  line-height: 1.5;
+  margin: 0 0 20px;
+  max-width: 480px;
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.hoursNote {
+  font-size: 14px;
+  color: var(--public-ink-muted);
+}
+
+.hoursNote strong {
+  color: var(--public-ink);
+}
+
+.section {
+  padding: 8px 20px 40px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.itemTitle {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 16px;
+  margin: 0 0 4px;
+}
+
+.itemMeta {
+  display: flex;
+  gap: 12px;
+  color: var(--public-ink-muted);
+  font-size: 13px;
+}
+
+.itemDescription {
+  color: var(--public-ink-muted);
+  font-size: 14px;
+  margin: 8px 0 0;
+}
+
+@media (min-width: 720px) {
+  .hero {
+    padding: 64px 40px 48px;
+  }
+
+  .heroTitle {
+    font-size: 42px;
+  }
+
+  .section {
+    padding: 8px 40px 56px;
+  }
+
+  .list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}

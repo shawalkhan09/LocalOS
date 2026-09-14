@@ -23,6 +23,17 @@ export function addDaysToDateString(date: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+// Lowercase weekday name matching @localos/config-schema's Weekday union
+// ("monday".."sunday"), as observed in the business's own timezone — same
+// approach as apps/api's localWeekday, duplicated here rather than shared
+// since one is browser code and the other is server code with no common
+// runtime to share a module from.
+export function localWeekday(date: string, timezone: string): string {
+  return new Intl.DateTimeFormat("en-US", { timeZone: timezone, weekday: "long" })
+    .format(new Date(`${date}T12:00:00Z`))
+    .toLowerCase();
+}
+
 export function formatDateInTimezone(date: string, timezone: string): string {
   // Noon UTC, not local time: with any real UTC offset (-12..+14) this can
   // never format back to a different calendar day than `date` itself.

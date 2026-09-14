@@ -1,0 +1,66 @@
+.shell {
+  --public-bg: #fafafa;
+  --public-card: #ffffff;
+  --public-ink: #1c1c1c;
+  --public-ink-muted: #6b6b6b;
+  --public-border: #ececec;
+  background: var(--public-bg);
+  color: var(--public-ink);
+  min-height: 100vh;
+  font-family: var(--font-body);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--public-border);
+  background: var(--public-card);
+}
+
+.logo {
+  height: 36px;
+  width: 36px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.logoPlaceholder {
+  height: 36px;
+  width: 36px;
+  border-radius: 10px;
+  background: var(--public-accent);
+  flex-shrink: 0;
+}
+
+.businessName {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 18px;
+  text-decoration: none;
+  color: var(--public-ink);
+}
+
+.headerLink {
+  margin-left: auto;
+}
+
+.main {
+  flex: 1;
+}
+
+.footer {
+  padding: 28px 20px;
+  border-top: 1px solid var(--public-border);
+  color: var(--public-ink-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.footer a {
+  color: var(--public-ink-muted);
+}
