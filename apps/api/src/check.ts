@@ -6,6 +6,7 @@ import {
   CreateClassBookingSchema,
   CreateCustomerSchema,
   CreateMembershipSchema,
+  CreateUserSchema,
   PublicCreateBookingSchema,
 } from "./validation.js";
 
@@ -47,6 +48,14 @@ assert(
   }).success,
   "public booking requires customerEmail even though phone is present",
 );
+assert(
+  !CreateUserSchema.safeParse({ email: "staff@example.com", password: "short" }).success,
+  "user password must be at least 8 characters",
+);
+assert(
+  CreateUserSchema.safeParse({ email: "staff@example.com", password: "longenough" }).success,
+  "user with a valid email and long-enough password should be valid",
+);
 console.log("OK: request validation rejects and accepts the expected shapes");
 
 // HTTP layer: boot the app on an ephemeral port and exercise the routes that
@@ -74,6 +83,11 @@ console.log("OK: /health and /catalog serve the loaded config");
 // querying the sessions table.
 const unauthed = await fetch(`${baseUrl}/customers`);
 assert.strictEqual(unauthed.status, 401);
+// /users is owner-only (requireOwner), but that check never even runs
+// without a session first — requireAuth rejects with 401 before the
+// request ever reaches requireOwner, same as any other protected route.
+const unauthedUsers = await fetch(`${baseUrl}/users`);
+assert.strictEqual(unauthedUsers.status, 401);
 console.log("OK: a protected route rejects requests with no session");
 
 // Public booking routes must NOT require a session — sent with a

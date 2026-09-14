@@ -64,6 +64,12 @@ export const PublicCreateClassBookingSchema = z.object({
   occurrenceDate: isoDate,
 });
 
+export const CreateUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  staffId: z.string().min(1).optional(),
+});
+
 export const CreateMembershipSchema = z.object({
   customerId: z.number().int().positive(),
   planId: z.string().min(1),

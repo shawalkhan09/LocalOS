@@ -9,6 +9,7 @@ import { classBookingsRouter } from "./routes/classBookings.js";
 import { customersRouter } from "./routes/customers.js";
 import { membershipsRouter } from "./routes/memberships.js";
 import { publicRouter } from "./routes/public.js";
+import { usersRouter } from "./routes/users.js";
 
 const CLIENT_HEADER_NAME = "x-localos-client";
 const CLIENT_HEADER_VALUE = "web";
@@ -114,6 +115,7 @@ export function createApp() {
   app.use(classBookingsRouter);
   app.use(membershipsRouter);
   app.use(publicRouter);
+  app.use(usersRouter);
 
   app.use(errorHandler);
 
