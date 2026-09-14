@@ -71,6 +71,15 @@ export function readSessionToken(req: Request): string | undefined {
 // Expired sessions are treated as invalid here but not purged from the
 // table — an accepted gap for this round, not an oversight; a real
 // deployment would want a periodic cleanup job.
+//
+// This is the actual enforcement point for deactivation, not just a
+// convenience check: PATCH /users/:id deletes a deactivated user's
+// sessions rows immediately (see routes/users.ts), but that alone isn't
+// airtight against every future code path that might create a session
+// without going through the same logic. Checking status here, on every
+// authenticated request, is what guarantees a deactivated account's
+// access actually stops — belt and suspenders, and the suspenders are the
+// one that can't be bypassed by a bug elsewhere.
 export async function getSessionUser(req: Request): Promise<SessionUser | null> {
   const token = readSessionToken(req);
   if (!token) {
@@ -82,6 +91,7 @@ export async function getSessionUser(req: Request): Promise<SessionUser | null> 
       email: users.email,
       role: users.role,
       staffId: users.staffId,
+      status: users.status,
       expiresAt: sessions.expiresAt,
     })
     .from(sessions)
@@ -89,7 +99,7 @@ export async function getSessionUser(req: Request): Promise<SessionUser | null> 
     .where(eq(sessions.id, token))
     .limit(1);
   const row = rows[0];
-  if (!row || row.expiresAt.getTime() <= Date.now()) {
+  if (!row || row.expiresAt.getTime() <= Date.now() || row.status !== "active") {
     return null;
   }
   return { id: row.id, email: row.email, role: row.role, staffId: row.staffId };

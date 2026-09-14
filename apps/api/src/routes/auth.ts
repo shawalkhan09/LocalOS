@@ -40,6 +40,13 @@ authRouter.post("/auth/login", async (req, res) => {
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
     throw new ApiError(401, "invalid email or password");
   }
+  // Same generic message as a wrong password, not "this account is
+  // deactivated" — consistent with the rate limiter's reasoning above:
+  // don't let the error response distinguish account states an attacker
+  // could otherwise enumerate.
+  if (user.status !== "active") {
+    throw new ApiError(401, "invalid email or password");
+  }
 
   const { token, expiresAt } = await createSession(user.id);
   setSessionCookie(res, token, expiresAt);
