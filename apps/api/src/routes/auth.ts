@@ -50,7 +50,10 @@ authRouter.post("/auth/login", async (req, res) => {
 
   const { token, expiresAt } = await createSession(user.id);
   setSessionCookie(res, token, expiresAt);
-  res.json({ email: user.email, role: user.role });
+  // Same shape as GET /auth/me (id, email, role, staffId) — no reason for
+  // "who am I right after logging in" to look different from "who am I
+  // right now."
+  res.json({ id: user.id, email: user.email, role: user.role, staffId: user.staffId });
 });
 
 authRouter.post("/auth/logout", async (req, res) => {
