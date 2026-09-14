@@ -33,8 +33,11 @@ async function main() {
     { customerId: reliable.id, day: 33, status: "completed" },
     { customerId: reliable.id, day: 26, status: "completed" },
     { customerId: reliable.id, day: 19, status: "completed" },
-    // Pat: 3 resolved bookings, 2 no-shows -> 2/3 ≈ 0.67 historical
-    // no-show rate (High bucket on the dashboard).
+    // Pat: 4 resolved bookings, 3 no-shows -> 3/4 = 0.75 historical
+    // no-show rate — comfortably above the dashboard's 0.67 High
+    // threshold, not sitting right on the boundary the way 2/3 ≈ 0.667
+    // would (that rounds to Medium, not High).
+    { customerId: flaky.id, day: 42, status: "no_show" },
     { customerId: flaky.id, day: 35, status: "no_show" },
     { customerId: flaky.id, day: 28, status: "completed" },
     { customerId: flaky.id, day: 14, status: "no_show" },
