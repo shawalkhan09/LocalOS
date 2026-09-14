@@ -8,7 +8,8 @@
   "scripts": {
     "generate": "drizzle-kit generate",
     "check": "tsx src/check.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed:demo": "tsx scripts/seed-demo-data.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
