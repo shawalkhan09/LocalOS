@@ -54,13 +54,19 @@ usersRouter.get("/users", async (_req, res) => {
   res.json(rows);
 });
 
-// Deliberately narrow: only status and staffId can change here. Email
-// changes need re-verification (nothing to send a confirmation link
-// with yet — no email infra, same reasoning that already deferred
-// password reset) and role changes are a bigger permissions question
-// than this round covers — both out of scope, not silently ignored:
-// UpdateUserSchema is .strict(), so a request that includes either key
-// is rejected with 400, not quietly accepted and no-op'd.
+// Deliberately narrow: only email, status, and staffId can change here.
+// Role is a bigger permissions question than this round covers — out of
+// scope, not silently ignored: UpdateUserSchema is .strict(), so a request
+// that includes it is rejected with 400, not quietly accepted and no-op'd.
+//
+// email is fair game here even though self-service email changes stay
+// correctly out of scope everywhere else: the owner already has full
+// authority over every account this endpoint touches — they set the
+// password, they can deactivate it, they created it in the first place.
+// Correcting a typo in an account you already fully control carries none
+// of the re-verification risk (proving you still own the new address)
+// that made self-service changes worth deferring — there's no new party
+// to verify, just a correction to data the owner already governs.
 usersRouter.patch("/users/:id", async (req, res) => {
   const userId = Number(req.params.id);
   if (!Number.isInteger(userId) || userId <= 0) {
@@ -71,10 +77,13 @@ usersRouter.patch("/users/:id", async (req, res) => {
   if (!parsed.success) {
     throw new ApiError(400, parsed.error.message);
   }
-  const { status, staffId } = parsed.data;
+  const { email, status, staffId } = parsed.data;
 
   // The owner deactivating their own account would lock the business out
-  // of its own dashboard with no other owner to undo it.
+  // of its own dashboard with no other owner to undo it. Editing their own
+  // email carries no equivalent risk — sessions key off user id, not
+  // email (see auth/session.ts), so this doesn't touch their own access at
+  // all, let alone anyone else's — no special-case rejection needed here.
   if (status === "deactivated" && userId === req.user?.id) {
     throw new ApiError(400, "you cannot deactivate your own account");
   }
@@ -83,11 +92,16 @@ usersRouter.patch("/users/:id", async (req, res) => {
     await assertStaffExists(staffId);
   }
 
-  // Only include keys that were actually provided — status/staffId are
-  // both optional in the schema (staffId is also nullable, for explicit
+  // Only include keys that were actually provided — email/status/staffId
+  // are all optional in the schema (staffId is also nullable, for explicit
   // unlinking), so an absent key must leave the existing column alone
-  // rather than overwriting it with undefined.
-  const updates: Partial<{ status: "active" | "deactivated"; staffId: string | null }> = {};
+  // rather than overwriting it with undefined. A duplicate email hits the
+  // users.email unique constraint, mapped to a friendly 409 in app.ts —
+  // same as account creation, no parallel "check first" logic needed here.
+  const updates: Partial<{ email: string; status: "active" | "deactivated"; staffId: string | null }> = {};
+  if (email !== undefined) {
+    updates.email = email;
+  }
   if (status !== undefined) {
     updates.status = status;
   }

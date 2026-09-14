@@ -15,7 +15,7 @@ import { usersRouter } from "./routes/users.js";
 const CLIENT_HEADER_NAME = "x-localos-client";
 const CLIENT_HEADER_VALUE = "web";
 
-type PgError = { code: string; detail?: string };
+type PgError = { code: string; detail?: string; constraint_name?: string };
 
 function isPgError(value: unknown): value is PgError {
   return typeof value === "object" && value !== null && "code" in value;
@@ -41,6 +41,16 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   }
   const pgError = findPgError(err);
   if (pgError?.code === "23505") {
+    // Named specifically, not a blanket rewrite of every 23505 — other
+    // unique constraints (e.g. class_bookings' one-booking-per-occurrence)
+    // still fall through to the generic message below, which is accurate
+    // for them. This one gets a human sentence because both account
+    // creation (POST /users) and the email-correction round (PATCH
+    // /users/:id) hit it directly through normal use, not just abuse.
+    if (pgError.constraint_name === "users_email_unique") {
+      res.status(409).json({ error: "An account with that email already exists." });
+      return;
+    }
     res.status(409).json({ error: `duplicate: ${pgError.detail ?? "constraint violated"}` });
     return;
   }

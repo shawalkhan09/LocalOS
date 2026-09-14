@@ -70,19 +70,23 @@ export const CreateUserSchema = z.object({
   staffId: z.string().min(1).optional(),
 });
 
-// .strict() so an unrecognized key (e.g. email or role — deliberately not
-// supported this round, see routes/users.ts) fails validation instead of
-// being silently dropped. staffId is nullable (explicit unlink) as well
-// as optional (absent = leave unchanged) — see the route handler for how
-// those two are told apart.
+// .strict() so an unrecognized key (e.g. role — still deliberately not
+// supported, see routes/users.ts) fails validation instead of being
+// silently dropped. staffId is nullable (explicit unlink) as well as
+// optional (absent = leave unchanged) — see the route handler for how
+// those two are told apart. email is a correction tool for an owner who
+// already fully controls every account here (see routes/users.ts for why
+// that's a different risk than self-service email changes), not a
+// re-verification flow — no confirmation link, just a straight update.
 export const UpdateUserSchema = z
   .object({
+    email: z.string().email().optional(),
     status: z.enum(["active", "deactivated"]).optional(),
     staffId: z.string().min(1).nullable().optional(),
   })
   .strict()
-  .refine((data) => data.status !== undefined || data.staffId !== undefined, {
-    message: "at least one of status or staffId must be provided",
+  .refine((data) => data.email !== undefined || data.status !== undefined || data.staffId !== undefined, {
+    message: "at least one of email, status, or staffId must be provided",
   });
 
 export const CreateStaffSchema = z.object({

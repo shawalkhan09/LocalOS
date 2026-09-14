@@ -71,8 +71,12 @@ assert(
   "an explicit null staffId (unlink) should be valid",
 );
 assert(
-  !UpdateUserSchema.safeParse({ email: "new@example.com" }).success,
-  "changing email is not supported this round and must be rejected, not silently ignored",
+  UpdateUserSchema.safeParse({ email: "new@example.com" }).success,
+  "an owner correcting an account's email should be valid",
+);
+assert(
+  !UpdateUserSchema.safeParse({ email: "not-an-email" }).success,
+  "a malformed email should be rejected",
 );
 assert(
   !UpdateUserSchema.safeParse({ role: "owner" }).success,
