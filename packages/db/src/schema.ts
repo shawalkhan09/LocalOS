@@ -126,6 +126,15 @@ export const memberships = pgTable("memberships", {
 
 export const userRoleEnum = pgEnum("user_role", ["owner", "staff"]);
 
+// Deactivated, not deleted: a hard delete would orphan any booking/audit
+// history tied to the account, and there'd be no way back from an owner's
+// mistake. See apps/api/src/routes/users.ts (PATCH /users/:id) for how
+// status changes are made — deactivating also deletes the account's
+// sessions rows immediately, so this alone isn't the enforcement point;
+// requireAuth checking status on every request is (apps/api/src/auth/
+// session.ts).
+export const userStatusEnum = pgEnum("user_status", ["active", "deactivated"]);
+
 // staffId is a config.json id (the staff array), same reasoning as
 // bookings.serviceId above: not a FK, since that catalog lives in
 // config.json. It's optional — an owner account need not map to a staff
@@ -135,6 +144,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   role: userRoleEnum("role").notNull(),
+  status: userStatusEnum("status").notNull().default("active"),
   staffId: text("staff_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
