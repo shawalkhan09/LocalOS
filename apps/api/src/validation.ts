@@ -85,6 +85,46 @@ export const UpdateUserSchema = z
     message: "at least one of status or staffId must be provided",
   });
 
+export const CreateStaffSchema = z.object({
+  name: z.string().min(1),
+  role: z.string().min(1),
+  email: z.string().email().optional(),
+  phone: z.string().min(1).optional(),
+  bio: z.string().min(1).optional(),
+});
+
+// .strict() so an unrecognized key fails validation instead of being
+// silently dropped — same reasoning as UpdateUserSchema above. Unlike
+// UpdateUserSchema, no field here is nullable: there's no "clear this
+// value" case requested this round, only "change it" or "leave it alone".
+export const UpdateStaffSchema = z
+  .object({
+    name: z.string().min(1).optional(),
+    role: z.string().min(1).optional(),
+    email: z.string().email().optional(),
+    phone: z.string().min(1).optional(),
+    bio: z.string().min(1).optional(),
+  })
+  .strict()
+  .refine((data) => Object.keys(data).length > 0, { message: "at least one field must be provided" });
+
+export const CreateTrainerProfileSchema = z.object({
+  specialties: z.array(z.string().min(1)),
+  certifications: z.array(z.string().min(1)),
+  bio: z.string().min(1).optional(),
+  photoUrl: z.string().url().optional(),
+});
+
+export const UpdateTrainerProfileSchema = z
+  .object({
+    specialties: z.array(z.string().min(1)).optional(),
+    certifications: z.array(z.string().min(1)).optional(),
+    bio: z.string().min(1).optional(),
+    photoUrl: z.string().url().optional(),
+  })
+  .strict()
+  .refine((data) => Object.keys(data).length > 0, { message: "at least one field must be provided" });
+
 export const CreateMembershipSchema = z.object({
   customerId: z.number().int().positive(),
   planId: z.string().min(1),

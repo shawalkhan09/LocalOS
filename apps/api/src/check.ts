@@ -7,8 +7,12 @@ import {
   CreateClassBookingSchema,
   CreateCustomerSchema,
   CreateMembershipSchema,
+  CreateStaffSchema,
+  CreateTrainerProfileSchema,
   CreateUserSchema,
   PublicCreateBookingSchema,
+  UpdateStaffSchema,
+  UpdateTrainerProfileSchema,
   UpdateUserSchema,
 } from "./validation.js";
 
@@ -75,6 +79,33 @@ assert(
   "changing role is not supported this round and must be rejected, not silently ignored",
 );
 assert(!UpdateUserSchema.safeParse({}).success, "an update with no fields at all should be rejected");
+assert(
+  CreateStaffSchema.safeParse({ name: "Jordan Ramirez", role: "Front Desk" }).success,
+  "staff with just the required fields should be valid",
+);
+assert(!CreateStaffSchema.safeParse({ role: "Front Desk" }).success, "staff name is required");
+assert(UpdateStaffSchema.safeParse({ role: "Studio Manager" }).success, "updating just role should be valid");
+assert(!UpdateStaffSchema.safeParse({}).success, "an update with no fields at all should be rejected");
+assert(
+  !UpdateStaffSchema.safeParse({ id: "staff-new-id" }).success,
+  "changing id is not supported and must be rejected, not silently ignored",
+);
+assert(
+  CreateTrainerProfileSchema.safeParse({ specialties: ["HIIT"], certifications: [] }).success,
+  "trainer profile with specialties/certifications arrays should be valid",
+);
+assert(
+  !CreateTrainerProfileSchema.safeParse({ specialties: ["HIIT"] }).success,
+  "trainer profile requires certifications even if empty",
+);
+assert(
+  UpdateTrainerProfileSchema.safeParse({ bio: "Updated bio." }).success,
+  "updating just bio should be valid",
+);
+assert(
+  !UpdateTrainerProfileSchema.safeParse({ staffId: "staff-someone-else" }).success,
+  "reassigning staffId is not supported and must be rejected, not silently ignored",
+);
 console.log("OK: request validation rejects and accepts the expected shapes");
 
 // HTTP layer: boot the app on an ephemeral port and exercise it. Catalog
@@ -108,11 +139,18 @@ console.log("OK: /health and /catalog serve the loaded config plus database-back
 // querying the sessions table.
 const unauthed = await fetch(`${baseUrl}/customers`);
 assert.strictEqual(unauthed.status, 401);
-// /users is owner-only (requireOwner), but that check never even runs
-// without a session first — requireAuth rejects with 401 before the
-// request ever reaches requireOwner, same as any other protected route.
+// /users and /staff are both owner-only (requireOwner), but that check
+// never even runs without a session first — requireAuth rejects with 401
+// before the request ever reaches requireOwner, same as any other
+// protected route.
 const unauthedUsers = await fetch(`${baseUrl}/users`);
 assert.strictEqual(unauthedUsers.status, 401);
+const unauthedStaff = await fetch(`${baseUrl}/staff`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web" },
+  body: "{}",
+});
+assert.strictEqual(unauthedStaff.status, 401);
 console.log("OK: a protected route rejects requests with no session");
 
 // Public booking routes must NOT require a session — sent with a
