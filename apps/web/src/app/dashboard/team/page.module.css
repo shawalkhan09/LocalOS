@@ -12,6 +12,32 @@
   color: var(--ink);
 }
 
+.emailCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.inlineInput {
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  background: var(--surface);
+  color: var(--ink);
+  min-width: 200px;
+}
+
+.cancelLink {
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}
+
 .actionLink {
   border: none;
   background: none;

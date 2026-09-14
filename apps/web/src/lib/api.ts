@@ -195,12 +195,13 @@ export function createUser(data: { email: string; password: string; staffId?: st
   return request<Account>("/users", { method: "POST", body: JSON.stringify(data) });
 }
 
-// Only status and staffId are supported — matches PATCH /users/:id, which
-// rejects (400) any other key rather than silently ignoring it. staffId:
-// null explicitly unlinks; omit the key entirely to leave it unchanged.
+// email, status, and staffId are supported — matches PATCH /users/:id,
+// which rejects (400) any other key (role) rather than silently ignoring
+// it. staffId: null explicitly unlinks; omit any key entirely to leave it
+// unchanged.
 export function updateUser(
   id: number,
-  data: { status?: "active" | "deactivated"; staffId?: string | null },
+  data: { email?: string; status?: "active" | "deactivated"; staffId?: string | null },
 ): Promise<Account> {
   return request<Account>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(data) });
 }

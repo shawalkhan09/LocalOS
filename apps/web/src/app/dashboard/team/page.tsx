@@ -27,6 +27,10 @@ export default function TeamPage() {
   const [staffId, setStaffId] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const [editingEmailId, setEditingEmailId] = useState<number | null>(null);
+  const [emailDraft, setEmailDraft] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+
   function load() {
     Promise.all([getCatalog(), getUsers(), getMe()])
       .then(([catalogRes, accountsRes, meRes]) => {
@@ -68,6 +72,42 @@ export default function TeamPage() {
       }
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  function startEditEmail(account: Account) {
+    setEditingEmailId(account.id);
+    setEmailDraft(account.email);
+  }
+
+  function cancelEditEmail() {
+    setEditingEmailId(null);
+    setEmailDraft("");
+  }
+
+  async function handleSaveEmail(account: Account) {
+    const trimmed = emailDraft.trim();
+    if (trimmed === account.email) {
+      cancelEditEmail();
+      return;
+    }
+    setSavingEmail(true);
+    try {
+      const updated = await updateUser(account.id, { email: trimmed });
+      setAccounts((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+      showToast("Email updated.", "success");
+      cancelEditEmail();
+    } catch (err) {
+      // Same friendly wording as the create-account flow above — a
+      // duplicate email is a common, expected mistake here, not a raw
+      // constraint to surface.
+      if (err instanceof ApiRequestError && err.status === 409) {
+        showToast("An account with that email already exists.", "error");
+      } else {
+        showToast(err instanceof ApiRequestError ? err.message : "Could not update the email.", "error");
+      }
+    } finally {
+      setSavingEmail(false);
     }
   }
 
@@ -160,9 +200,41 @@ export default function TeamPage() {
               accounts.map((a) => {
                 const isSelf = a.id === currentUserId;
                 const isDeactivated = a.status === "deactivated";
+                const isEditingEmail = editingEmailId === a.id;
                 return (
                   <tr key={a.id} className={isDeactivated ? styles.deactivatedRow : ""}>
-                    <td>{a.email}</td>
+                    <td>
+                      {isEditingEmail ? (
+                        <div className={styles.emailCell}>
+                          <input
+                            type="email"
+                            className={styles.inlineInput}
+                            value={emailDraft}
+                            onChange={(e) => setEmailDraft(e.target.value)}
+                            aria-label={`New email for ${a.email}`}
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            className={styles.actionLink}
+                            disabled={savingEmail}
+                            onClick={() => handleSaveEmail(a)}
+                          >
+                            {savingEmail ? "Saving…" : "Save"}
+                          </button>
+                          <button type="button" className={styles.cancelLink} onClick={cancelEditEmail}>
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className={styles.emailCell}>
+                          <span>{a.email}</span>
+                          <button type="button" className={styles.actionLink} onClick={() => startEditEmail(a)}>
+                            Edit email
+                          </button>
+                        </div>
+                      )}
+                    </td>
                     <td>{capitalize(a.role)}</td>
                     <td>{capitalize(a.status)}</td>
                     <td>
