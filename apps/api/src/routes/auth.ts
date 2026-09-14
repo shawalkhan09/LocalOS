@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { Router } from "express";
 import { z } from "zod";
 import { verifyPassword } from "../auth/password.js";
-import { isRateLimited } from "../auth/rateLimiter.js";
+import { isRateLimited, LOGIN_RATE_LIMIT } from "../auth/rateLimiter.js";
 import {
   clearSessionCookie,
   createSession,
@@ -30,8 +30,8 @@ authRouter.post("/auth/login", async (req, res) => {
   // Checked before touching the users table, so a rate-limited caller
   // can't use response timing to distinguish "no such user" from "wrong
   // password" either.
-  const rateLimitKey = `${email.toLowerCase()}:${req.ip}`;
-  if (isRateLimited(rateLimitKey)) {
+  const rateLimitKey = `login:${email.toLowerCase()}:${req.ip}`;
+  if (isRateLimited(rateLimitKey, LOGIN_RATE_LIMIT)) {
     throw new ApiError(429, "too many login attempts, try again later");
   }
 
