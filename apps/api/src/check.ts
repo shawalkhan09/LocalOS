@@ -6,6 +6,7 @@ import {
   CreateClassBookingSchema,
   CreateCustomerSchema,
   CreateMembershipSchema,
+  PublicCreateBookingSchema,
 } from "./validation.js";
 
 // Request validation: must reject bad payloads before they ever reach the DB.
@@ -36,6 +37,16 @@ assert(
     .success,
   "membership with just the required fields should be valid",
 );
+assert(
+  !PublicCreateBookingSchema.safeParse({
+    customerName: "Jamie",
+    customerPhone: "555-0100",
+    serviceId: "svc-x",
+    startTime: "2026-01-01T10:00:00Z",
+    endTime: "2026-01-01T11:00:00Z",
+  }).success,
+  "public booking requires customerEmail even though phone is present",
+);
 console.log("OK: request validation rejects and accepts the expected shapes");
 
 // HTTP layer: boot the app on an ephemeral port and exercise the routes that
@@ -64,5 +75,23 @@ console.log("OK: /health and /catalog serve the loaded config");
 const unauthed = await fetch(`${baseUrl}/customers`);
 assert.strictEqual(unauthed.status, 401);
 console.log("OK: a protected route rejects requests with no session");
+
+// Public booking routes must NOT require a session — sent with a
+// deliberately empty body (no DB needed), so a non-401 status proves the
+// request passed the auth-exemption check and reached the route's own
+// (400) validation, rather than being rejected for having no cookie.
+const publicBookingAttempt = await fetch(`${baseUrl}/public/bookings`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web" },
+  body: "{}",
+});
+assert.notStrictEqual(publicBookingAttempt.status, 401);
+const publicClassBookingAttempt = await fetch(`${baseUrl}/public/class-bookings`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web" },
+  body: "{}",
+});
+assert.notStrictEqual(publicClassBookingAttempt.status, 401);
+console.log("OK: public booking routes are reachable without a session");
 
 server.close();

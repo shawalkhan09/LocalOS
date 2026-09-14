@@ -19,17 +19,24 @@ declare global {
 //   - POST /auth/login: how you become authenticated in the first place.
 //   - POST /auth/logout: idempotent and safe unauthenticated — it only
 //     ever clears whatever session cookie is present, if any.
+//   - POST /public/bookings, POST /public/class-bookings: this is the
+//     unauthenticated customer self-service the comment below used to say
+//     "will need revisiting" for — it's now built, with its own
+//     find-or-create-by-email flow and its own rate limit (see
+//     routes/public.ts), deliberately separate from the staff-only
+//     POST /bookings and POST /customers below, which stay session-gated.
 // Every other route (customers, bookings, class-bookings, memberships)
-// requires a session this round because the only caller today is the
-// internal dashboard, not because that's the final shape — POST /bookings
-// and POST /customers will need revisiting once unauthenticated customer
-// self-service exists.
+// requires a session because the only caller for *those* routes is the
+// internal dashboard — staff booking on a customer's behalf, or managing
+// the customer list, are still staff-only actions.
 const PUBLIC_ROUTES: ReadonlyArray<{ method: string; path: string }> = [
   { method: "GET", path: "/health" },
   { method: "GET", path: "/catalog" },
   { method: "GET", path: "/bookings/check-availability" },
   { method: "POST", path: "/auth/login" },
   { method: "POST", path: "/auth/logout" },
+  { method: "POST", path: "/public/bookings" },
+  { method: "POST", path: "/public/class-bookings" },
 ];
 
 export function isPublicRoute(method: string, path: string): boolean {

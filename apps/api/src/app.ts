@@ -8,6 +8,7 @@ import { catalogRouter } from "./routes/catalog.js";
 import { classBookingsRouter } from "./routes/classBookings.js";
 import { customersRouter } from "./routes/customers.js";
 import { membershipsRouter } from "./routes/memberships.js";
+import { publicRouter } from "./routes/public.js";
 
 const CLIENT_HEADER_NAME = "x-localos-client";
 const CLIENT_HEADER_VALUE = "web";
@@ -82,7 +83,11 @@ export function createApp() {
   // site could still submit a cross-site POST with the cookie attached.
   // Requiring this custom header forces the browser to send a CORS
   // preflight first, which only succeeds from the allowed origin above.
-  // Not a full CSRF token system, but adequate for this scale.
+  // Not a full CSRF token system, but adequate for this scale. Applied
+  // uniformly to every non-GET route, including POST /public/bookings and
+  // POST /public/class-bookings — there's no session cookie to protect on
+  // those, but the header still forces the same CORS preflight, so it's
+  // kept for consistency rather than carving out an exception.
   app.use((req, res, next) => {
     if (req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS") {
       next();
@@ -108,6 +113,7 @@ export function createApp() {
   app.use(bookingsRouter);
   app.use(classBookingsRouter);
   app.use(membershipsRouter);
+  app.use(publicRouter);
 
   app.use(errorHandler);
 

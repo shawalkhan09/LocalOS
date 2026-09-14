@@ -35,6 +35,35 @@ export const CreateClassBookingSchema = z.object({
   occurrenceDate: isoDate,
 });
 
+// Public (unauthenticated) booking routes: email is required here even
+// though the DB/CreateCustomerSchema allow phone-only — find-or-create
+// dedup for the public flow keys off email specifically (see
+// bookingRules.ts), so it can't be optional on this path.
+const PublicCustomerFields = {
+  customerName: z.string().min(1),
+  customerEmail: z.string().email(),
+  customerPhone: z.string().min(1).optional(),
+};
+
+export const PublicCreateBookingSchema = z
+  .object({
+    ...PublicCustomerFields,
+    serviceId: z.string().min(1),
+    staffId: z.string().min(1).optional(),
+    startTime: z.coerce.date(),
+    endTime: z.coerce.date(),
+  })
+  .refine((b) => b.endTime > b.startTime, {
+    message: "endTime must be after startTime",
+    path: ["endTime"],
+  });
+
+export const PublicCreateClassBookingSchema = z.object({
+  ...PublicCustomerFields,
+  classId: z.string().min(1),
+  occurrenceDate: isoDate,
+});
+
 export const CreateMembershipSchema = z.object({
   customerId: z.number().int().positive(),
   planId: z.string().min(1),
