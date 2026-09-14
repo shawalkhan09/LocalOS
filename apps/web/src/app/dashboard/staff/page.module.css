@@ -1,0 +1,33 @@
+.trainerNo {
+  color: var(--ink-muted);
+}
+
+.actions {
+  display: flex;
+  gap: 14px;
+}
+
+.actionLink {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.formActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cancelLink {
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0;
+}

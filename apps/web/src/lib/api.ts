@@ -1,4 +1,4 @@
-import type { ClientConfig } from "@localos/config-schema";
+import type { ClientConfig, StaffMember, Trainer } from "@localos/config-schema";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -203,4 +203,43 @@ export function updateUser(
   data: { status?: "active" | "deactivated"; staffId?: string | null },
 ): Promise<Account> {
   return request<Account>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+// Owner-only (POST/PATCH /staff, POST/PATCH /staff/:id/trainer-profile) —
+// same 403-not-401 reasoning as the users endpoints above. Reads still go
+// through getCatalog() — these are write-only, there's no separate
+// GET /staff.
+export function createStaff(data: {
+  name: string;
+  role: string;
+  email?: string;
+  phone?: string;
+  bio?: string;
+}): Promise<StaffMember> {
+  return request<StaffMember>("/staff", { method: "POST", body: JSON.stringify(data) });
+}
+
+// All fields optional and .strict() on the API side — matches
+// PATCH /staff/:id, which rejects (400) any unrecognized key.
+export function updateStaff(
+  id: string,
+  data: Partial<{ name: string; role: string; email: string; phone: string; bio: string }>,
+): Promise<StaffMember> {
+  return request<StaffMember>(`/staff/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+// Create-only — matches POST /staff/:id/trainer-profile, which 409s if a
+// profile already exists for this staffId rather than overwriting it.
+export function createTrainerProfile(
+  staffId: string,
+  data: { specialties: string[]; certifications: string[]; bio?: string; photoUrl?: string },
+): Promise<Trainer> {
+  return request<Trainer>(`/staff/${staffId}/trainer-profile`, { method: "POST", body: JSON.stringify(data) });
+}
+
+export function updateTrainerProfile(
+  staffId: string,
+  data: Partial<{ specialties: string[]; certifications: string[]; bio: string; photoUrl: string }>,
+): Promise<Trainer> {
+  return request<Trainer>(`/staff/${staffId}/trainer-profile`, { method: "PATCH", body: JSON.stringify(data) });
 }

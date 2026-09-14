@@ -12,12 +12,16 @@ const BASE_NAV_ITEMS = [
   { href: "/dashboard/new-booking", label: "New booking" },
 ];
 
-// Team is appended only for role === "owner" — hiding the link is not the
-// actual security boundary (GET/POST /users still 403 a staff session
-// regardless), just keeps a staff user from seeing a link to a page they
-// can't use. See requireOwner in apps/api/src/auth/middleware.ts for the
-// real gate, and /dashboard/team for the defense-in-depth 403 handling.
-const OWNER_NAV_ITEM = { href: "/dashboard/team", label: "Team" };
+// Team and Staff are appended only for role === "owner" — hiding the links
+// is not the actual security boundary (the underlying API routes still
+// 403 a staff session regardless), just keeps a staff user from seeing a
+// link to a page they can't use. See requireOwner in
+// apps/api/src/auth/middleware.ts for the real gate, and /dashboard/team
+// and /dashboard/staff for the defense-in-depth 403 handling.
+const OWNER_NAV_ITEMS = [
+  { href: "/dashboard/team", label: "Team" },
+  { href: "/dashboard/staff", label: "Staff" },
+];
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -53,7 +57,7 @@ export function Sidebar() {
     };
   }, []);
 
-  const navItems = role === "owner" ? [...BASE_NAV_ITEMS, OWNER_NAV_ITEM] : BASE_NAV_ITEMS;
+  const navItems = role === "owner" ? [...BASE_NAV_ITEMS, ...OWNER_NAV_ITEMS] : BASE_NAV_ITEMS;
 
   async function handleLogout() {
     try {
