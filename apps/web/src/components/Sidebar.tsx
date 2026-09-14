@@ -6,17 +6,25 @@ import { useEffect, useState } from "react";
 import { getCatalog, getMe, logout } from "@/lib/api";
 import styles from "./Sidebar.module.css";
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { href: "/dashboard", label: "Today" },
   { href: "/dashboard/customers", label: "Customers" },
   { href: "/dashboard/new-booking", label: "New booking" },
 ];
+
+// Team is appended only for role === "owner" — hiding the link is not the
+// actual security boundary (GET/POST /users still 403 a staff session
+// regardless), just keeps a staff user from seeing a link to a page they
+// can't use. See requireOwner in apps/api/src/auth/middleware.ts for the
+// real gate, and /dashboard/team for the defense-in-depth 403 handling.
+const OWNER_NAV_ITEM = { href: "/dashboard/team", label: "Team" };
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [businessName, setBusinessName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [role, setRole] = useState<"owner" | "staff" | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -34,6 +42,7 @@ export function Sidebar() {
       .then((user) => {
         if (!cancelled) {
           setUserEmail(user.email);
+          setRole(user.role);
         }
       })
       .catch(() => {
@@ -43,6 +52,8 @@ export function Sidebar() {
       cancelled = true;
     };
   }, []);
+
+  const navItems = role === "owner" ? [...BASE_NAV_ITEMS, OWNER_NAV_ITEM] : BASE_NAV_ITEMS;
 
   async function handleLogout() {
     try {
@@ -56,7 +67,7 @@ export function Sidebar() {
     <nav className={styles.sidebar} aria-label="Main">
       <p className={styles.businessName}>{businessName ?? "LocalOS"}</p>
       <div className={styles.nav}>
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive = item.href === "/dashboard" ? pathname === item.href : pathname.startsWith(item.href);
           return (
             <Link

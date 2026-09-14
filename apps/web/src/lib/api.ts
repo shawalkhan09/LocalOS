@@ -168,3 +168,22 @@ export function createPublicClassBooking(data: {
     { redirectOn401: false },
   );
 }
+
+// Owner-only (GET/POST /users) — a non-owner gets a 403 from the API, not
+// a 401, so the default redirectOn401 behavior is irrelevant here and
+// left as-is; /dashboard/team handles the 403 itself (see that page).
+export type Account = {
+  id: number;
+  email: string;
+  role: "owner" | "staff";
+  staffId: string | null;
+  createdAt: string;
+};
+
+export function getUsers(): Promise<Account[]> {
+  return request<Account[]>("/users");
+}
+
+export function createUser(data: { email: string; password: string; staffId?: string }): Promise<Account> {
+  return request<Account>("/users", { method: "POST", body: JSON.stringify(data) });
+}
