@@ -56,3 +56,19 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   req.user = user;
   next();
 }
+
+// Separate from requireAuth on purpose, not merged into it, and meant to
+// run after it (so req.user is already set). This is the first place
+// role is actually used for authorization anywhere in the API — every
+// other protected route deliberately treats "owner" and "staff" the same
+// (see the auth round's scope decision: "any logged-in user gets full
+// dashboard access"). This is not the start of a broader per-role
+// permission system yet, just the one action — creating/listing staff
+// logins — that only makes sense for the account owner.
+export function requireOwner(req: Request, res: Response, next: NextFunction): void {
+  if (req.user?.role !== "owner") {
+    res.status(403).json({ error: "only the account owner can do this" });
+    return;
+  }
+  next();
+}
