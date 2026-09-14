@@ -150,3 +150,53 @@ the "usable at 375px" + "not a hamburger" constraints together.
   highlight (shows the end state immediately instead).
 - Layout usable down to 375px width (verified with the mobile bottom nav
   above).
+
+## Addendum — the public booking page
+
+Everything above is for the dashboard. The public site (`/` and the
+booking flow) is a different product for a different person, and gets its
+own read, not a reskin of the ops tool.
+
+**Subject.** A prospective or existing member on their phone, mid-scroll
+through something else, deciding whether to book a class tonight. The job
+is "make me want to come in, then get me booked in under a minute" — the
+opposite of the dashboard's "scan fast, feel nothing." Mobile-first this
+time: this person is on a phone far more often than a gym owner is
+checking the dashboard from one.
+
+**Color.** The accent is `business.primaryColor` from config, applied as a
+CSS custom property set at render time — never hardcoded, since a second
+client's page must look nothing like Ironclad's on this axis alone. For
+Ironclad specifically that resolves to `#E63946`, a bold coral-red — energetic
+and athletic, and deliberately far from the dashboard's muted teal, so the
+two surfaces never get mistaken for the same system. Background stays a
+clean, close-to-white neutral (`#FAFAFA`) — warmer than the dashboard's
+cool `#F6F7F8` since this page is allowed some warmth, but still nowhere
+near the banned cream-plus-terracotta combination (the accent here is a
+config-driven red, not a fixed terracotta, and it's used boldly on CTAs
+and highlights, not as a muted decorative wash).
+
+**Type.** Same two families as the dashboard (Space Grotesk, IBM Plex
+Sans) — one type system for the product as a whole is a legitimate choice,
+not a shortcut, and it avoids loading a third typeface for no functional
+reason. The distinction from the dashboard comes from how they're used:
+larger display sizes for the hero, more generous line-height and spacing,
+pill-shaped buttons instead of the dashboard's square-cornered utilitarian
+ones — scale and shape carry the "this is a storefront, not a tool"
+signal, not a font swap.
+
+**Layout.** Single-column, mobile-first, generous vertical rhythm: hero
+(name, logo if present, one-line description, today's hours), services,
+two clear CTAs into the two booking tracks ("Book a session" /
+"Book a class") — not one blended flow, since the schema itself treats
+one-off bookings and recurring classes as genuinely different things.
+Cards here use soft rounded corners and a light shadow deliberately,
+unlike the dashboard's bordered-not-shadowed rule — real elevation is
+appropriate on a page that's selling a visit, not filing a fact.
+
+**What's still banned:** the same list as the dashboard — no ALL-CAPS
+eyebrows, no meta text joined with middle dots or spaced em dashes, no
+monospace for ordinary labels, no arrows appended to buttons, no
+fade-and-slide-up on every section. The booking-confirmed state gets one
+deliberate moment (a checkmark/confirmation card appearing), not a
+page-load animation sequence.
