@@ -1,6 +1,7 @@
 import { classBookings, db } from "@localos/db";
-import { and, eq, ne } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Router } from "express";
+import { findGymClass, isClassAtCapacity } from "../bookingRules.js";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
 import { CreateClassBookingSchema, DateQuerySchema } from "../validation.js";
@@ -14,30 +15,8 @@ classBookingsRouter.post("/class-bookings", async (req, res) => {
   }
   const { customerId, classId, occurrenceDate } = parsed.data;
 
-  const gymClass = clientConfig.classes.find((c) => c.id === classId);
-  if (!gymClass) {
-    throw new ApiError(400, `unknown classId "${classId}"`);
-  }
-
-  // Application-level only: counts existing rows and compares to capacity
-  // before inserting. Two concurrent requests can both read the same count,
-  // both pass, and both insert — overrunning capacity by (at most) the
-  // number of racing requests. A real guarantee would need a DB trigger or
-  // a counter column with a CHECK constraint, which is more than this round
-  // needs. This is an accepted, documented gap, not an oversight — unlike
-  // the staffId overlap check, there is no DB-level backstop for this one
-  // yet.
-  const existing = await db
-    .select({ id: classBookings.id })
-    .from(classBookings)
-    .where(
-      and(
-        eq(classBookings.classId, classId),
-        eq(classBookings.occurrenceDate, occurrenceDate),
-        ne(classBookings.status, "cancelled"),
-      ),
-    );
-  if (existing.length >= gymClass.capacity) {
+  const gymClass = findGymClass(clientConfig, classId);
+  if (await isClassAtCapacity(classId, occurrenceDate, gymClass.capacity)) {
     throw new ApiError(409, `class "${classId}" is at capacity for ${occurrenceDate}`);
   }
 

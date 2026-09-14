@@ -3,6 +3,7 @@ import { and, gte, lt } from "drizzle-orm";
 import { Router } from "express";
 import { DateTime } from "luxon";
 import { findOverlappingBooking, localDayRange } from "../availability.js";
+import { assertStaffQualified, findService } from "../bookingRules.js";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
 import { CreateBookingSchema, DateQuerySchema } from "../validation.js";
@@ -16,26 +17,8 @@ bookingsRouter.post("/bookings", async (req, res) => {
   }
   const { customerId, serviceId, staffId, startTime, endTime } = parsed.data;
 
-  const service = clientConfig.services.find((s) => s.id === serviceId);
-  if (!service) {
-    throw new ApiError(400, `unknown serviceId "${serviceId}"`);
-  }
-  if (staffId !== undefined && !clientConfig.staff.some((s) => s.id === staffId)) {
-    throw new ApiError(400, `unknown staffId "${staffId}"`);
-  }
-
-  // Config-mismatch error, checked before the overlap check: a staff member
-  // who isn't qualified for this service is wrong regardless of whether
-  // they're free at the requested time. Undefined/empty staffIds means the
-  // service has no restriction — unchanged from before this field existed.
-  if (service.staffIds && service.staffIds.length > 0) {
-    if (staffId === undefined || !service.staffIds.includes(staffId)) {
-      throw new ApiError(
-        400,
-        `staffId "${staffId ?? "none"}" is not qualified for service "${serviceId}"`,
-      );
-    }
-  }
+  const service = findService(clientConfig, serviceId);
+  assertStaffQualified(clientConfig, service, staffId);
 
   // Friendly, immediate check — the DB's EXCLUDE constraint (see
   // packages/db/src/schema.ts) is the actual guarantee if two requests race
