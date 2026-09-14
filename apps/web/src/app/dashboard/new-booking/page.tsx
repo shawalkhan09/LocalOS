@@ -13,6 +13,7 @@ import {
 } from "@/lib/api";
 import { addDaysToDateString, formatTimeInTimezone, todayInTimezone } from "@/lib/time";
 import { CustomerPickerModal } from "@/components/CustomerPickerModal";
+import formStyles from "@/components/FormField.module.css";
 import { useToast } from "@/components/Toast";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
@@ -164,8 +165,8 @@ export default function NewBookingPage() {
       <h1 className={pageStyles.heading}>New booking</h1>
       <p className={pageStyles.subheading}>Book a one-off appointment for a customer.</p>
 
-      <div className={styles.form}>
-        <div className={styles.field}>
+      <div className={formStyles.form}>
+        <div className={formStyles.field}>
           <label htmlFor="service">Service</label>
           <select id="service" value={serviceId} onChange={(e) => setServiceId(e.target.value)}>
             {config.services.map((s) => (
@@ -176,7 +177,7 @@ export default function NewBookingPage() {
           </select>
         </div>
 
-        <div className={styles.field}>
+        <div className={formStyles.field}>
           <label htmlFor="staff">Staff</label>
           <select id="staff" value={staffId} onChange={(e) => setStaffId(e.target.value)}>
             {isStaffRestricted ? (
@@ -194,7 +195,7 @@ export default function NewBookingPage() {
           </select>
         </div>
 
-        <div className={styles.field}>
+        <div className={formStyles.field}>
           <label htmlFor="date">Date</label>
           <input
             id="date"
@@ -206,8 +207,8 @@ export default function NewBookingPage() {
           />
         </div>
 
-        <div className={styles.field}>
-          <span id="slots-label" className={styles.fieldLabel}>
+        <div className={formStyles.field}>
+          <span id="slots-label" className={formStyles.fieldLabel}>
             Available times
           </span>
           {needsStaffSelection ? (
@@ -233,8 +234,8 @@ export default function NewBookingPage() {
           )}
         </div>
 
-        <div className={styles.field}>
-          <span className={styles.fieldLabel}>Customer</span>
+        <div className={formStyles.field}>
+          <span className={formStyles.fieldLabel}>Customer</span>
           <div className={`${styles.customerRow} ${customer ? "" : styles.customerRowEmpty}`}>
             {customer ? customer.name : "No customer selected"}
             <button type="button" className={styles.linkButton} onClick={() => setShowCustomerModal(true)}>
@@ -243,7 +244,7 @@ export default function NewBookingPage() {
           </div>
         </div>
 
-        <button type="button" className={styles.submit} disabled={!canSubmit} onClick={handleSubmit}>
+        <button type="button" className={formStyles.submit} disabled={!canSubmit} onClick={handleSubmit}>
           {submitting ? "Booking…" : "Confirm booking"}
         </button>
       </div>
