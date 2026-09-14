@@ -8,6 +8,7 @@ import {
   CreateMembershipSchema,
   CreateUserSchema,
   PublicCreateBookingSchema,
+  UpdateUserSchema,
 } from "./validation.js";
 
 // Request validation: must reject bad payloads before they ever reach the DB.
@@ -56,6 +57,23 @@ assert(
   CreateUserSchema.safeParse({ email: "staff@example.com", password: "longenough" }).success,
   "user with a valid email and long-enough password should be valid",
 );
+assert(
+  UpdateUserSchema.safeParse({ status: "deactivated" }).success,
+  "updating just status should be valid",
+);
+assert(
+  UpdateUserSchema.safeParse({ staffId: null }).success,
+  "an explicit null staffId (unlink) should be valid",
+);
+assert(
+  !UpdateUserSchema.safeParse({ email: "new@example.com" }).success,
+  "changing email is not supported this round and must be rejected, not silently ignored",
+);
+assert(
+  !UpdateUserSchema.safeParse({ role: "owner" }).success,
+  "changing role is not supported this round and must be rejected, not silently ignored",
+);
+assert(!UpdateUserSchema.safeParse({}).success, "an update with no fields at all should be rejected");
 console.log("OK: request validation rejects and accepts the expected shapes");
 
 // HTTP layer: boot the app on an ephemeral port and exercise the routes that

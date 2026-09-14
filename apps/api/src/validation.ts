@@ -70,6 +70,21 @@ export const CreateUserSchema = z.object({
   staffId: z.string().min(1).optional(),
 });
 
+// .strict() so an unrecognized key (e.g. email or role — deliberately not
+// supported this round, see routes/users.ts) fails validation instead of
+// being silently dropped. staffId is nullable (explicit unlink) as well
+// as optional (absent = leave unchanged) — see the route handler for how
+// those two are told apart.
+export const UpdateUserSchema = z
+  .object({
+    status: z.enum(["active", "deactivated"]).optional(),
+    staffId: z.string().min(1).nullable().optional(),
+  })
+  .strict()
+  .refine((data) => data.status !== undefined || data.staffId !== undefined, {
+    message: "at least one of status or staffId must be provided",
+  });
+
 export const CreateMembershipSchema = z.object({
   customerId: z.number().int().positive(),
   planId: z.string().min(1),
