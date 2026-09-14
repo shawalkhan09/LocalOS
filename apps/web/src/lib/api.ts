@@ -45,7 +45,12 @@ async function request<T>(
   return res.json() as Promise<T>;
 }
 
-export type SessionUser = { email: string; role: "owner" | "staff" };
+export type SessionUser = {
+  id: number;
+  email: string;
+  role: "owner" | "staff";
+  staffId: string | null;
+};
 
 export function login(email: string, password: string): Promise<SessionUser> {
   return request<SessionUser>(
@@ -169,13 +174,15 @@ export function createPublicClassBooking(data: {
   );
 }
 
-// Owner-only (GET/POST /users) — a non-owner gets a 403 from the API, not
-// a 401, so the default redirectOn401 behavior is irrelevant here and
-// left as-is; /dashboard/team handles the 403 itself (see that page).
+// Owner-only (GET/POST/PATCH /users) — a non-owner gets a 403 from the
+// API, not a 401, so the default redirectOn401 behavior is irrelevant
+// here and left as-is; /dashboard/team handles the 403 itself (see that
+// page).
 export type Account = {
   id: number;
   email: string;
   role: "owner" | "staff";
+  status: "active" | "deactivated";
   staffId: string | null;
   createdAt: string;
 };
@@ -186,4 +193,14 @@ export function getUsers(): Promise<Account[]> {
 
 export function createUser(data: { email: string; password: string; staffId?: string }): Promise<Account> {
   return request<Account>("/users", { method: "POST", body: JSON.stringify(data) });
+}
+
+// Only status and staffId are supported — matches PATCH /users/:id, which
+// rejects (400) any other key rather than silently ignoring it. staffId:
+// null explicitly unlinks; omit the key entirely to leave it unchanged.
+export function updateUser(
+  id: number,
+  data: { status?: "active" | "deactivated"; staffId?: string | null },
+): Promise<Account> {
+  return request<Account>(`/users/${id}`, { method: "PATCH", body: JSON.stringify(data) });
 }
