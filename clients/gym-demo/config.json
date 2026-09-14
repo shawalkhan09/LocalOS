@@ -54,27 +54,7 @@
       "category": "coaching"
     }
   ],
-  "staff": [
-    {
-      "id": "staff-jordan",
-      "name": "Jordan Ramirez",
-      "role": "Front Desk / Studio Manager",
-      "email": "jordan@ironcladfitness.com",
-      "phone": "+1-303-555-0143"
-    },
-    {
-      "id": "staff-priya",
-      "name": "Priya Nair",
-      "role": "Head Trainer",
-      "email": "priya@ironcladfitness.com"
-    },
-    {
-      "id": "staff-marcus",
-      "name": "Marcus Webb",
-      "role": "Conditioning Coach",
-      "email": "marcus@ironcladfitness.com"
-    }
-  ],
+  "_note": "staff and trainer profiles moved to the database this round — see packages/db/scripts/migrate-staff-from-config.ts and the `staff`/`trainer_profiles` tables in packages/db/src/schema.ts",
   "booking": {
     "advanceBookingDays": 14,
     "cancellationWindowHours": 12,
@@ -154,22 +134,6 @@
       "schedule": [
         { "day": "saturday", "startTime": "09:00" }
       ]
-    }
-  ],
-  "trainers": [
-    {
-      "id": "trainer-priya",
-      "staffId": "staff-priya",
-      "bio": "10 years coaching strength and mobility; NASM-CPT certified.",
-      "specialties": ["strength training", "mobility"],
-      "certifications": ["NASM-CPT", "USAW Level 1"]
-    },
-    {
-      "id": "trainer-marcus",
-      "staffId": "staff-marcus",
-      "bio": "Former collegiate athlete specializing in high-intensity conditioning.",
-      "specialties": ["HIIT", "conditioning"],
-      "certifications": ["ACE-CPT"]
     }
   ]
 }

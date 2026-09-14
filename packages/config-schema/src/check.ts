@@ -8,24 +8,18 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const configPath = path.resolve(__dirname, "../../../clients/gym-demo/config.json");
 const raw = JSON.parse(readFileSync(configPath, "utf-8"));
 
+// No staff/trainer cross-reference assertions here anymore (service
+// staffIds referencing a real staff id, trainers referencing real staff,
+// classes referencing real trainers) — those all moved to apps/api,
+// checked against the database at runtime now that staff/trainers live
+// there instead of in this file. See apps/api/src/bookingRules.ts
+// (assertStaffQualified) and apps/api/src/routes/catalog.ts.
 const config = parseClientConfig(raw);
 assert(config.business.name.length > 0, "expected a business name");
-assert(
-  config.classes.every((c) => config.trainers.some((t) => t.id === c.trainerId)),
-  "every class must reference a real trainer",
-);
-assert(
-  config.trainers.every((t) => config.staff.some((s) => s.id === t.staffId)),
-  "every trainer must reference a real staff id",
-);
 assert(config.businessHours.length > 0, "expected at least one business hours slot");
 assert(
   config.businessHours.every((slot) => slot.closeTime > slot.openTime),
   "every business hours slot must close after it opens",
-);
-assert(
-  config.services.every((s) => (s.staffIds ?? []).every((id) => config.staff.some((m) => m.id === id))),
-  "every service staffId must reference a real staff id",
 );
 assert(/^#[0-9a-fA-F]{6}$/.test(config.business.primaryColor), "expected a 6-digit hex primaryColor");
 console.log("OK: gym-demo config.json is valid");
@@ -48,14 +42,6 @@ assert.throws(
   "closeTime at or before openTime should be rejected",
 );
 console.log("OK: business hours with closeTime <= openTime is rejected");
-
-const unknownServiceStaffId = structuredClone(raw);
-unknownServiceStaffId.services[0].staffIds = ["staff-does-not-exist"];
-assert.throws(
-  () => parseClientConfig(unknownServiceStaffId),
-  "unknown service staffId should be rejected",
-);
-console.log("OK: service staffIds referencing an unknown staff id is rejected");
 
 const badPrimaryColor = structuredClone(raw);
 badPrimaryColor.business.primaryColor = "not-a-hex-color";

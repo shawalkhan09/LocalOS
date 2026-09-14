@@ -50,6 +50,11 @@ export const ServiceSchema = z.object({
   staffIds: z.array(z.string().min(1)).optional(),
 });
 
+// Staff no longer lives in config.json (see packages/db's `staff` table),
+// but this shape is still the contract for it: apps/api reads staff rows
+// through it when assembling GET /catalog's response, and it's what
+// ClientConfigSchema (index.ts) extends the deploy-time config with to
+// describe that response's full shape.
 export const StaffMemberSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
@@ -85,7 +90,6 @@ export const BaseConfigSchema = z.object({
   business: BusinessSchema,
   contact: ContactSchema,
   services: z.array(ServiceSchema).min(1),
-  staff: z.array(StaffMemberSchema),
   booking: BookingSettingsSchema,
   businessHours: z.array(BusinessHoursSlotSchema),
   features: BaseFeaturesSchema,
@@ -107,26 +111,6 @@ export function assertBusinessHoursValid(
         message: `closeTime "${slot.closeTime}" must be after openTime "${slot.openTime}"`,
       });
     }
-  });
-}
-
-// Vertical-agnostic, same pattern as assertBusinessHoursValid above: every
-// id in a service's staffIds must actually exist in the staff array.
-export function assertServiceStaffIdsValid(
-  config: { services: Service[]; staff: { id: string }[] },
-  ctx: z.RefinementCtx,
-): void {
-  const staffIds = new Set(config.staff.map((member) => member.id));
-  config.services.forEach((service, serviceIndex) => {
-    service.staffIds?.forEach((staffId, staffIdIndex) => {
-      if (!staffIds.has(staffId)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["services", serviceIndex, "staffIds", staffIdIndex],
-          message: `staffId "${staffId}" does not match any staff id`,
-        });
-      }
-    });
   });
 }
 

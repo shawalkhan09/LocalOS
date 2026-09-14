@@ -1,11 +1,5 @@
 import { z } from "zod";
-import {
-  assertBusinessHoursValid,
-  assertServiceStaffIdsValid,
-  BaseConfigSchema,
-  BaseFeaturesSchema,
-  WeekdaySchema,
-} from "./base.js";
+import { assertBusinessHoursValid, BaseConfigSchema, BaseFeaturesSchema, WeekdaySchema } from "./base.js";
 
 export const GymFeaturesSchema = BaseFeaturesSchema.extend({
   classSchedule: z.boolean().default(true),
@@ -24,6 +18,10 @@ export const MembershipPlanSchema = z.object({
   perks: z.array(z.string()).optional(),
 });
 
+// Trainer profiles no longer live in config.json (see packages/db's
+// `trainer_profiles` table) — same reasoning as StaffMemberSchema in
+// base.ts, and the same role: the contract apps/api reads DB rows through
+// and ClientConfigSchema extends the deploy-time config with.
 export const TrainerSchema = z.object({
   id: z.string().min(1),
   staffId: z.string().min(1),
@@ -66,54 +64,29 @@ function assertUniqueIds(
   });
 }
 
-function assertClassesReferenceTrainers(
-  config: { classes: GymClass[]; trainers: Trainer[] },
-  ctx: z.RefinementCtx,
-): void {
-  const trainerIds = new Set(config.trainers.map((trainer) => trainer.id));
-  config.classes.forEach((gymClass, index) => {
-    if (!trainerIds.has(gymClass.trainerId)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["classes", index, "trainerId"],
-        message: `trainerId "${gymClass.trainerId}" does not match any trainer id`,
-      });
-    }
-  });
-}
+// classes[].trainerId still references a trainer (now a trainer_profiles
+// row instead of a config array), but that reference can no longer be
+// checked here: trainer_profiles lives in the database, and zod's parse
+// has no DB access. apps/api validates it at the one place a class is
+// actually read (GET /catalog, see routes/catalog.ts) instead — the same
+// "runtime check, not a config-time one" move made for service.staffIds
+// (see apps/api/src/bookingRules.ts's assertStaffQualified).
 
-function assertTrainersReferenceStaff(
-  config: { trainers: Trainer[]; staff: { id: string }[] },
-  ctx: z.RefinementCtx,
-): void {
-  const staffIds = new Set(config.staff.map((member) => member.id));
-  config.trainers.forEach((trainer, index) => {
-    if (!staffIds.has(trainer.staffId)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["trainers", index, "staffId"],
-        message: `staffId "${trainer.staffId}" does not match any staff id`,
-      });
-    }
-  });
-}
-
-export const GymConfigSchema = BaseConfigSchema.extend({
+// Plain object shape, pre-refinement: kept separate from GymConfigSchema
+// so index.ts can .extend() it with staff/trainers to describe GET
+// /catalog's full response shape (ZodEffects, which superRefine produces,
+// can't be .extend()ed).
+export const GymConfigObjectSchema = BaseConfigSchema.extend({
   features: GymFeaturesSchema,
   membershipPlans: z.array(MembershipPlanSchema),
   classes: z.array(GymClassSchema),
-  trainers: z.array(TrainerSchema),
-}).superRefine((config, ctx) => {
+});
+
+export const GymConfigSchema = GymConfigObjectSchema.superRefine((config, ctx) => {
   assertUniqueIds(config.services, "services", ctx);
-  assertUniqueIds(config.staff, "staff", ctx);
-  assertUniqueIds(config.trainers, "trainers", ctx);
   assertUniqueIds(config.classes, "classes", ctx);
   assertUniqueIds(config.membershipPlans, "membershipPlans", ctx);
-
-  assertClassesReferenceTrainers(config, ctx);
-  assertTrainersReferenceStaff(config, ctx);
   assertBusinessHoursValid(config, ctx);
-  assertServiceStaffIdsValid(config, ctx);
 });
 
 export type GymFeatures = z.infer<typeof GymFeaturesSchema>;
