@@ -4,7 +4,8 @@
     "legalName": "Ironclad Fitness LLC",
     "timezone": "America/Denver",
     "currency": "USD",
-    "description": "Neighborhood strength and conditioning gym in Denver, CO."
+    "description": "Neighborhood strength and conditioning gym in Denver, CO.",
+    "primaryColor": "#E63946"
   },
   "contact": {
     "email": "hello@ironcladfitness.com",

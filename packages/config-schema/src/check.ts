@@ -27,6 +27,7 @@ assert(
   config.services.every((s) => (s.staffIds ?? []).every((id) => config.staff.some((m) => m.id === id))),
   "every service staffId must reference a real staff id",
 );
+assert(/^#[0-9a-fA-F]{6}$/.test(config.business.primaryColor), "expected a 6-digit hex primaryColor");
 console.log("OK: gym-demo config.json is valid");
 
 assert.throws(() => parseClientConfig({ business: {} }), "malformed config should throw");
@@ -55,3 +56,8 @@ assert.throws(
   "unknown service staffId should be rejected",
 );
 console.log("OK: service staffIds referencing an unknown staff id is rejected");
+
+const badPrimaryColor = structuredClone(raw);
+badPrimaryColor.business.primaryColor = "not-a-hex-color";
+assert.throws(() => parseClientConfig(badPrimaryColor), "malformed primaryColor should be rejected");
+console.log("OK: a malformed primaryColor is rejected");

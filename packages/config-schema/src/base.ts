@@ -24,6 +24,11 @@ export const BusinessSchema = z.object({
   timezone: z.string().min(1),
   currency: z.string().length(3),
   description: z.string().optional(),
+  // Base-level, not gym-specific: every vertical's public booking page
+  // needs branding. logoUrl is optional — the public UI must render fine
+  // without one.
+  primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, "expected a 6-digit hex color, e.g. #1A2B3C"),
+  logoUrl: z.string().url().optional(),
 });
 
 export const ContactSchema = z.object({
