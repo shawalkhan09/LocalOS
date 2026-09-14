@@ -35,6 +35,8 @@ export const customers = pgTable(
   }),
 );
 
+export type Customer = typeof customers.$inferSelect;
+
 export const bookingStatusEnum = pgEnum("booking_status", [
   "confirmed",
   "cancelled",
