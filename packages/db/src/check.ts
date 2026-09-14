@@ -15,6 +15,8 @@ const tables = {
   memberships: schema.memberships,
   users: schema.users,
   sessions: schema.sessions,
+  staff: schema.staff,
+  trainerProfiles: schema.trainerProfiles,
 } as const;
 
 for (const [name, table] of Object.entries(tables)) {
@@ -34,6 +36,13 @@ assert(getTableColumns(schema.users).passwordHash, "users must have a passwordHa
 assert(getTableColumns(schema.users).status, "users must have a status column");
 assert(getTableColumns(schema.sessions).userId, "sessions must have a userId column");
 assert(getTableColumns(schema.sessions).expiresAt, "sessions must have an expiresAt column");
+assert(getTableColumns(schema.staff).name, "staff must have a name column");
+assert(getTableColumns(schema.staff).role, "staff must have a role column");
+assert(getTableColumns(schema.trainerProfiles).staffId, "trainerProfiles must have a staffId column");
+assert(
+  getTableColumns(schema.trainerProfiles).specialties,
+  "trainerProfiles must have a specialties column",
+);
 console.log("OK: schema exposes the expected single-tenant tables and columns");
 
 // Migration output: confirm the catalog tables are really gone and that
@@ -79,6 +88,27 @@ assert(
     'CONSTRAINT "class_bookings_customer_id_class_id_occurrence_date_unique" UNIQUE("customer_id","class_id","occurrence_date")',
   ),
   "expected unique constraint on class_bookings(customer_id, class_id, occurrence_date)",
+);
+// Staff moved from config.json into the database this round, so — unlike
+// service_id/class_id/plan_id above — staff_id references ARE expected to
+// be real foreign keys now. See the comment on `bookings` in schema.ts.
+assert(
+  sql.includes(
+    'ALTER TABLE "bookings" ADD CONSTRAINT "bookings_staff_id_staff_id_fk" FOREIGN KEY ("staff_id") REFERENCES "public"."staff"("id")',
+  ),
+  "expected bookings -> staff FK in migration SQL",
+);
+assert(
+  sql.includes(
+    'ALTER TABLE "users" ADD CONSTRAINT "users_staff_id_staff_id_fk" FOREIGN KEY ("staff_id") REFERENCES "public"."staff"("id")',
+  ),
+  "expected users -> staff FK in migration SQL",
+);
+assert(
+  sql.includes(
+    'ALTER TABLE "trainer_profiles" ADD CONSTRAINT "trainer_profiles_staff_id_staff_id_fk" FOREIGN KEY ("staff_id") REFERENCES "public"."staff"("id")',
+  ),
+  "expected trainer_profiles -> staff FK in migration SQL",
 );
 console.log("OK: generated migration SQL matches the single-tenant shape");
 

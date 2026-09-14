@@ -9,7 +9,8 @@
     "generate": "drizzle-kit generate",
     "check": "tsx src/check.ts",
     "typecheck": "tsc --noEmit",
-    "seed:demo": "tsx scripts/seed-demo-data.ts"
+    "seed:demo": "tsx scripts/seed-demo-data.ts",
+    "migrate:staff": "tsx scripts/migrate-staff-from-config.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
