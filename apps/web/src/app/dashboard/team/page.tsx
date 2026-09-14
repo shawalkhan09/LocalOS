@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import type { ClientConfig } from "@localos/config-schema";
-import { type Account, ApiRequestError, createUser, getCatalog, getUsers } from "@/lib/api";
+import { type Account, ApiRequestError, createUser, getCatalog, getMe, getUsers, updateUser } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import tableStyles from "@/components/DataTable.module.css";
 import formStyles from "@/components/FormField.module.css";
 import pageStyles from "../page.module.css";
+import styles from "./page.module.css";
 
 function capitalize(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
@@ -17,6 +18,7 @@ export default function TeamPage() {
 
   const [config, setConfig] = useState<ClientConfig | null>(null);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [forbidden, setForbidden] = useState(false);
 
@@ -26,10 +28,11 @@ export default function TeamPage() {
   const [submitting, setSubmitting] = useState(false);
 
   function load() {
-    Promise.all([getCatalog(), getUsers()])
-      .then(([catalogRes, accountsRes]) => {
+    Promise.all([getCatalog(), getUsers(), getMe()])
+      .then(([catalogRes, accountsRes, meRes]) => {
         setConfig(catalogRes);
         setAccounts(accountsRes);
+        setCurrentUserId(meRes.id);
       })
       .catch((err) => {
         // Defense in depth: the Team nav link is hidden for staff, but a
@@ -65,6 +68,38 @@ export default function TeamPage() {
       }
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleStaffLinkChange(account: Account, newStaffId: string) {
+    try {
+      const updated = await updateUser(account.id, { staffId: newStaffId || null });
+      setAccounts((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+      showToast("Staff link updated.", "success");
+    } catch (err) {
+      showToast(err instanceof ApiRequestError ? err.message : "Could not update the account.", "error");
+    }
+  }
+
+  async function handleToggleStatus(account: Account) {
+    const nextStatus = account.status === "active" ? "deactivated" : "active";
+    // Deactivating signs someone out immediately (see apps/api's
+    // PATCH /users/:id) — worth one beat of confirmation before doing it.
+    // Reactivating isn't destructive, so it doesn't need the same pause.
+    if (nextStatus === "deactivated") {
+      const confirmed = window.confirm(
+        `Deactivate ${account.email}? This immediately signs them out and blocks logging back in until reactivated.`,
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+    try {
+      const updated = await updateUser(account.id, { status: nextStatus });
+      setAccounts((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+      showToast(nextStatus === "deactivated" ? "Account deactivated." : "Account reactivated.", "success");
+    } catch (err) {
+      showToast(err instanceof ApiRequestError ? err.message : "Could not update the account.", "error");
     }
   }
 
@@ -109,24 +144,60 @@ export default function TeamPage() {
             <tr>
               <th>Email</th>
               <th>Role</th>
+              <th>Status</th>
               <th>Staff member</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
             {accounts.length === 0 ? (
               <tr>
-                <td colSpan={3} className={tableStyles.empty}>
+                <td colSpan={5} className={tableStyles.empty}>
                   No accounts yet.
                 </td>
               </tr>
             ) : (
-              accounts.map((a) => (
-                <tr key={a.id}>
-                  <td>{a.email}</td>
-                  <td>{capitalize(a.role)}</td>
-                  <td>{a.staffId ? (staffById.get(a.staffId)?.name ?? a.staffId) : "—"}</td>
-                </tr>
-              ))
+              accounts.map((a) => {
+                const isSelf = a.id === currentUserId;
+                const isDeactivated = a.status === "deactivated";
+                return (
+                  <tr key={a.id} className={isDeactivated ? styles.deactivatedRow : ""}>
+                    <td>{a.email}</td>
+                    <td>{capitalize(a.role)}</td>
+                    <td>{capitalize(a.status)}</td>
+                    <td>
+                      {isSelf ? (
+                        a.staffId ? (staffById.get(a.staffId)?.name ?? a.staffId) : "—"
+                      ) : (
+                        <select
+                          className={styles.inlineSelect}
+                          value={a.staffId ?? ""}
+                          onChange={(e) => handleStaffLinkChange(a, e.target.value)}
+                          aria-label={`Staff member linked to ${a.email}`}
+                        >
+                          <option value="">Not linked</option>
+                          {config.staff.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </td>
+                    <td>
+                      {!isSelf && (
+                        <button
+                          type="button"
+                          className={`${styles.actionLink} ${isDeactivated ? "" : styles.actionLinkWarn}`}
+                          onClick={() => handleToggleStatus(a)}
+                        >
+                          {isDeactivated ? "Reactivate" : "Deactivate"}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

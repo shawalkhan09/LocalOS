@@ -1,0 +1,27 @@
+.deactivatedRow {
+  opacity: 0.55;
+}
+
+.inlineSelect {
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: var(--font-body);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.actionLink {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.actionLinkWarn {
+  color: var(--warn);
+}
