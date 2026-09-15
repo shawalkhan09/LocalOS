@@ -1,6 +1,14 @@
 import type { ClientConfig, StaffMember, Trainer } from "@localos/config-schema";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+// Production calls go through the same-origin /api-proxy rewrite (see
+// next.config.ts) instead of straight to Render's own domain — that's
+// what keeps the session cookie first-party for Safari/Firefox's tracking
+// protections, which otherwise block it as third-party (Vercel calling
+// Render cross-origin). Local dev is unchanged: no cross-origin concern
+// hitting localhost directly, and every prior round's verification already
+// depends on NEXT_PUBLIC_API_URL working exactly as it does today.
+const API_URL =
+  process.env.NODE_ENV === "production" ? "/api-proxy" : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000");
 
 export class ApiRequestError extends Error {
   status: number;
