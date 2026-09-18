@@ -47,6 +47,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         <Link href="/" className={styles.businessName}>
           {config?.business.name ?? "Loading…"}
         </Link>
+        <Link href="/login" className={styles.headerLink}>
+          Log in
+        </Link>
       </header>
       <main className={styles.main}>{children}</main>
       <footer className={styles.footer}>

@@ -47,6 +47,15 @@
 
 .headerLink {
   margin-left: auto;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--public-ink-muted);
+}
+
+.headerLink:hover {
+  color: var(--public-ink);
 }
 
 .main {
