@@ -155,7 +155,19 @@ const unauthedStaff = await fetch(`${baseUrl}/staff`, {
   body: "{}",
 });
 assert.strictEqual(unauthedStaff.status, 401);
-console.log("OK: a protected route rejects requests with no session");
+const unauthedArchive = await fetch(`${baseUrl}/customers/1/archive`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web" },
+});
+assert.strictEqual(unauthedArchive.status, 401, "unauthenticated customer archive must be rejected with 401");
+
+const missingCsrf = await fetch(`${baseUrl}/customers/1/archive`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+});
+assert.strictEqual(missingCsrf.status, 403, "request without CSRF header must be rejected with 403");
+
+console.log("OK: a protected route rejects requests with no session and missing CSRF header");
 
 // Public booking routes must NOT require a session — sent with a
 // deliberately empty body (no DB needed), so a non-401 status proves the
