@@ -15,8 +15,8 @@ export function assertBookableSessionTime(params: BookableSessionTimeParams): vo
   const { service, startTime, endTime, now } = params;
   const timezone = clientConfig.business.timezone;
 
-  const start = startTime instanceof DateTime ? startTime : DateTime.fromJSDate(startTime).setZone(timezone);
-  const end = endTime instanceof DateTime ? endTime : DateTime.fromJSDate(endTime).setZone(timezone);
+  const start = startTime instanceof DateTime ? startTime.setZone(timezone) : DateTime.fromJSDate(startTime, { zone: 'utc' }).setZone(timezone);
+  const end = endTime instanceof DateTime ? endTime.setZone(timezone) : DateTime.fromJSDate(endTime, { zone: 'utc' }).setZone(timezone);
   const currentTime = now ?? DateTime.now().setZone(timezone);
 
   // Rule 1: startTime is not in the past
