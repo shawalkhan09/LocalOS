@@ -1,11 +1,15 @@
 import { bookings, classBookings, db } from "@localos/db";
 import { Router } from "express";
 import { DateTime } from "luxon";
+import { assertBookableSessionTime, assertBookableClassOccurrence } from "../bookingWindow.js";
 import { isRateLimited, PUBLIC_BOOKING_RATE_LIMIT } from "../auth/rateLimiter.js";
 import { findOverlappingBooking } from "../availability.js";
 import {
+  assertCustomerFree,
+  assertNotAlreadyInClass,
   assertStaffQualified,
   computeNoShowRisk,
+  findCustomerByEmail,
   findGymClass,
   findOrCreateCustomerByEmail,
   findService,
@@ -33,6 +37,11 @@ publicRouter.post("/public/bookings", async (req, res) => {
   const { customerName, customerEmail, customerPhone, serviceId, staffId, startTime, endTime } = parsed.data;
 
   const service = findService(clientConfig, serviceId);
+  assertBookableSessionTime({
+    service,
+    startTime: DateTime.fromJSDate(startTime),
+    endTime: DateTime.fromJSDate(endTime),
+  });
   await assertStaffQualified(service, staffId);
 
   // Same overlap check as the staff route (routes/bookings.ts) via the
@@ -45,6 +54,24 @@ publicRouter.post("/public/bookings", async (req, res) => {
   );
   if (conflict) {
     throw new ApiError(409, "That time was just booked by someone else. Please choose another time.");
+  }
+
+  // Check if this customer already has a booking at this time, but only if they already exist
+  // (no side effects from find-or-create if validation fails)
+  const existingCustomer = await findCustomerByEmail(customerEmail);
+  if (existingCustomer) {
+    try {
+      await assertCustomerFree(
+        existingCustomer.id,
+        DateTime.fromJSDate(startTime),
+        DateTime.fromJSDate(endTime),
+      );
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        throw new ApiError(409, "You already have a booking at that time.");
+      }
+      throw e;
+    }
   }
 
   const customer = await findOrCreateCustomerByEmail({
@@ -87,10 +114,28 @@ publicRouter.post("/public/class-bookings", async (req, res) => {
   const { customerName, customerEmail, customerPhone, classId, occurrenceDate } = parsed.data;
 
   const gymClass = findGymClass(clientConfig, classId);
+  assertBookableClassOccurrence({
+    gymClass,
+    occurrenceDate,
+  });
   // Same capacity check as the staff route (routes/classBookings.ts) via
   // the shared isClassAtCapacity — only the wording differs.
   if (await isClassAtCapacity(classId, occurrenceDate, gymClass.capacity)) {
     throw new ApiError(409, "This class just filled up. Please choose another class or date.");
+  }
+
+  // Check if this customer already has a booking in this class on this date, but only if they already exist
+  // (no side effects from find-or-create if validation fails)
+  const existingCustomer = await findCustomerByEmail(customerEmail);
+  if (existingCustomer) {
+    try {
+      await assertNotAlreadyInClass(existingCustomer.id, classId, occurrenceDate);
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        throw new ApiError(409, "You are already booked into that class.");
+      }
+      throw e;
+    }
   }
 
   const customer = await findOrCreateCustomerByEmail({

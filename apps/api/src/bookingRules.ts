@@ -1,6 +1,7 @@
 import type { GymConfig } from "@localos/config-schema";
 import { bookings, classBookings, customers, db, staff, type Customer } from "@localos/db";
-import { and, eq, inArray, ne, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, lt, ne, sql } from "drizzle-orm";
+import { DateTime } from "luxon";
 import { ApiError } from "./errors.js";
 
 // Shared by the staff-facing (routes/bookings.ts) and public
@@ -111,6 +112,17 @@ export async function findOrCreateCustomerByEmail(data: {
   return created;
 }
 
+// Read-only lookup by email for public bookings — returns the customer if found,
+// undefined if not. No side effects (no insert, no unarchive).
+export async function findCustomerByEmail(email: string): Promise<Customer | undefined> {
+  const [existing] = await db
+    .select()
+    .from(customers)
+    .where(sql`lower(${customers.email}) = lower(${email})`)
+    .limit(1);
+  return existing;
+}
+
 // --- No-show risk scoring (v1, rule-based) ---
 //
 // There's no real booking history yet — only test/demo data — so a
@@ -170,4 +182,51 @@ export async function computeNoShowRisk(customerId: number, startTime: Date): Pr
   const contactRisk = customer?.phone ? 0 : 0.05;
 
   return Math.min(0.15 + leadTimeRisk + contactRisk, 0.35);
+}
+
+export async function assertCustomerFree(
+  customerId: number,
+  start: DateTime | Date,
+  end: DateTime | Date,
+): Promise<void> {
+  const startDate = start instanceof DateTime ? start.toJSDate() : start;
+  const endDate = end instanceof DateTime ? end.toJSDate() : end;
+
+  const overlapping = await db
+    .select({ id: bookings.id })
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.customerId, customerId),
+        ne(bookings.status, "cancelled"),
+        lt(bookings.startTime, endDate),
+        gt(bookings.endTime, startDate),
+      ),
+    );
+
+  if (overlapping.length > 0) {
+    throw new ApiError(409, "This customer already has a booking at that time.");
+  }
+}
+
+export async function assertNotAlreadyInClass(
+  customerId: number,
+  classId: string,
+  occurrenceDate: string,
+): Promise<void> {
+  const existing = await db
+    .select({ id: classBookings.id })
+    .from(classBookings)
+    .where(
+      and(
+        eq(classBookings.customerId, customerId),
+        eq(classBookings.classId, classId),
+        eq(classBookings.occurrenceDate, occurrenceDate),
+        ne(classBookings.status, "cancelled"),
+      ),
+    );
+
+  if (existing.length > 0) {
+    throw new ApiError(409, "This customer is already booked into that class.");
+  }
 }

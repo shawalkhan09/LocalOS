@@ -77,11 +77,13 @@ availabilityRouter.get("/bookings/check-availability", async (req, res) => {
   const existingBookings =
     staffId !== undefined ? await findStaffBookingsInRange(staffId, open, close) : [];
 
+  const now = DateTime.now().setZone(timezone);
   const slots = candidates
+    .filter((candidate) => candidate.start >= now)
     .filter(
       (candidate) =>
         !existingBookings.some((b) =>
-          overlaps(candidate.start, candidate.end, DateTime.fromJSDate(b.startTime), DateTime.fromJSDate(b.endTime)),
+          overlaps(candidate.start, candidate.end, DateTime.fromJSDate(b.startTime, { zone: 'utc' }).setZone(timezone), DateTime.fromJSDate(b.endTime, { zone: 'utc' }).setZone(timezone)),
         ),
     )
     .map((c) => ({ startTime: c.start.toUTC().toISO(), endTime: c.end.toUTC().toISO() }));

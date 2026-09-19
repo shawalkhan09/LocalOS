@@ -1,6 +1,8 @@
 import assert from "node:assert";
+import { DateTime } from "luxon";
 import { db } from "@localos/db";
 import { createApp } from "./app.js";
+import { assertBookableSessionTime, assertBookableClassOccurrence } from "./bookingWindow.js";
 import { clientConfig } from "./config.js";
 import {
   CreateBookingSchema,
@@ -112,6 +114,286 @@ assert(
 );
 console.log("OK: request validation rejects and accepts the expected shapes");
 
+// Booking time validation: assertBookableSessionTime must enforce all four rules in order.
+const service60min = clientConfig.services.find((s) => s.durationMinutes === 60)!;
+const fixedNow = DateTime.fromISO("2026-09-21T10:00:00", { zone: clientConfig.business.timezone }); // Monday
+
+// Rule 1: past start rejected
+let pastStartFailed = false;
+try {
+  assertBookableSessionTime({
+    service: service60min,
+    startTime: fixedNow.minus({ hours: 1 }),
+    endTime: fixedNow.plus({ minutes: 0 }),
+    now: fixedNow,
+  });
+} catch (e) {
+  pastStartFailed = e instanceof Error && e.message.includes("already passed");
+}
+assert(pastStartFailed, "should reject past start with 'already passed' message");
+
+// Rule 2: start beyond window rejected
+let beyondWindowFailed = false;
+try {
+  const beyondWindow = fixedNow.plus({ days: clientConfig.booking.advanceBookingDays + 1 });
+  assertBookableSessionTime({
+    service: service60min,
+    startTime: beyondWindow.set({ hour: 10, minute: 0 }),
+    endTime: beyondWindow.set({ hour: 11, minute: 0 }),
+    now: fixedNow,
+  });
+} catch (e) {
+  beyondWindowFailed = e instanceof Error && e.message.includes("too far ahead");
+}
+assert(beyondWindowFailed, "should reject beyond window with 'too far ahead' message");
+
+// Rule 2b: last allowed day accepted (today + 14 days)
+const lastAllowed = fixedNow.plus({ days: clientConfig.booking.advanceBookingDays }).set({
+  hour: 10,
+  minute: 0,
+});
+assertBookableSessionTime({
+  service: service60min,
+  startTime: lastAllowed,
+  endTime: lastAllowed.plus({ minutes: 60 }),
+  now: fixedNow,
+});
+
+// Rule 3: closed weekday rejected (Sunday has no entry)
+let closedDayFailed = false;
+try {
+  const sunday = fixedNow.plus({ days: 6 }); // Next Sunday
+  assertBookableSessionTime({
+    service: service60min,
+    startTime: sunday.set({ hour: 10, minute: 0 }),
+    endTime: sunday.set({ hour: 11, minute: 0 }),
+    now: fixedNow,
+  });
+} catch (e) {
+  closedDayFailed = e instanceof Error && e.message.includes("closed");
+}
+assert(closedDayFailed, "should reject closed day (Sunday) with 'closed' message");
+
+// Rule 3b: before open rejected
+let beforeOpenFailed = false;
+try {
+  const wednesday = fixedNow.plus({ days: 2 }); // Wednesday
+  assertBookableSessionTime({
+    service: service60min,
+    startTime: wednesday.set({ hour: 4, minute: 0 }),
+    endTime: wednesday.set({ hour: 5, minute: 0 }),
+    now: fixedNow,
+  });
+} catch (e) {
+  beforeOpenFailed = e instanceof Error && e.message.includes("closed");
+}
+assert(beforeOpenFailed, "should reject before open with 'closed' message");
+
+// Rule 3c: after close rejected
+let afterCloseFailed = false;
+try {
+  const tuesday = fixedNow.plus({ days: 1 }); // Tuesday closes at 21:00
+  assertBookableSessionTime({
+    service: service60min,
+    startTime: tuesday.set({ hour: 20, minute: 30 }),
+    endTime: tuesday.set({ hour: 21, minute: 30 }), // Ends after close
+    now: fixedNow,
+  });
+} catch (e) {
+  afterCloseFailed = e instanceof Error && e.message.includes("closed");
+}
+assert(afterCloseFailed, "should reject after close with 'closed' message");
+
+// Rule 4: wrong duration rejected
+let wrongDurationFailed = false;
+try {
+  const wednesday = fixedNow.plus({ days: 2 }); // Wednesday
+  assertBookableSessionTime({
+    service: service60min,
+    startTime: wednesday.set({ hour: 10, minute: 0 }),
+    endTime: wednesday.set({ hour: 10, minute: 45 }), // 45 min, not 60
+    now: fixedNow,
+  });
+} catch (e) {
+  wrongDurationFailed = e instanceof Error && e.message.includes("doesn't match");
+}
+assert(wrongDurationFailed, "should reject wrong duration with 'doesn't match' message");
+
+// Valid future slot accepted
+const wednesday = fixedNow.plus({ days: 2 }); // Wednesday
+assertBookableSessionTime({
+  service: service60min,
+  startTime: wednesday.set({ hour: 10, minute: 0 }),
+  endTime: wednesday.set({ hour: 11, minute: 0 }),
+  now: fixedNow,
+});
+
+console.log("OK: booking time validation enforces all rules in order");
+
+// Class booking occurrence validation: assertBookableClassOccurrence must enforce all rules in order.
+const sampleClass = clientConfig.classes[0]!;
+const fixedClassNow = DateTime.fromISO("2026-09-21T10:00:00", { zone: clientConfig.business.timezone }); // Monday
+
+// Rule 1: wrong weekday rejected
+let wrongWeekdayFailed = false;
+try {
+  // Find a day that's NOT in the class schedule (e.g., Sunday)
+  const sunday = fixedClassNow.plus({ days: 6 });
+  assertBookableClassOccurrence({
+    gymClass: sampleClass,
+    occurrenceDate: sunday.toISODate()!,
+    now: fixedClassNow,
+  });
+} catch (e) {
+  wrongWeekdayFailed = e instanceof Error && e.message.includes("doesn't run on that day");
+}
+assert(wrongWeekdayFailed, "should reject wrong weekday");
+
+// Rule 2: past date rejected (must use a day the class runs on)
+let pastClassDateFailed = false;
+try {
+  // Find a weekday the class runs on
+  const classWeekday = sampleClass.schedule[0]!.day;
+  // Go back to find a past occurrence of that weekday
+  let pastDay = fixedClassNow.minus({ days: 1 });
+  while (pastDay.toFormat("cccc").toLowerCase() !== classWeekday) {
+    pastDay = pastDay.minus({ days: 1 });
+  }
+  assertBookableClassOccurrence({
+    gymClass: sampleClass,
+    occurrenceDate: pastDay.toISODate()!,
+    now: fixedClassNow,
+  });
+} catch (e) {
+  const msg = e instanceof Error ? e.message : String(e);
+  pastClassDateFailed = msg.includes("not available");
+}
+assert(pastClassDateFailed, `should reject past class date`);
+
+// Rule 2b: beyond window rejected (must use a day the class runs on)
+let beyondClassWindowFailed = false;
+try {
+  // Find a future occurrence of a day the class runs on, beyond the window
+  const classWeekday = sampleClass.schedule[0]!.day;
+  let beyondDay = fixedClassNow.plus({ days: clientConfig.booking.advanceBookingDays + 1 });
+  // Find the next occurrence of that weekday
+  while (beyondDay.toFormat("cccc").toLowerCase() !== classWeekday) {
+    beyondDay = beyondDay.plus({ days: 1 });
+  }
+  assertBookableClassOccurrence({
+    gymClass: sampleClass,
+    occurrenceDate: beyondDay.toISODate()!,
+    now: fixedClassNow,
+  });
+} catch (e) {
+  beyondClassWindowFailed = e instanceof Error && e.message.includes("not available");
+}
+assert(beyondClassWindowFailed, "should reject beyond advance window");
+
+// Rule 3: already started today rejected
+let alreadyStartedFailed = false;
+try {
+  // Create a class that has already started today
+  // Today is Monday, assuming the class runs on Monday
+  const todayClassString = fixedClassNow.toISODate()!;
+  const classStartTime = sampleClass.schedule.find((s) => s.day === "monday");
+  if (classStartTime) {
+    // Simulate a time after the class has started
+    const afterClassStart = fixedClassNow.plus({ hours: 2 });
+    assertBookableClassOccurrence({
+      gymClass: sampleClass,
+      occurrenceDate: todayClassString,
+      now: afterClassStart,
+    });
+  }
+} catch (e) {
+  alreadyStartedFailed = e instanceof Error && e.message.includes("already started");
+}
+// Only assert if the class runs on Monday (which it should, per the demo config)
+if (sampleClass.schedule.some((s) => s.day === "monday")) {
+  assert(alreadyStartedFailed, "should reject class that has already started");
+}
+
+// Valid future class date accepted
+const futureValidDate = fixedClassNow.plus({ days: 2 }).toISODate()!;
+assertBookableClassOccurrence({
+  gymClass: sampleClass,
+  occurrenceDate: futureValidDate,
+  now: fixedClassNow,
+});
+
+console.log("OK: class occurrence validation enforces all rules in order");
+
+// Timezone handling: validate that UTC times passed as Dates are correctly
+// converted to the business timezone before validation. The routes pass JS
+// Dates (which are UTC internally), and on a non-Denver server, DateTime.fromJSDate
+// must explicitly treat them as UTC before converting to business time.
+const service30min = clientConfig.services.find((s) => s.durationMinutes === 30)!;
+const fixedNowUTC = DateTime.fromISO("2026-09-21T16:00:00Z").setZone(clientConfig.business.timezone); // Monday 10 AM Denver
+
+// 6 PM Denver booking (valid) — represented as UTC Date
+// 2026-09-21 6 PM Denver = 2026-09-22 12:00 AM UTC (midnight start of next day)
+const booking6pmStart = DateTime.fromISO("2026-09-22T00:00:00Z");
+const booking6pmEnd = booking6pmStart.plus({ minutes: 30 });
+assertBookableSessionTime({
+  service: service30min,
+  startTime: booking6pmStart.toJSDate(),
+  endTime: booking6pmEnd.toJSDate(),
+  now: fixedNowUTC,
+});
+
+// 7 PM Denver booking (valid) — represented as UTC Date
+// 2026-09-21 7 PM Denver = 2026-09-22 1:00 AM UTC
+const booking7pmStart = DateTime.fromISO("2026-09-22T01:00:00Z");
+const booking7pmEnd = booking7pmStart.plus({ minutes: 30 });
+assertBookableSessionTime({
+  service: service30min,
+  startTime: booking7pmStart.toJSDate(),
+  endTime: booking7pmEnd.toJSDate(),
+  now: fixedNowUTC,
+});
+
+// 8:30 PM Denver booking (valid, still before 9 PM close) — represented as UTC Date
+// 2026-09-21 8:30 PM Denver = 2026-09-22 2:30 AM UTC
+const booking830pmStart = DateTime.fromISO("2026-09-22T02:30:00Z");
+const booking830pmEnd = booking830pmStart.plus({ minutes: 30 });
+assertBookableSessionTime({
+  service: service30min,
+  startTime: booking830pmStart.toJSDate(),
+  endTime: booking830pmEnd.toJSDate(),
+  now: fixedNowUTC,
+});
+
+// Last allowed day (14 days out) at 7 PM Denver — represented as UTC Date
+// 2026-10-05 7 PM Denver = 2026-10-06 1:00 AM UTC
+const lastAllowedDayStart = DateTime.fromISO("2026-10-06T01:00:00Z");
+const lastAllowedDayEnd = lastAllowedDayStart.plus({ minutes: 30 });
+assertBookableSessionTime({
+  service: service30min,
+  startTime: lastAllowedDayStart.toJSDate(),
+  endTime: lastAllowedDayEnd.toJSDate(),
+  now: fixedNowUTC,
+});
+
+// 8:45 PM Denver booking (invalid: ends after 9 PM close) — represented as UTC Date
+// 2026-09-21 8:45 PM Denver = 2026-09-22 2:45 AM UTC
+let afterCloseUTCFailed = false;
+try {
+  const booking845pmStart = DateTime.fromISO("2026-09-22T02:45:00Z");
+  const booking845pmEnd = booking845pmStart.plus({ minutes: 30 });
+  assertBookableSessionTime({
+    service: service30min,
+    startTime: booking845pmStart.toJSDate(),
+    endTime: booking845pmEnd.toJSDate(),
+    now: fixedNowUTC,
+  });
+} catch (e) {
+  afterCloseUTCFailed = e instanceof Error && e.message.includes("closed");
+}
+assert(afterCloseUTCFailed, "should reject UTC booking that ends after closing time");
+
+console.log("OK: timezone conversion from UTC to business zone works correctly");
+
 // HTTP layer: boot the app on an ephemeral port and exercise it. Catalog
 // now queries Postgres too (staff/trainers are database-backed — see
 // routes/catalog.ts), so unlike the write routes below, this check does
@@ -186,6 +468,49 @@ const publicClassBookingAttempt = await fetch(`${baseUrl}/public/class-bookings`
 });
 assert.notStrictEqual(publicClassBookingAttempt.status, 401);
 console.log("OK: public booking routes are reachable without a session");
+
+// Session booking validation: past time and outside business hours must be rejected
+const timezone = clientConfig.business.timezone;
+const now = DateTime.now().setZone(timezone);
+const pastTime = now.minus({ hours: 1 });
+const futureClosedTime = now.plus({ days: 1 }).set({ hour: 23, minute: 0 });
+const futureService = clientConfig.services.find((s) => s.durationMinutes === 60)!;
+
+// Past time rejected
+const pastBookingRes = await fetch(`${baseUrl}/public/bookings`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web" },
+  body: JSON.stringify({
+    customerName: "Alice",
+    customerEmail: "alice@example.com",
+    serviceId: futureService.id,
+    startTime: pastTime.toJSDate(),
+    endTime: pastTime.plus({ minutes: 60 }).toJSDate(),
+  }),
+});
+assert.strictEqual(pastBookingRes.status, 400, "past booking must return 400");
+const pastBookingBody = await pastBookingRes.json();
+const pastMsg = String(pastBookingBody.message || pastBookingBody.error || "");
+assert(pastMsg.includes("already passed"), `past booking error message: got "${pastMsg}"`);
+
+// Outside business hours rejected
+const outsideHoursRes = await fetch(`${baseUrl}/public/bookings`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web" },
+  body: JSON.stringify({
+    customerName: "Bob",
+    customerEmail: "bob@example.com",
+    serviceId: futureService.id,
+    startTime: futureClosedTime.toJSDate(),
+    endTime: futureClosedTime.plus({ minutes: 60 }).toJSDate(),
+  }),
+});
+assert.strictEqual(outsideHoursRes.status, 400, "outside hours booking must return 400");
+const outsideHoursBody = await outsideHoursRes.json();
+const outsideMsg = String(outsideHoursBody.message || outsideHoursBody.error || "");
+assert(outsideMsg.includes("closed"), `outside hours error message: got "${outsideMsg}"`);
+
+console.log("OK: session booking validation rejects past times and outside business hours");
 
 server.close();
 
