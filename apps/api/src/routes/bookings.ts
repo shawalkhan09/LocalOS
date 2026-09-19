@@ -2,6 +2,7 @@ import { bookings, db } from "@localos/db";
 import { and, gte, lt } from "drizzle-orm";
 import { Router } from "express";
 import { DateTime } from "luxon";
+import { assertBookableSessionTime } from "../bookingWindow.js";
 import { findOverlappingBooking, localDayRange } from "../availability.js";
 import { assertStaffQualified, computeNoShowRisk, findService } from "../bookingRules.js";
 import { clientConfig } from "../config.js";
@@ -18,6 +19,11 @@ bookingsRouter.post("/bookings", async (req, res) => {
   const { customerId, serviceId, staffId, startTime, endTime } = parsed.data;
 
   const service = findService(clientConfig, serviceId);
+  assertBookableSessionTime({
+    service,
+    startTime: DateTime.fromJSDate(startTime),
+    endTime: DateTime.fromJSDate(endTime),
+  });
   await assertStaffQualified(service, staffId);
 
   // Friendly, immediate check — the DB's EXCLUDE constraint (see

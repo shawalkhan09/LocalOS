@@ -305,6 +305,49 @@ const publicClassBookingAttempt = await fetch(`${baseUrl}/public/class-bookings`
 assert.notStrictEqual(publicClassBookingAttempt.status, 401);
 console.log("OK: public booking routes are reachable without a session");
 
+// Session booking validation: past time and outside business hours must be rejected
+const timezone = clientConfig.business.timezone;
+const now = DateTime.now().setZone(timezone);
+const pastTime = now.minus({ hours: 1 });
+const futureClosedTime = now.plus({ days: 1 }).set({ hour: 23, minute: 0 });
+const futureService = clientConfig.services.find((s) => s.durationMinutes === 60)!;
+
+// Past time rejected
+const pastBookingRes = await fetch(`${baseUrl}/public/bookings`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web" },
+  body: JSON.stringify({
+    customerName: "Alice",
+    customerEmail: "alice@example.com",
+    serviceId: futureService.id,
+    startTime: pastTime.toJSDate(),
+    endTime: pastTime.plus({ minutes: 60 }).toJSDate(),
+  }),
+});
+assert.strictEqual(pastBookingRes.status, 400, "past booking must return 400");
+const pastBookingBody = await pastBookingRes.json();
+const pastMsg = String(pastBookingBody.message || pastBookingBody.error || "");
+assert(pastMsg.includes("already passed"), `past booking error message: got "${pastMsg}"`);
+
+// Outside business hours rejected
+const outsideHoursRes = await fetch(`${baseUrl}/public/bookings`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web" },
+  body: JSON.stringify({
+    customerName: "Bob",
+    customerEmail: "bob@example.com",
+    serviceId: futureService.id,
+    startTime: futureClosedTime.toJSDate(),
+    endTime: futureClosedTime.plus({ minutes: 60 }).toJSDate(),
+  }),
+});
+assert.strictEqual(outsideHoursRes.status, 400, "outside hours booking must return 400");
+const outsideHoursBody = await outsideHoursRes.json();
+const outsideMsg = String(outsideHoursBody.message || outsideHoursBody.error || "");
+assert(outsideMsg.includes("closed"), `outside hours error message: got "${outsideMsg}"`);
+
+console.log("OK: session booking validation rejects past times and outside business hours");
+
 server.close();
 
 // GET /catalog now queries Postgres (see routes/catalog.ts), so this

@@ -1,6 +1,7 @@
 import { bookings, classBookings, db } from "@localos/db";
 import { Router } from "express";
 import { DateTime } from "luxon";
+import { assertBookableSessionTime } from "../bookingWindow.js";
 import { isRateLimited, PUBLIC_BOOKING_RATE_LIMIT } from "../auth/rateLimiter.js";
 import { findOverlappingBooking } from "../availability.js";
 import {
@@ -33,6 +34,11 @@ publicRouter.post("/public/bookings", async (req, res) => {
   const { customerName, customerEmail, customerPhone, serviceId, staffId, startTime, endTime } = parsed.data;
 
   const service = findService(clientConfig, serviceId);
+  assertBookableSessionTime({
+    service,
+    startTime: DateTime.fromJSDate(startTime),
+    endTime: DateTime.fromJSDate(endTime),
+  });
   await assertStaffQualified(service, staffId);
 
   // Same overlap check as the staff route (routes/bookings.ts) via the
