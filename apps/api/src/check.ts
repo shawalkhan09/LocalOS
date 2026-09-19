@@ -324,6 +324,76 @@ assertBookableClassOccurrence({
 
 console.log("OK: class occurrence validation enforces all rules in order");
 
+// Timezone handling: validate that UTC times passed as Dates are correctly
+// converted to the business timezone before validation. The routes pass JS
+// Dates (which are UTC internally), and on a non-Denver server, DateTime.fromJSDate
+// must explicitly treat them as UTC before converting to business time.
+const service30min = clientConfig.services.find((s) => s.durationMinutes === 30)!;
+const fixedNowUTC = DateTime.fromISO("2026-09-21T16:00:00Z").setZone(clientConfig.business.timezone); // Monday 10 AM Denver
+
+// 6 PM Denver booking (valid) — represented as UTC Date
+// 2026-09-21 6 PM Denver = 2026-09-22 12:00 AM UTC (midnight start of next day)
+const booking6pmStart = DateTime.fromISO("2026-09-22T00:00:00Z");
+const booking6pmEnd = booking6pmStart.plus({ minutes: 30 });
+assertBookableSessionTime({
+  service: service30min,
+  startTime: booking6pmStart.toJSDate(),
+  endTime: booking6pmEnd.toJSDate(),
+  now: fixedNowUTC,
+});
+
+// 7 PM Denver booking (valid) — represented as UTC Date
+// 2026-09-21 7 PM Denver = 2026-09-22 1:00 AM UTC
+const booking7pmStart = DateTime.fromISO("2026-09-22T01:00:00Z");
+const booking7pmEnd = booking7pmStart.plus({ minutes: 30 });
+assertBookableSessionTime({
+  service: service30min,
+  startTime: booking7pmStart.toJSDate(),
+  endTime: booking7pmEnd.toJSDate(),
+  now: fixedNowUTC,
+});
+
+// 8:30 PM Denver booking (valid, still before 9 PM close) — represented as UTC Date
+// 2026-09-21 8:30 PM Denver = 2026-09-22 2:30 AM UTC
+const booking830pmStart = DateTime.fromISO("2026-09-22T02:30:00Z");
+const booking830pmEnd = booking830pmStart.plus({ minutes: 30 });
+assertBookableSessionTime({
+  service: service30min,
+  startTime: booking830pmStart.toJSDate(),
+  endTime: booking830pmEnd.toJSDate(),
+  now: fixedNowUTC,
+});
+
+// Last allowed day (14 days out) at 7 PM Denver — represented as UTC Date
+// 2026-10-05 7 PM Denver = 2026-10-06 1:00 AM UTC
+const lastAllowedDayStart = DateTime.fromISO("2026-10-06T01:00:00Z");
+const lastAllowedDayEnd = lastAllowedDayStart.plus({ minutes: 30 });
+assertBookableSessionTime({
+  service: service30min,
+  startTime: lastAllowedDayStart.toJSDate(),
+  endTime: lastAllowedDayEnd.toJSDate(),
+  now: fixedNowUTC,
+});
+
+// 8:45 PM Denver booking (invalid: ends after 9 PM close) — represented as UTC Date
+// 2026-09-21 8:45 PM Denver = 2026-09-22 2:45 AM UTC
+let afterCloseUTCFailed = false;
+try {
+  const booking845pmStart = DateTime.fromISO("2026-09-22T02:45:00Z");
+  const booking845pmEnd = booking845pmStart.plus({ minutes: 30 });
+  assertBookableSessionTime({
+    service: service30min,
+    startTime: booking845pmStart.toJSDate(),
+    endTime: booking845pmEnd.toJSDate(),
+    now: fixedNowUTC,
+  });
+} catch (e) {
+  afterCloseUTCFailed = e instanceof Error && e.message.includes("closed");
+}
+assert(afterCloseUTCFailed, "should reject UTC booking that ends after closing time");
+
+console.log("OK: timezone conversion from UTC to business zone works correctly");
+
 // HTTP layer: boot the app on an ephemeral port and exercise it. Catalog
 // now queries Postgres too (staff/trainers are database-backed — see
 // routes/catalog.ts), so unlike the write routes below, this check does
