@@ -77,7 +77,9 @@ availabilityRouter.get("/bookings/check-availability", async (req, res) => {
   const existingBookings =
     staffId !== undefined ? await findStaffBookingsInRange(staffId, open, close) : [];
 
+  const now = DateTime.now().setZone(timezone);
   const slots = candidates
+    .filter((candidate) => candidate.start >= now)
     .filter(
       (candidate) =>
         !existingBookings.some((b) =>
