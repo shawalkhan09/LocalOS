@@ -4,7 +4,7 @@ import { Router } from "express";
 import { DateTime } from "luxon";
 import { assertBookableSessionTime } from "../bookingWindow.js";
 import { findOverlappingBooking, localDayRange } from "../availability.js";
-import { assertStaffQualified, computeNoShowRisk, findService } from "../bookingRules.js";
+import { assertCustomerFree, assertStaffQualified, computeNoShowRisk, findService } from "../bookingRules.js";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
 import { CreateBookingSchema, DateQuerySchema } from "../validation.js";
@@ -41,6 +41,8 @@ bookingsRouter.post("/bookings", async (req, res) => {
       `staff member "${staffId}" is already booked from ${conflict.startTime.toISOString()} to ${conflict.endTime.toISOString()}`,
     );
   }
+
+  await assertCustomerFree(customerId, DateTime.fromJSDate(startTime), DateTime.fromJSDate(endTime));
 
   // Computed once, at creation time, not recalculated later: the stored
   // score reflects what was known about this customer when the booking was

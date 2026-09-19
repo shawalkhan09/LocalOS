@@ -5,8 +5,10 @@ import { assertBookableSessionTime } from "../bookingWindow.js";
 import { isRateLimited, PUBLIC_BOOKING_RATE_LIMIT } from "../auth/rateLimiter.js";
 import { findOverlappingBooking } from "../availability.js";
 import {
+  assertCustomerFree,
   assertStaffQualified,
   computeNoShowRisk,
+  findCustomerByEmail,
   findGymClass,
   findOrCreateCustomerByEmail,
   findService,
@@ -51,6 +53,24 @@ publicRouter.post("/public/bookings", async (req, res) => {
   );
   if (conflict) {
     throw new ApiError(409, "That time was just booked by someone else. Please choose another time.");
+  }
+
+  // Check if this customer already has a booking at this time, but only if they already exist
+  // (no side effects from find-or-create if validation fails)
+  const existingCustomer = await findCustomerByEmail(customerEmail);
+  if (existingCustomer) {
+    try {
+      await assertCustomerFree(
+        existingCustomer.id,
+        DateTime.fromJSDate(startTime),
+        DateTime.fromJSDate(endTime),
+      );
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        throw new ApiError(409, "You already have a booking at that time.");
+      }
+      throw e;
+    }
   }
 
   const customer = await findOrCreateCustomerByEmail({
