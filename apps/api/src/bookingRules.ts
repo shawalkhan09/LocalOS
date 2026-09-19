@@ -97,6 +97,14 @@ export async function findOrCreateCustomerByEmail(data: {
     .where(sql`lower(${customers.email}) = lower(${data.email})`)
     .limit(1);
   if (existing[0]) {
+    if (existing[0].archivedAt !== null) {
+      const [unarchived] = await db
+        .update(customers)
+        .set({ archivedAt: null })
+        .where(eq(customers.id, existing[0].id))
+        .returning();
+      return unarchived;
+    }
     return existing[0];
   }
   const [created] = await db.insert(customers).values(data).returning();

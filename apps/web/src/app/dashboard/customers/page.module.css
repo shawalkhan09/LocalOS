@@ -1,0 +1,79 @@
+.viewToggle {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.toggleButton {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.toggleActive {
+  background: var(--bg);
+  color: var(--ink);
+  border-color: var(--ink-muted);
+}
+
+.actionLink {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.actionLinkWarn {
+  color: var(--warn);
+}
+
+.modalBody {
+  padding: 16px;
+}
+
+.modalText {
+  font-size: 14px;
+  color: var(--ink);
+  margin-bottom: 20px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.archiveButton {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--warn);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.archiveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}

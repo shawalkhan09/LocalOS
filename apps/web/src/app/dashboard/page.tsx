@@ -65,7 +65,7 @@ export default function TodayPage() {
         const [bookingsRes, classBookingsRes, customersRes] = await Promise.all([
           getBookings(today),
           getClassBookings(today),
-          getCustomers(),
+          getCustomers("all"),
         ]);
         if (cancelled) {
           return;

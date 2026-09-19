@@ -86,14 +86,24 @@ export type Customer = {
   email: string | null;
   phone: string | null;
   createdAt: string;
+  archivedAt: string | null;
 };
 
-export function getCustomers(): Promise<Customer[]> {
-  return request<Customer[]>("/customers");
+export function getCustomers(archived?: boolean | "all"): Promise<Customer[]> {
+  const param = archived === true ? "?archived=true" : archived === "all" ? "?archived=all" : "";
+  return request<Customer[]>(`/customers${param}`);
 }
 
 export function createCustomer(data: { name: string; email?: string; phone?: string }): Promise<Customer> {
   return request<Customer>("/customers", { method: "POST", body: JSON.stringify(data) });
+}
+
+export function archiveCustomer(id: number): Promise<Customer> {
+  return request<Customer>(`/customers/${id}/archive`, { method: "POST" });
+}
+
+export function unarchiveCustomer(id: number): Promise<Customer> {
+  return request<Customer>(`/customers/${id}/unarchive`, { method: "POST" });
 }
 
 export type Booking = {

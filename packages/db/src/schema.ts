@@ -28,6 +28,7 @@ export const customers = pgTable(
     email: text("email"),
     phone: text("phone"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
   },
   (table) => ({
     emailOrPhoneRequired: check(
