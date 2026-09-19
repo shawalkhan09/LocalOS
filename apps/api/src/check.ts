@@ -2,7 +2,7 @@ import assert from "node:assert";
 import { DateTime } from "luxon";
 import { db } from "@localos/db";
 import { createApp } from "./app.js";
-import { assertBookableSessionTime } from "./bookingWindow.js";
+import { assertBookableSessionTime, assertBookableClassOccurrence } from "./bookingWindow.js";
 import { clientConfig } from "./config.js";
 import {
   CreateBookingSchema,
@@ -229,6 +229,100 @@ assertBookableSessionTime({
 });
 
 console.log("OK: booking time validation enforces all rules in order");
+
+// Class booking occurrence validation: assertBookableClassOccurrence must enforce all rules in order.
+const sampleClass = clientConfig.classes[0]!;
+const fixedClassNow = DateTime.fromISO("2026-09-21T10:00:00", { zone: clientConfig.business.timezone }); // Monday
+
+// Rule 1: wrong weekday rejected
+let wrongWeekdayFailed = false;
+try {
+  // Find a day that's NOT in the class schedule (e.g., Sunday)
+  const sunday = fixedClassNow.plus({ days: 6 });
+  assertBookableClassOccurrence({
+    gymClass: sampleClass,
+    occurrenceDate: sunday.toISODate()!,
+    now: fixedClassNow,
+  });
+} catch (e) {
+  wrongWeekdayFailed = e instanceof Error && e.message.includes("doesn't run on that day");
+}
+assert(wrongWeekdayFailed, "should reject wrong weekday");
+
+// Rule 2: past date rejected (must use a day the class runs on)
+let pastClassDateFailed = false;
+try {
+  // Find a weekday the class runs on
+  const classWeekday = sampleClass.schedule[0]!.day;
+  // Go back to find a past occurrence of that weekday
+  let pastDay = fixedClassNow.minus({ days: 1 });
+  while (pastDay.toFormat("cccc").toLowerCase() !== classWeekday) {
+    pastDay = pastDay.minus({ days: 1 });
+  }
+  assertBookableClassOccurrence({
+    gymClass: sampleClass,
+    occurrenceDate: pastDay.toISODate()!,
+    now: fixedClassNow,
+  });
+} catch (e) {
+  const msg = e instanceof Error ? e.message : String(e);
+  pastClassDateFailed = msg.includes("not available");
+}
+assert(pastClassDateFailed, `should reject past class date`);
+
+// Rule 2b: beyond window rejected (must use a day the class runs on)
+let beyondClassWindowFailed = false;
+try {
+  // Find a future occurrence of a day the class runs on, beyond the window
+  const classWeekday = sampleClass.schedule[0]!.day;
+  let beyondDay = fixedClassNow.plus({ days: clientConfig.booking.advanceBookingDays + 1 });
+  // Find the next occurrence of that weekday
+  while (beyondDay.toFormat("cccc").toLowerCase() !== classWeekday) {
+    beyondDay = beyondDay.plus({ days: 1 });
+  }
+  assertBookableClassOccurrence({
+    gymClass: sampleClass,
+    occurrenceDate: beyondDay.toISODate()!,
+    now: fixedClassNow,
+  });
+} catch (e) {
+  beyondClassWindowFailed = e instanceof Error && e.message.includes("not available");
+}
+assert(beyondClassWindowFailed, "should reject beyond advance window");
+
+// Rule 3: already started today rejected
+let alreadyStartedFailed = false;
+try {
+  // Create a class that has already started today
+  // Today is Monday, assuming the class runs on Monday
+  const todayClassString = fixedClassNow.toISODate()!;
+  const classStartTime = sampleClass.schedule.find((s) => s.day === "monday");
+  if (classStartTime) {
+    // Simulate a time after the class has started
+    const afterClassStart = fixedClassNow.plus({ hours: 2 });
+    assertBookableClassOccurrence({
+      gymClass: sampleClass,
+      occurrenceDate: todayClassString,
+      now: afterClassStart,
+    });
+  }
+} catch (e) {
+  alreadyStartedFailed = e instanceof Error && e.message.includes("already started");
+}
+// Only assert if the class runs on Monday (which it should, per the demo config)
+if (sampleClass.schedule.some((s) => s.day === "monday")) {
+  assert(alreadyStartedFailed, "should reject class that has already started");
+}
+
+// Valid future class date accepted
+const futureValidDate = fixedClassNow.plus({ days: 2 }).toISODate()!;
+assertBookableClassOccurrence({
+  gymClass: sampleClass,
+  occurrenceDate: futureValidDate,
+  now: fixedClassNow,
+});
+
+console.log("OK: class occurrence validation enforces all rules in order");
 
 // HTTP layer: boot the app on an ephemeral port and exercise it. Catalog
 // now queries Postgres too (staff/trainers are database-backed — see

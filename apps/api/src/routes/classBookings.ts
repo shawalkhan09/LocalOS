@@ -1,7 +1,9 @@
 import { classBookings, db } from "@localos/db";
 import { eq } from "drizzle-orm";
 import { Router } from "express";
-import { findGymClass, isClassAtCapacity } from "../bookingRules.js";
+import { DateTime } from "luxon";
+import { assertBookableClassOccurrence } from "../bookingWindow.js";
+import { assertNotAlreadyInClass, findGymClass, isClassAtCapacity } from "../bookingRules.js";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
 import { CreateClassBookingSchema, DateQuerySchema } from "../validation.js";
@@ -16,9 +18,15 @@ classBookingsRouter.post("/class-bookings", async (req, res) => {
   const { customerId, classId, occurrenceDate } = parsed.data;
 
   const gymClass = findGymClass(clientConfig, classId);
+  assertBookableClassOccurrence({
+    gymClass,
+    occurrenceDate,
+  });
   if (await isClassAtCapacity(classId, occurrenceDate, gymClass.capacity)) {
     throw new ApiError(409, `class "${classId}" is at capacity for ${occurrenceDate}`);
   }
+
+  await assertNotAlreadyInClass(customerId, classId, occurrenceDate);
 
   const [classBooking] = await db
     .insert(classBookings)

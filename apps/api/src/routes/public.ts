@@ -1,11 +1,12 @@
 import { bookings, classBookings, db } from "@localos/db";
 import { Router } from "express";
 import { DateTime } from "luxon";
-import { assertBookableSessionTime } from "../bookingWindow.js";
+import { assertBookableSessionTime, assertBookableClassOccurrence } from "../bookingWindow.js";
 import { isRateLimited, PUBLIC_BOOKING_RATE_LIMIT } from "../auth/rateLimiter.js";
 import { findOverlappingBooking } from "../availability.js";
 import {
   assertCustomerFree,
+  assertNotAlreadyInClass,
   assertStaffQualified,
   computeNoShowRisk,
   findCustomerByEmail,
@@ -113,10 +114,28 @@ publicRouter.post("/public/class-bookings", async (req, res) => {
   const { customerName, customerEmail, customerPhone, classId, occurrenceDate } = parsed.data;
 
   const gymClass = findGymClass(clientConfig, classId);
+  assertBookableClassOccurrence({
+    gymClass,
+    occurrenceDate,
+  });
   // Same capacity check as the staff route (routes/classBookings.ts) via
   // the shared isClassAtCapacity — only the wording differs.
   if (await isClassAtCapacity(classId, occurrenceDate, gymClass.capacity)) {
     throw new ApiError(409, "This class just filled up. Please choose another class or date.");
+  }
+
+  // Check if this customer already has a booking in this class on this date, but only if they already exist
+  // (no side effects from find-or-create if validation fails)
+  const existingCustomer = await findCustomerByEmail(customerEmail);
+  if (existingCustomer) {
+    try {
+      await assertNotAlreadyInClass(existingCustomer.id, classId, occurrenceDate);
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 409) {
+        throw new ApiError(409, "You are already booked into that class.");
+      }
+      throw e;
+    }
   }
 
   const customer = await findOrCreateCustomerByEmail({

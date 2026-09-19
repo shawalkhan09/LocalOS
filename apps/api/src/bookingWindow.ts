@@ -56,3 +56,36 @@ export function assertBookableSessionTime(params: BookableSessionTimeParams): vo
     throw new ApiError(400, "That booking length doesn't match the service.");
   }
 }
+
+export interface BookableClassOccurrenceParams {
+  gymClass: GymConfig["classes"][number];
+  occurrenceDate: string;
+  now?: DateTime;
+}
+
+export function assertBookableClassOccurrence(params: BookableClassOccurrenceParams): void {
+  const { gymClass, occurrenceDate, now } = params;
+  const timezone = clientConfig.business.timezone;
+  const currentTime = now ?? DateTime.now().setZone(timezone);
+
+  // Rule 1: occurrenceDate is on a weekday the class runs
+  const weekday = localWeekday(occurrenceDate, timezone);
+  const scheduleForDay = gymClass.schedule.find((slot) => slot.day === weekday);
+  if (!scheduleForDay) {
+    throw new ApiError(400, "That class doesn't run on that day.");
+  }
+
+  // Rule 2: occurrenceDate is not before today and not beyond advance booking window
+  const today = currentTime.startOf("day");
+  const latestBookable = today.plus({ days: clientConfig.booking.advanceBookingDays });
+  const occurrenceDayStart = DateTime.fromISO(occurrenceDate, { zone: timezone }).startOf("day");
+  if (occurrenceDayStart < today || occurrenceDayStart > latestBookable) {
+    throw new ApiError(400, "That date is not available to book.");
+  }
+
+  // Rule 3: the class start instant is not before now
+  const classStartInstant = localTimeToInstant(occurrenceDate, timezone, scheduleForDay.startTime);
+  if (classStartInstant < currentTime) {
+    throw new ApiError(400, "That class has already started.");
+  }
+}

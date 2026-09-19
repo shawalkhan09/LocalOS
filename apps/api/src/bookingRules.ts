@@ -208,3 +208,25 @@ export async function assertCustomerFree(
     throw new ApiError(409, "This customer already has a booking at that time.");
   }
 }
+
+export async function assertNotAlreadyInClass(
+  customerId: number,
+  classId: string,
+  occurrenceDate: string,
+): Promise<void> {
+  const existing = await db
+    .select({ id: classBookings.id })
+    .from(classBookings)
+    .where(
+      and(
+        eq(classBookings.customerId, customerId),
+        eq(classBookings.classId, classId),
+        eq(classBookings.occurrenceDate, occurrenceDate),
+        ne(classBookings.status, "cancelled"),
+      ),
+    );
+
+  if (existing.length > 0) {
+    throw new ApiError(409, "This customer is already booked into that class.");
+  }
+}
