@@ -277,3 +277,21 @@ export function resetPassword(userId: number, newPassword: string): Promise<void
     { method: "POST", body: JSON.stringify({ newPassword }) },
   );
 }
+
+export type ScheduleItem = {
+  type: "booking" | "class";
+  start: string;
+  end: string;
+  label: string;
+  customerName?: string;
+  seatCount?: number;
+};
+
+export type StaffSchedule = {
+  linked: boolean;
+  items: ScheduleItem[];
+};
+
+export function getStaffSchedule(): Promise<StaffSchedule> {
+  return request<StaffSchedule>("/staff/me/schedule");
+}

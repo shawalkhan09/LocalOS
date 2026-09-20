@@ -12,6 +12,9 @@ const BASE_NAV_ITEMS = [
   { href: "/dashboard/new-booking", label: "New booking" },
 ];
 
+// Staff-only nav items — shown only when role === "staff"
+const STAFF_NAV_ITEMS = [{ href: "/dashboard/schedule", label: "My schedule" }];
+
 // Team and Staff are appended only for role === "owner" — hiding the links
 // is not the actual security boundary (the underlying API routes still
 // 403 a staff session regardless), just keeps a staff user from seeing a
@@ -58,7 +61,12 @@ export function Sidebar() {
     };
   }, []);
 
-  const navItems = role === "owner" ? [...BASE_NAV_ITEMS, ...OWNER_NAV_ITEMS] : BASE_NAV_ITEMS;
+  const navItems =
+    role === "owner"
+      ? [...BASE_NAV_ITEMS, ...OWNER_NAV_ITEMS]
+      : role === "staff"
+        ? [...BASE_NAV_ITEMS, ...STAFF_NAV_ITEMS]
+        : BASE_NAV_ITEMS;
 
   async function handleLogout() {
     try {
