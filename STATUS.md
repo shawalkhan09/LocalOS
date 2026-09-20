@@ -81,6 +81,7 @@ a deliberate, considered choice — never propose multi-tenancy.
    staffRouter route was already owner-only. Fixed by replacing both blanket
    `.use(requireOwner)` calls with `requireOwner` as an explicit per-route
    middleware on each of the eight owner-only routes across both files.
+   A second bug was found and fixed after initial deploy: the schedule page displayed all times in the viewer's browser timezone instead of the business's configured timezone (e.g. a 6:00 AM class showed as 5:00 PM for a viewer in a different timezone), and grouped items by UTC calendar day instead of the business's calendar day. Fixed in PR #8 by reusing the existing formatTimeInTimezone/formatDateInTimezone helpers in apps/web/src/lib/time.ts (already used correctly elsewhere, e.g. new-booking/page.tsx) instead of raw, timezone-naive Date formatting.
 
 ## In review / not yet merged
 - **Chunk 4b: Mobile account menu** (PR #5): adds a compact "Account"
