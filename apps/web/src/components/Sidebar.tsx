@@ -29,6 +29,7 @@ export function Sidebar() {
   const [businessName, setBusinessName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [role, setRole] = useState<"owner" | "staff" | null>(null);
+  const [mobileAccountMenuOpen, setMobileAccountMenuOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -86,15 +87,47 @@ export function Sidebar() {
         })}
       </div>
       {userEmail && (
-        <div className={styles.account}>
-          <p className={styles.accountEmail}>{userEmail}</p>
-          <Link href="/dashboard/account" className={styles.logout}>
-            Change password
-          </Link>
-          <button type="button" className={styles.logout} onClick={handleLogout}>
-            Log out
-          </button>
-        </div>
+        <>
+          <div className={styles.account}>
+            <p className={styles.accountEmail}>{userEmail}</p>
+            <Link href="/dashboard/account" className={styles.logout}>
+              Change password
+            </Link>
+            <button type="button" className={styles.logout} onClick={handleLogout}>
+              Log out
+            </button>
+          </div>
+          <div className={styles.mobileAccountContainer}>
+            <button
+              type="button"
+              className={styles.mobileAccountButton}
+              onClick={() => setMobileAccountMenuOpen(!mobileAccountMenuOpen)}
+            >
+              Account
+            </button>
+            {mobileAccountMenuOpen && (
+              <div className={styles.mobileAccountMenu}>
+                <Link
+                  href="/dashboard/account"
+                  className={styles.mobileMenuItem}
+                  onClick={() => setMobileAccountMenuOpen(false)}
+                >
+                  Change password
+                </Link>
+                <button
+                  type="button"
+                  className={styles.mobileMenuItem}
+                  onClick={() => {
+                    setMobileAccountMenuOpen(false);
+                    handleLogout();
+                  }}
+                >
+                  Log out
+                </button>
+              </div>
+            )}
+          </div>
+        </>
       )}
     </nav>
   );
