@@ -82,20 +82,15 @@ a deliberate, considered choice — never propose multi-tenancy.
    `.use(requireOwner)` calls with `requireOwner` as an explicit per-route
    middleware on each of the eight owner-only routes across both files.
    A second bug was found and fixed after initial deploy: the schedule page displayed all times in the viewer's browser timezone instead of the business's configured timezone (e.g. a 6:00 AM class showed as 5:00 PM for a viewer in a different timezone), and grouped items by UTC calendar day instead of the business's calendar day. Fixed in PR #8 by reusing the existing formatTimeInTimezone/formatDateInTimezone helpers in apps/web/src/lib/time.ts (already used correctly elsewhere, e.g. new-booking/page.tsx) instead of raw, timezone-naive Date formatting.
+6. **Small UI bug fixes** (PR #10, fix-small-ui-bugs, merged to main at commit 8bad23e): Stale password-mismatch error on /dashboard/account now clears on input change, not just on resubmit. Password validation errors return a clean message instead of a raw Zod JSON blob (password-related throw sites only: POST /auth/change-password, POST /users, POST /users/:id/reset-password). Mobile account menu click-outside-to-close now works. Mobile account menu is now visible at every viewport width (fixed a CSS specificity tie between two .mobileAccountContainer rules with identical specificity, one unconditional display: none and one in @media (max-width: 639px) with display: flex — the later rule was always winning due to source-order specificity tie-breaking; moved the unconditional rule before the media query so the media query override wins at narrow widths).
 
 ## In review / not yet merged
 - **Chunk 4b: Mobile account menu** (PR #5): adds a compact "Account"
   button in the mobile nav (below 640px) with a toggle menu for "Change
   password" and "Log out," reusing the existing handler and route
-  unchanged. Web-only, no schema change. One minor known gap: no
-  click-outside-to-close handler on the new menu.
+  unchanged. Web-only, no schema change.
 
 ## Known, confirmed, not-yet-fixed bugs
-- On `/dashboard/account`, editing the confirm-password field to match
-  after a "Passwords do not match" error does not clear the error until
-  the form is resubmitted (stale error, cosmetic).
-- The too-short-password validation error may surface a raw validation
-  code (`too_small`) rather than a friendly message.
 - The public class-booking page defaults to today's date even when the
   selected class doesn't run today, only erroring at final confirmation.
 - Leftover test/demo data in production (a stray "Test Booking" customer,
@@ -111,8 +106,5 @@ a deliberate, considered choice — never propose multi-tenancy.
   to be revoked, and the second service identified.
 
 ## Backlog / not started
-- Fold in the two small `/dashboard/account` UI bugs above whenever that
-  page is next touched.
-- Click-outside-to-close on the chunk 4b mobile menu.
 - The "garage" vertical (a second demo business type) is explicitly
   paused — do not start it without being asked.
