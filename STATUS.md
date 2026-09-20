@@ -71,6 +71,16 @@ a deliberate, considered choice — never propose multi-tenancy.
    config.json class definitions + trainer_profiles DB link, not a separate
    DB table. If account is not linked to a staff member, returns `linked: false`
    with empty items. Navigation: "My schedule" link visible only to staff role.
+   A blocking bug was found and fixed during review: `usersRouter.use(requireOwner)`
+   and `staffRouter.use(requireOwner)` were unscoped blanket router middleware,
+   which in Express applies to every request reaching that router, not just
+   routes defined on it — since `usersRouter` was mounted right before
+   `staffRouter`, every staff-role request to any `staffRouter` route (including
+   the new schedule endpoint) was rejected with 403 before reaching its handler.
+   This predated this chunk but was invisible until now because every existing
+   staffRouter route was already owner-only. Fixed by replacing both blanket
+   `.use(requireOwner)` calls with `requireOwner` as an explicit per-route
+   middleware on each of the eight owner-only routes across both files.
 
 ## In review / not yet merged
 - **Chunk 4b: Mobile account menu** (PR #5): adds a compact "Account"
