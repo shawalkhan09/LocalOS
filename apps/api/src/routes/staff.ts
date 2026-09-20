@@ -160,10 +160,6 @@ staffRouter.get("/staff/me/schedule", async (req, res) => {
   res.json({ linked: true, items });
 });
 
-// Owner-only, same reasoning as usersRouter — see requireOwner's comment in
-// auth/middleware.ts.
-staffRouter.use(requireOwner);
-
 // No DELETE routes this round, deliberately: a staff member can be
 // referenced by bookings/users history (real FKs now — see packages/db's
 // schema), so removing one is a "deactivate, don't delete" question same
@@ -204,7 +200,10 @@ function deriveTrainerId(staffId: string): string {
   return staffId.startsWith("staff-") ? `trainer-${staffId.slice("staff-".length)}` : `trainer-${staffId}`;
 }
 
-staffRouter.post("/staff", async (req, res) => {
+// Owner-only: the first, and so far only, admin action in the API. See
+// requireOwner's comment in auth/middleware.ts for why this doesn't imply
+// a broader per-role permission system yet.
+staffRouter.post("/staff", requireOwner, async (req, res) => {
   const parsed = CreateStaffSchema.safeParse(req.body);
   if (!parsed.success) {
     throw new ApiError(400, parsed.error.message);
@@ -223,8 +222,8 @@ staffRouter.post("/staff", async (req, res) => {
 // everything else in the system already references it) and no way to
 // attach/detach a trainer profile here (that's the dedicated
 // /staff/:id/trainer-profile routes below).
-staffRouter.patch("/staff/:id", async (req, res) => {
-  const staffId = req.params.id;
+staffRouter.patch("/staff/:id", requireOwner, async (req, res) => {
+  const staffId = req.params.id as string;
   const parsed = UpdateStaffSchema.safeParse(req.body);
   if (!parsed.success) {
     throw new ApiError(400, parsed.error.message);
@@ -242,8 +241,8 @@ staffRouter.patch("/staff/:id", async (req, res) => {
 // person a trainer" signal). A second POST for someone who already has one
 // is a 409, not a silent overwrite; PATCH below is how an existing profile
 // gets edited.
-staffRouter.post("/staff/:id/trainer-profile", async (req, res) => {
-  const staffId = req.params.id;
+staffRouter.post("/staff/:id/trainer-profile", requireOwner, async (req, res) => {
+  const staffId = req.params.id as string;
   const parsed = CreateTrainerProfileSchema.safeParse(req.body);
   if (!parsed.success) {
     throw new ApiError(400, parsed.error.message);
@@ -271,8 +270,8 @@ staffRouter.post("/staff/:id/trainer-profile", async (req, res) => {
   res.status(201).json(created);
 });
 
-staffRouter.patch("/staff/:id/trainer-profile", async (req, res) => {
-  const staffId = req.params.id;
+staffRouter.patch("/staff/:id/trainer-profile", requireOwner, async (req, res) => {
+  const staffId = req.params.id as string;
   const parsed = UpdateTrainerProfileSchema.safeParse(req.body);
   if (!parsed.success) {
     throw new ApiError(400, parsed.error.message);

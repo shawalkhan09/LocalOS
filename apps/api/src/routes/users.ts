@@ -9,11 +9,6 @@ import { CreateUserSchema, UpdateUserSchema, ResetPasswordSchema } from "../vali
 
 export const usersRouter = Router();
 
-// Owner-only: the first, and so far only, admin action in the API. See
-// requireOwner's comment in auth/middleware.ts for why this doesn't imply
-// a broader per-role permission system yet.
-usersRouter.use(requireOwner);
-
 // Explicit column list on every read/write of this table, never a bare
 // select()/returning() — passwordHash must never leave this file, and
 // listing columns by name here makes that true by construction rather
@@ -27,7 +22,10 @@ const ACCOUNT_COLUMNS = {
   createdAt: users.createdAt,
 };
 
-usersRouter.post("/users", async (req, res) => {
+// Owner-only: the first, and so far only, admin action in the API. See
+// requireOwner's comment in auth/middleware.ts for why this doesn't imply
+// a broader per-role permission system yet.
+usersRouter.post("/users", requireOwner, async (req, res) => {
   const parsed = CreateUserSchema.safeParse(req.body);
   if (!parsed.success) {
     throw new ApiError(400, parsed.error.message);
@@ -49,7 +47,7 @@ usersRouter.post("/users", async (req, res) => {
   res.status(201).json(created);
 });
 
-usersRouter.get("/users", async (_req, res) => {
+usersRouter.get("/users", requireOwner, async (_req, res) => {
   const rows = await db.select(ACCOUNT_COLUMNS).from(users);
   res.json(rows);
 });
@@ -67,7 +65,7 @@ usersRouter.get("/users", async (_req, res) => {
 // of the re-verification risk (proving you still own the new address)
 // that made self-service changes worth deferring — there's no new party
 // to verify, just a correction to data the owner already governs.
-usersRouter.patch("/users/:id", async (req, res) => {
+usersRouter.patch("/users/:id", requireOwner, async (req, res) => {
   const userId = Number(req.params.id);
   if (!Number.isInteger(userId) || userId <= 0) {
     throw new ApiError(400, "invalid user id");
@@ -128,7 +126,7 @@ usersRouter.patch("/users/:id", async (req, res) => {
   res.json(updated);
 });
 
-usersRouter.post("/users/:id/reset-password", async (req, res) => {
+usersRouter.post("/users/:id/reset-password", requireOwner, async (req, res) => {
   const userId = Number(req.params.id);
   if (userId === req.user?.id) {
     throw new ApiError(400, "use change password to update your own account, not reset");
