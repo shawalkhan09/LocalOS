@@ -72,7 +72,10 @@ export default function AccountPage() {
               required
               minLength={8}
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              onChange={(e) => {
+                setNewPassword(e.target.value);
+                setPasswordMismatch(false);
+              }}
             />
           </div>
           <div className={formStyles.field}>
@@ -83,7 +86,10 @@ export default function AccountPage() {
               required
               minLength={8}
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                setPasswordMismatch(false);
+              }}
             />
             {passwordMismatch && (
               <p style={{ color: "var(--color-error)", fontSize: "0.875rem", marginTop: "0.25rem" }}>
