@@ -63,6 +63,14 @@ a deliberate, considered choice — never propose multi-tenancy.
    deploy-breaking bug was fixed during review: the migration SQL was
    correct but `migrations/meta/_journal.json` was never updated, so
    `drizzle-kit migrate` would have silently applied nothing.
+5. **Staff schedule view**: logged-in staff members can view their own
+   upcoming sessions and classes for the next 14 days on `/dashboard/schedule`.
+   API endpoint `GET /staff/me/schedule` returns bookings assigned to the
+   staff member's staffId plus class occurrences where the class trainerId
+   maps to a trainer with that staffId. Classes *are* included: built from
+   config.json class definitions + trainer_profiles DB link, not a separate
+   DB table. If account is not linked to a staff member, returns `linked: false`
+   with empty items. Navigation: "My schedule" link visible only to staff role.
 
 ## In review / not yet merged
 - **Chunk 4b: Mobile account menu** (PR #5): adds a compact "Account"
@@ -92,9 +100,6 @@ a deliberate, considered choice — never propose multi-tenancy.
   to be revoked, and the second service identified.
 
 ## Backlog / not started
-- **Chunk 5 (next up)**: trainer/staff schedule view — a logged-in staff
-  member can see their own upcoming sessions/classes. Safe to build now
-  that chunk 4 guarantees one login = one staff member.
 - Fold in the two small `/dashboard/account` UI bugs above whenever that
   page is next touched.
 - Click-outside-to-close on the chunk 4b mobile menu.
