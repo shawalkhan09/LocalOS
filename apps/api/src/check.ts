@@ -1,9 +1,11 @@
 import assert from "node:assert";
 import { DateTime } from "luxon";
-import { db } from "@localos/db";
+import { db, users, sessions } from "@localos/db";
+import { eq } from "drizzle-orm";
 import { createApp } from "./app.js";
 import { assertBookableSessionTime, assertBookableClassOccurrence } from "./bookingWindow.js";
 import { clientConfig } from "./config.js";
+import { hashPassword } from "./auth/password.js";
 import {
   CreateBookingSchema,
   CreateClassBookingSchema,
@@ -394,6 +396,30 @@ assert(afterCloseUTCFailed, "should reject UTC booking that ends after closing t
 
 console.log("OK: timezone conversion from UTC to business zone works correctly");
 
+// Regression test for the cross-server-timezone booking bug (fixed in
+// commit 44be3c7): this specifically exercises a Luxon DateTime input,
+// not a plain Date/.toJSDate() output — the existing regression tests
+// above only used .toJSDate() outputs, which never touched the code
+// path that was actually broken.
+const businessZone = clientConfig.business.timezone;
+const eveningStart = DateTime.now()
+  .setZone(businessZone)
+  .plus({ days: 1 })
+  .set({ hour: 19, minute: 0, second: 0, millisecond: 0 });
+let eveningRejected = false;
+try {
+  assertBookableSessionTime({
+    service: service60min,
+    startTime: eveningStart,
+    endTime: eveningStart.plus({ minutes: service60min.durationMinutes }),
+    now: DateTime.now().setZone(businessZone),
+  });
+} catch {
+  eveningRejected = true;
+}
+assert(!eveningRejected, "a valid evening booking (7 PM business-local time) passed as a Luxon DateTime must not be rejected as outside business hours");
+console.log("OK: assertBookableSessionTime accepts a valid evening DateTime input in the business timezone");
+
 // HTTP layer: boot the app on an ephemeral port and exercise it. Catalog
 // now queries Postgres too (staff/trainers are database-backed — see
 // routes/catalog.ts), so unlike the write routes below, this check does
@@ -468,6 +494,74 @@ const publicClassBookingAttempt = await fetch(`${baseUrl}/public/class-bookings`
 });
 assert.notStrictEqual(publicClassBookingAttempt.status, 401);
 console.log("OK: public booking routes are reachable without a session");
+
+// Password management: exercise the real login -> change-password ->
+// re-login flow end to end, using a throwaway account created directly
+// in the database (not through POST /users, to avoid needing an
+// authenticated owner session just for this test's setup).
+const testEmail = `check-password-${Date.now()}@example.com`;
+const initialPassword = "initial-password-123";
+const [testUser] = await db
+  .insert(users)
+  .values({ email: testEmail, passwordHash: await hashPassword(initialPassword), role: "staff", status: "active" })
+  .returning({ id: users.id });
+
+function extractSessionCookie(response: Response): string {
+  const setCookie = response.headers.get("set-cookie");
+  if (!setCookie) {
+    throw new Error("expected a Set-Cookie header from login");
+  }
+  // Only the name=value pair is needed going back out, not the
+  // Path/HttpOnly/Secure/SameSite attributes that follow it.
+  return setCookie.split(";")[0];
+}
+
+const loginRes = await fetch(`${baseUrl}/auth/login`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web" },
+  body: JSON.stringify({ email: testEmail, password: initialPassword }),
+});
+assert.strictEqual(loginRes.status, 200, "test account login should succeed");
+const sessionCookie = extractSessionCookie(loginRes);
+
+const wrongCurrentRes = await fetch(`${baseUrl}/auth/change-password`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web", Cookie: sessionCookie },
+  body: JSON.stringify({ currentPassword: "not-the-real-password", newPassword: "new-password-123" }),
+});
+assert.strictEqual(wrongCurrentRes.status, 401, "wrong current password must be rejected");
+
+const newPassword = "new-password-123";
+const changeRes = await fetch(`${baseUrl}/auth/change-password`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web", Cookie: sessionCookie },
+  body: JSON.stringify({ currentPassword: initialPassword, newPassword }),
+});
+assert.strictEqual(changeRes.status, 204, "change-password with the correct current password should succeed");
+
+const meAfterChange = await fetch(`${baseUrl}/auth/me`, { headers: { Cookie: sessionCookie } });
+assert.strictEqual(meAfterChange.status, 200, "the session used to change the password must still be valid afterward");
+
+const oldLoginRes = await fetch(`${baseUrl}/auth/login`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web" },
+  body: JSON.stringify({ email: testEmail, password: initialPassword }),
+});
+assert.strictEqual(oldLoginRes.status, 401, "the old password must be rejected after a change");
+
+const newLoginRes = await fetch(`${baseUrl}/auth/login`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web" },
+  body: JSON.stringify({ email: testEmail, password: newPassword }),
+});
+assert.strictEqual(newLoginRes.status, 200, "the new password must work after a change");
+
+console.log("OK: change-password rejects a wrong current password, keeps the acting session alive, and rotates the credential");
+
+// Clean up the throwaway account so repeated `npm run check` runs
+// don't pile up test users.
+await db.delete(sessions).where(eq(sessions.userId, testUser.id));
+await db.delete(users).where(eq(users.id, testUser.id));
 
 // Session booking validation: past time and outside business hours must be rejected
 const timezone = clientConfig.business.timezone;

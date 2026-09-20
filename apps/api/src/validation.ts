@@ -89,6 +89,15 @@ export const UpdateUserSchema = z
     message: "at least one of email, status, or staffId must be provided",
   });
 
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8),
+}).strict();
+
+export const ResetPasswordSchema = z.object({
+  newPassword: z.string().min(8),
+}).strict();
+
 export const CreateStaffSchema = z.object({
   name: z.string().min(1),
   role: z.string().min(1),

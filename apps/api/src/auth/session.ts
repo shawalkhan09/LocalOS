@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { db, sessions, users } from "@localos/db";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import type { Request, Response } from "express";
 
 export const SESSION_COOKIE_NAME = "localos_session";
@@ -25,6 +25,15 @@ export async function createSession(userId: number): Promise<{ token: string; ex
 
 export async function deleteSession(token: string): Promise<void> {
   await db.delete(sessions).where(eq(sessions.id, token));
+}
+
+// Used by change-password: the session that made the request stays
+// valid, every other session for this account is signed out. This is
+// NOT the same as deactivation's full sign-out below — that one has no
+// "current session" to preserve because it's an admin acting on
+// someone else's account.
+export async function deleteOtherSessions(userId: number, keepToken: string): Promise<void> {
+  await db.delete(sessions).where(and(eq(sessions.userId, userId), ne(sessions.id, keepToken)));
 }
 
 // SameSite=None because apps/web and apps/api run on different origins

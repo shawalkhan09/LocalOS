@@ -88,6 +88,9 @@ export function Sidebar() {
       {userEmail && (
         <div className={styles.account}>
           <p className={styles.accountEmail}>{userEmail}</p>
+          <Link href="/dashboard/account" className={styles.logout}>
+            Change password
+          </Link>
           <button type="button" className={styles.logout} onClick={handleLogout}>
             Log out
           </button>
