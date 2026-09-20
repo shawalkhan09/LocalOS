@@ -70,7 +70,7 @@ authRouter.post("/auth/logout", async (req, res) => {
 authRouter.post("/auth/change-password", async (req, res) => {
   const parsed = ChangePasswordSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, parsed.error.message);
+    throw new ApiError(400, parsed.error.issues[0]?.message ?? "invalid request");
   }
   const { currentPassword, newPassword } = parsed.data;
 
