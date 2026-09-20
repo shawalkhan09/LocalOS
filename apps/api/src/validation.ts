@@ -66,7 +66,7 @@ export const PublicCreateClassBookingSchema = z.object({
 
 export const CreateUserSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z.string().min(8, "Password must be at least 8 characters"),
   staffId: z.string().min(1).optional(),
 });
 
@@ -91,11 +91,11 @@ export const UpdateUserSchema = z
 
 export const ChangePasswordSchema = z.object({
   currentPassword: z.string().min(1),
-  newPassword: z.string().min(8),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
 }).strict();
 
 export const ResetPasswordSchema = z.object({
-  newPassword: z.string().min(8),
+  newPassword: z.string().min(8, "Password must be at least 8 characters"),
 }).strict();
 
 export const CreateStaffSchema = z.object({
