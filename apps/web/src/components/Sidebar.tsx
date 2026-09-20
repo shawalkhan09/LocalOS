@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getCatalog, getMe, logout } from "@/lib/api";
 import styles from "./Sidebar.module.css";
 
@@ -33,6 +33,7 @@ export function Sidebar() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [role, setRole] = useState<"owner" | "staff" | null>(null);
   const [mobileAccountMenuOpen, setMobileAccountMenuOpen] = useState(false);
+  const mobileAccountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,6 +61,23 @@ export function Sidebar() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!mobileAccountMenuOpen) {
+      return;
+    }
+
+    function handleClickOutside(e: MouseEvent) {
+      if (mobileAccountRef.current && !mobileAccountRef.current.contains(e.target as Node)) {
+        setMobileAccountMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [mobileAccountMenuOpen]);
 
   const navItems =
     role === "owner"
@@ -105,7 +123,7 @@ export function Sidebar() {
               Log out
             </button>
           </div>
-          <div className={styles.mobileAccountContainer}>
+          <div className={styles.mobileAccountContainer} ref={mobileAccountRef}>
             <button
               type="button"
               className={styles.mobileAccountButton}
