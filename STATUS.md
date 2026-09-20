@@ -83,12 +83,10 @@ a deliberate, considered choice — never propose multi-tenancy.
    middleware on each of the eight owner-only routes across both files.
    A second bug was found and fixed after initial deploy: the schedule page displayed all times in the viewer's browser timezone instead of the business's configured timezone (e.g. a 6:00 AM class showed as 5:00 PM for a viewer in a different timezone), and grouped items by UTC calendar day instead of the business's calendar day. Fixed in PR #8 by reusing the existing formatTimeInTimezone/formatDateInTimezone helpers in apps/web/src/lib/time.ts (already used correctly elsewhere, e.g. new-booking/page.tsx) instead of raw, timezone-naive Date formatting.
 6. **Small UI bug fixes** (PR #10, fix-small-ui-bugs, merged to main at commit 8bad23e): Stale password-mismatch error on /dashboard/account now clears on input change, not just on resubmit. Password validation errors return a clean message instead of a raw Zod JSON blob (password-related throw sites only: POST /auth/change-password, POST /users, POST /users/:id/reset-password). Mobile account menu click-outside-to-close now works. Mobile account menu is now visible at every viewport width (fixed a CSS specificity tie between two .mobileAccountContainer rules with identical specificity, one unconditional display: none and one in @media (max-width: 639px) with display: flex — the later rule was always winning due to source-order specificity tie-breaking; moved the unconditional rule before the media query so the media query override wins at narrow widths).
+7. **Chunk 4b: Mobile account menu** (PR #5, merged to main): adds a compact "Account" button in the mobile nav (below 640px) with a toggle menu for "Change password" and "Log out," reusing the existing handler and route unchanged. Web-only, no schema change. Its missing click-outside-to-close and a CSS bug that hid the menu at every viewport width were both fixed later in PR #10 (entry 6).
 
 ## In review / not yet merged
-- **Chunk 4b: Mobile account menu** (PR #5): adds a compact "Account"
-  button in the mobile nav (below 640px) with a toggle menu for "Change
-  password" and "Log out," reusing the existing handler and route
-  unchanged. Web-only, no schema change.
+None currently.
 
 ## Known, confirmed, not-yet-fixed bugs
 - The public class-booking page defaults to today's date even when the
@@ -99,11 +97,7 @@ a deliberate, considered choice — never propose multi-tenancy.
   exists to do it cleanly through the UI.
 
 ## Open/unanswered
-- Whether the owner password was ever typed into a tool during a manual
-  QA pass.
-- Two API keys (a Neon key + one unnamed service) were pasted in
-  plaintext into a coding agent chat during original deployment — need
-  to be revoked, and the second service identified.
+None currently.
 
 ## Backlog / not started
 - The "garage" vertical (a second demo business type) is explicitly
