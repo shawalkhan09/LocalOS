@@ -1,8 +1,10 @@
-import { db, staff, trainerProfiles } from "@localos/db";
-import { eq } from "drizzle-orm";
+import { customers as customersTable, db, bookings, staff, trainerProfiles } from "@localos/db";
+import { and, eq, gte, lt, ne, inArray } from "drizzle-orm";
 import { Router } from "express";
+import { DateTime } from "luxon";
 import { requireOwner } from "../auth/middleware.js";
 import { ApiError } from "../errors.js";
+import { clientConfig } from "../config.js";
 import {
   CreateStaffSchema,
   CreateTrainerProfileSchema,
@@ -11,6 +13,152 @@ import {
 } from "../validation.js";
 
 export const staffRouter = Router();
+
+// Staff schedule endpoint: returns upcoming bookings and classes for the logged-in staff member.
+// Available to any authenticated user, but only returns their own data (scoped by staffId).
+staffRouter.get("/staff/me/schedule", async (req, res) => {
+  if (!req.user) {
+    res.status(401).json({ error: "authentication required" });
+    return;
+  }
+
+  const staffId = req.user.staffId;
+  if (!staffId) {
+    res.json({ linked: false, items: [] });
+    return;
+  }
+
+  const timezone = clientConfig.business.timezone;
+  const now = DateTime.now().setZone(timezone);
+  const endOfSchedule = now.plus({ days: 14 }).endOf("day");
+
+  // Get bookings for this staff member
+  const staffBookings = await db
+    .select({
+      id: bookings.id,
+      startTime: bookings.startTime,
+      endTime: bookings.endTime,
+      serviceId: bookings.serviceId,
+      customerId: bookings.customerId,
+    })
+    .from(bookings)
+    .where(
+      and(
+        eq(bookings.staffId, staffId),
+        ne(bookings.status, "cancelled"),
+        gte(bookings.startTime, now.toJSDate()),
+        lt(bookings.startTime, endOfSchedule.toJSDate()),
+      ),
+    );
+
+  // Get trainer profile for this staff member
+  const trainerRow = await db
+    .select({ id: trainerProfiles.id })
+    .from(trainerProfiles)
+    .where(eq(trainerProfiles.staffId, staffId))
+    .limit(1);
+  const trainerId = trainerRow[0]?.id;
+
+  // Get class occurrences for classes taught by this trainer
+  const classItems: Array<{
+    startTime: DateTime;
+    endTime: DateTime;
+    classId: string;
+    capacity: number;
+  }> = [];
+  if (trainerId) {
+    // Find classes with this trainerId in config
+    const classList = clientConfig.classes.filter((c) => c.trainerId === trainerId);
+    const dayMap: Record<string, number> = {
+      monday: 0,
+      tuesday: 1,
+      wednesday: 2,
+      thursday: 3,
+      friday: 4,
+      saturday: 5,
+      sunday: 6,
+    };
+
+    for (const gymClass of classList) {
+      // Generate class occurrences for the next 14 days
+      for (let d = 0; d < 14; d++) {
+        const occurrenceDate = now.plus({ days: d }).toISODate();
+        if (!occurrenceDate) continue;
+
+        const dayName = DateTime.fromISO(occurrenceDate, { zone: timezone })
+          .setLocale("en-US")
+          .toFormat("cccc")
+          .toLowerCase();
+
+        const classDay = dayMap[dayName];
+        const slot = gymClass.schedule.find((s) => dayMap[s.day] === classDay);
+
+        if (slot) {
+          const [hour, minute] = slot.startTime.split(":").map(Number);
+          const startTime = DateTime.fromISO(occurrenceDate, { zone: timezone }).set({
+            hour,
+            minute,
+            second: 0,
+            millisecond: 0,
+          });
+          const endTime = startTime.plus({ minutes: gymClass.durationMinutes });
+
+          if (startTime >= now && startTime < endOfSchedule) {
+            classItems.push({
+              startTime,
+              endTime,
+              classId: gymClass.id,
+              capacity: gymClass.capacity,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // Get customer names for bookings
+  const customerRows = staffBookings.length > 0
+    ? await db
+        .select({ id: customersTable.id, name: customersTable.name })
+        .from(customersTable)
+        .where(inArray(customersTable.id, staffBookings.map((b) => b.customerId)))
+    : [];
+
+  // Combine and sort all items
+  const items = [
+    ...staffBookings.map((b) => {
+      const startTime = DateTime.fromJSDate(b.startTime, { zone: timezone });
+      const endTime = DateTime.fromJSDate(b.endTime, { zone: timezone });
+      const customerName = customerRows.find((c) => c.id === b.customerId)?.name || "";
+      const startISO = startTime.toISO();
+      const endISO = endTime.toISO();
+      return {
+        type: "booking" as const,
+        start: startISO || b.startTime.toISOString(),
+        end: endISO || b.endTime.toISOString(),
+        label: clientConfig.services.find((s) => s.id === b.serviceId)?.name || b.serviceId,
+        customerName,
+      };
+    }),
+    ...classItems.map((c) => {
+      const startISO = c.startTime.toISO();
+      const endISO = c.endTime.toISO();
+      return {
+        type: "class" as const,
+        start: startISO || new Date().toISOString(),
+        end: endISO || new Date().toISOString(),
+        label: clientConfig.classes.find((cl) => cl.id === c.classId)?.name || c.classId,
+        seatCount: c.capacity,
+      };
+    }),
+  ].sort((a, b) => {
+    const aTime = new Date(a.start).getTime();
+    const bTime = new Date(b.start).getTime();
+    return aTime - bTime;
+  });
+
+  res.json({ linked: true, items });
+});
 
 // Owner-only, same reasoning as usersRouter — see requireOwner's comment in
 // auth/middleware.ts.
