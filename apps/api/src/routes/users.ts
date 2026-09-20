@@ -28,7 +28,7 @@ const ACCOUNT_COLUMNS = {
 usersRouter.post("/users", requireOwner, async (req, res) => {
   const parsed = CreateUserSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, parsed.error.message);
+    throw new ApiError(400, parsed.error.issues[0]?.message ?? "invalid request");
   }
   const { email, password, staffId } = parsed.data;
 
@@ -133,7 +133,7 @@ usersRouter.post("/users/:id/reset-password", requireOwner, async (req, res) => 
   }
   const parsed = ResetPasswordSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new ApiError(400, parsed.error.message);
+    throw new ApiError(400, parsed.error.issues[0]?.message ?? "invalid request");
   }
   const rows = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
   if (!rows[0]) {

@@ -78,6 +78,10 @@
   background: var(--bg);
 }
 
+.mobileAccountContainer {
+  display: none;
+}
+
 @media (max-width: 639px) {
   .account {
     display: none;
@@ -184,8 +188,4 @@
     border-left: none;
     border-top: 2px solid var(--accent);
   }
-}
-
-.mobileAccountContainer {
-  display: none;
 }
