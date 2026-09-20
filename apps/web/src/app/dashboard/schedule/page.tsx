@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getStaffSchedule, type StaffSchedule } from "@/lib/api";
+import { getStaffSchedule, getCatalog, type StaffSchedule } from "@/lib/api";
+import { formatTimeInTimezone, formatDateInTimezone, dateStringInTimezone } from "@/lib/time";
 import { useToast } from "@/components/Toast";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
@@ -9,14 +10,16 @@ import styles from "./page.module.css";
 export default function SchedulePage() {
   const { showToast } = useToast();
   const [schedule, setSchedule] = useState<StaffSchedule | null>(null);
+  const [timezone, setTimezone] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    getStaffSchedule()
-      .then((data) => {
+    Promise.all([getStaffSchedule(), getCatalog()])
+      .then(([data, catalog]) => {
         if (!cancelled) {
           setSchedule(data);
+          setTimezone(catalog.business.timezone);
         }
       })
       .catch((err) => {
@@ -76,22 +79,16 @@ export default function SchedulePage() {
     );
   }
 
-  // Group items by day
+  // Group items by day (in business timezone)
   const itemsByDay = new Map<string, typeof schedule.items>();
   const dayHeadings = new Map<string, string>();
 
   for (const item of schedule.items) {
-    const date = new Date(item.start);
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = dateStringInTimezone(item.start, timezone!);
 
     if (!itemsByDay.has(dateStr)) {
       itemsByDay.set(dateStr, []);
-      const formatter = new Intl.DateTimeFormat("en-US", {
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-      });
-      dayHeadings.set(dateStr, formatter.format(date));
+      dayHeadings.set(dateStr, formatDateInTimezone(dateStr, timezone!));
     }
 
     itemsByDay.get(dateStr)!.push(item);
@@ -113,16 +110,8 @@ export default function SchedulePage() {
               <h2 className={styles.dayHeading}>{heading}</h2>
               <div className={styles.items}>
                 {dayItems.map((item, idx) => {
-                  const start = new Date(item.start);
-                  const end = new Date(item.end);
-                  const startTime = start.toLocaleTimeString("en-US", {
-                    hour: "numeric",
-                    minute: "2-digit",
-                  });
-                  const endTime = end.toLocaleTimeString("en-US", {
-                    hour: "numeric",
-                    minute: "2-digit",
-                  });
+                  const startTime = formatTimeInTimezone(item.start, timezone!);
+                  const endTime = formatTimeInTimezone(item.end, timezone!);
 
                   return (
                     <div key={idx} className={styles.item}>

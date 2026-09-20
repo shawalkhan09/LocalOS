@@ -44,3 +44,11 @@ export function formatDateInTimezone(date: string, timezone: string): string {
     day: "numeric",
   }).format(new Date(`${date}T12:00:00Z`));
 }
+
+export function dateStringInTimezone(iso: string, timezone: string): string {
+  // Convert an ISO timestamp to a YYYY-MM-DD date string in the given timezone.
+  // Uses en-CA locale which formats as YYYY-MM-DD by default.
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+  }).format(new Date(iso));
+}
