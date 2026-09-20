@@ -2,16 +2,18 @@ import { db, users } from "@localos/db";
 import { eq } from "drizzle-orm";
 import { Router } from "express";
 import { z } from "zod";
-import { verifyPassword } from "../auth/password.js";
+import { verifyPassword, hashPassword } from "../auth/password.js";
 import { isRateLimited, LOGIN_RATE_LIMIT } from "../auth/rateLimiter.js";
 import {
   clearSessionCookie,
   createSession,
   deleteSession,
+  deleteOtherSessions,
   readSessionToken,
   setSessionCookie,
 } from "../auth/session.js";
 import { ApiError } from "../errors.js";
+import { ChangePasswordSchema } from "../validation.js";
 
 export const authRouter = Router();
 
@@ -62,6 +64,38 @@ authRouter.post("/auth/logout", async (req, res) => {
     await deleteSession(token);
   }
   clearSessionCookie(res);
+  res.status(204).send();
+});
+
+authRouter.post("/auth/change-password", async (req, res) => {
+  const parsed = ChangePasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new ApiError(400, parsed.error.message);
+  }
+  const { currentPassword, newPassword } = parsed.data;
+
+  // requireAuth guarantees req.user is set here — this route is not in
+  // PUBLIC_ROUTES.
+  const rows = await db
+    .select({ id: users.id, passwordHash: users.passwordHash })
+    .from(users)
+    .where(eq(users.id, req.user!.id))
+    .limit(1);
+  const user = rows[0];
+  if (!user || !(await verifyPassword(currentPassword, user.passwordHash))) {
+    throw new ApiError(401, "current password is incorrect");
+  }
+
+  const newHash = await hashPassword(newPassword);
+  await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, user.id));
+
+  // Keep the session that made this request alive; sign every other
+  // session for this account out.
+  const currentToken = readSessionToken(req);
+  if (currentToken) {
+    await deleteOtherSessions(user.id, currentToken);
+  }
+
   res.status(204).send();
 });
 

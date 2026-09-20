@@ -262,3 +262,18 @@ export function updateTrainerProfile(
 ): Promise<Trainer> {
   return request<Trainer>(`/staff/${staffId}/trainer-profile`, { method: "PATCH", body: JSON.stringify(data) });
 }
+
+export function changePassword(data: { currentPassword: string; newPassword: string }): Promise<void> {
+  return request<void>(
+    "/auth/change-password",
+    { method: "POST", body: JSON.stringify(data) },
+    { redirectOn401: false },
+  );
+}
+
+export function resetPassword(userId: number, newPassword: string): Promise<void> {
+  return request<void>(
+    `/users/${userId}/reset-password`,
+    { method: "POST", body: JSON.stringify({ newPassword }) },
+  );
+}

@@ -5,7 +5,7 @@ import { requireOwner } from "../auth/middleware.js";
 import { hashPassword } from "../auth/password.js";
 import { assertStaffExists } from "../bookingRules.js";
 import { ApiError } from "../errors.js";
-import { CreateUserSchema, UpdateUserSchema } from "../validation.js";
+import { CreateUserSchema, UpdateUserSchema, ResetPasswordSchema } from "../validation.js";
 
 export const usersRouter = Router();
 
@@ -126,4 +126,26 @@ usersRouter.patch("/users/:id", async (req, res) => {
   }
 
   res.json(updated);
+});
+
+usersRouter.post("/users/:id/reset-password", async (req, res) => {
+  const userId = Number(req.params.id);
+  if (userId === req.user?.id) {
+    throw new ApiError(400, "use change password to update your own account, not reset");
+  }
+  const parsed = ResetPasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new ApiError(400, parsed.error.message);
+  }
+  const rows = await db.select({ id: users.id }).from(users).where(eq(users.id, userId)).limit(1);
+  if (!rows[0]) {
+    throw new ApiError(404, "account not found");
+  }
+  const newHash = await hashPassword(parsed.data.newPassword);
+  await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, userId));
+  // Full forced logout — same pattern as deactivation elsewhere in this
+  // file. This is an admin action on someone else's account, so there
+  // is no "current session" to preserve.
+  await db.delete(sessions).where(eq(sessions.userId, userId));
+  res.status(204).send();
 });

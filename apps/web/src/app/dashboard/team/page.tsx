@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ClientConfig } from "@localos/config-schema";
-import { type Account, ApiRequestError, createUser, getCatalog, getMe, getUsers, updateUser } from "@/lib/api";
+import { type Account, ApiRequestError, createUser, getCatalog, getMe, getUsers, updateUser, resetPassword } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import tableStyles from "@/components/DataTable.module.css";
 import formStyles from "@/components/FormField.module.css";
@@ -30,6 +30,10 @@ export default function TeamPage() {
   const [editingEmailId, setEditingEmailId] = useState<number | null>(null);
   const [emailDraft, setEmailDraft] = useState("");
   const [savingEmail, setSavingEmail] = useState(false);
+
+  const [resetPasswordId, setResetPasswordId] = useState<number | null>(null);
+  const [resetPasswordDraft, setResetPasswordDraft] = useState("");
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   function load() {
     Promise.all([getCatalog(), getUsers(), getMe()])
@@ -143,6 +147,39 @@ export default function TeamPage() {
     }
   }
 
+  function startResetPassword(account: Account) {
+    setResetPasswordId(account.id);
+    setResetPasswordDraft("");
+  }
+
+  function cancelResetPassword() {
+    setResetPasswordId(null);
+    setResetPasswordDraft("");
+  }
+
+  async function handleSaveResetPassword(account: Account) {
+    const newPassword = resetPasswordDraft.trim();
+    if (!newPassword) {
+      showToast("Password cannot be empty.", "error");
+      return;
+    }
+    if (newPassword.length < 8) {
+      showToast("Password must be at least 8 characters.", "error");
+      return;
+    }
+    setResettingPassword(true);
+    try {
+      await resetPassword(account.id, newPassword);
+      showToast("Password reset. This account has been signed out.", "success");
+      cancelResetPassword();
+      load();
+    } catch (err) {
+      showToast(err instanceof ApiRequestError ? err.message : "Could not reset the password.", "error");
+    } finally {
+      setResettingPassword(false);
+    }
+  }
+
   if (forbidden) {
     return (
       <div>
@@ -201,6 +238,7 @@ export default function TeamPage() {
                 const isSelf = a.id === currentUserId;
                 const isDeactivated = a.status === "deactivated";
                 const isEditingEmail = editingEmailId === a.id;
+                const isResetingPassword = resetPasswordId === a.id;
                 return (
                   <tr key={a.id} className={isDeactivated ? styles.deactivatedRow : ""}>
                     <td>
@@ -226,12 +264,40 @@ export default function TeamPage() {
                             Cancel
                           </button>
                         </div>
+                      ) : isResetingPassword ? (
+                        <div className={styles.emailCell}>
+                          <input
+                            type="password"
+                            className={styles.inlineInput}
+                            placeholder="New password (min 8 characters)"
+                            value={resetPasswordDraft}
+                            onChange={(e) => setResetPasswordDraft(e.target.value)}
+                            aria-label={`New password for ${a.email}`}
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            className={styles.actionLink}
+                            disabled={resettingPassword}
+                            onClick={() => handleSaveResetPassword(a)}
+                          >
+                            {resettingPassword ? "Resetting…" : "Reset"}
+                          </button>
+                          <button type="button" className={styles.cancelLink} onClick={cancelResetPassword}>
+                            Cancel
+                          </button>
+                        </div>
                       ) : (
                         <div className={styles.emailCell}>
                           <span>{a.email}</span>
                           <button type="button" className={styles.actionLink} onClick={() => startEditEmail(a)}>
                             Edit email
                           </button>
+                          {!isSelf && (
+                            <button type="button" className={styles.actionLink} onClick={() => startResetPassword(a)}>
+                              Reset password
+                            </button>
+                          )}
                         </div>
                       )}
                     </td>
