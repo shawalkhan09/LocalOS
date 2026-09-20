@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { DateTime } from "luxon";
-import { db, users, sessions } from "@localos/db";
+import { db, users, sessions, staff } from "@localos/db";
 import { eq } from "drizzle-orm";
 import { createApp } from "./app.js";
 import { assertBookableSessionTime, assertBookableClassOccurrence } from "./bookingWindow.js";
@@ -562,6 +562,86 @@ console.log("OK: change-password rejects a wrong current password, keeps the act
 // don't pile up test users.
 await db.delete(sessions).where(eq(sessions.userId, testUser.id));
 await db.delete(users).where(eq(users.id, testUser.id));
+
+// Data integrity: a staff member can be linked to at most one login
+// account. This is a DB-level guarantee (a partial unique index on
+// users.staffId, see packages/db/src/schema.ts) — the actual
+// enforcement point — so the first assertion inserts directly against
+// the database rather than going through the API, the same reasoning
+// already used for the booking-overlap EXCLUDE constraint above.
+const anyStaffRow = (await db.select({ id: staff.id }).from(staff).limit(1))[0];
+assert(anyStaffRow, "expected at least one staff row to test the staffId uniqueness constraint against");
+const anyStaffId = anyStaffRow.id;
+
+const firstLinkedEmail = `check-staff-link-a-${Date.now()}@example.com`;
+const [firstLinkedUser] = await db
+  .insert(users)
+  .values({
+    email: firstLinkedEmail,
+    passwordHash: await hashPassword("password-123"),
+    role: "staff",
+    staffId: anyStaffId,
+  })
+  .returning({ id: users.id });
+
+let secondLinkRejected = false;
+try {
+  await db.insert(users).values({
+    email: `check-staff-link-b-${Date.now()}@example.com`,
+    passwordHash: await hashPassword("password-123"),
+    role: "staff",
+    staffId: anyStaffId,
+  });
+} catch {
+  secondLinkRejected = true;
+}
+assert(secondLinkRejected, "a second account must not be able to link to a staff member that's already linked to another account");
+console.log("OK: a staff member can be linked to at most one login account (DB-level unique index)");
+
+// HTTP-level: the same conflict, through the real API, must surface as
+// a friendly 409 (see the users_staff_id_unique branch in app.ts's
+// error handler) rather than a raw Postgres error leaking through.
+const testOwnerEmail = `check-owner-${Date.now()}@example.com`;
+const testOwnerPassword = "owner-password-123";
+const [testOwner] = await db
+  .insert(users)
+  .values({
+    email: testOwnerEmail,
+    passwordHash: await hashPassword(testOwnerPassword),
+    role: "owner",
+  })
+  .returning({ id: users.id });
+
+const ownerLoginRes = await fetch(`${baseUrl}/auth/login`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web" },
+  body: JSON.stringify({ email: testOwnerEmail, password: testOwnerPassword }),
+});
+assert.strictEqual(ownerLoginRes.status, 200, "test owner login should succeed");
+const ownerCookie = extractSessionCookie(ownerLoginRes);
+
+const conflictRes = await fetch(`${baseUrl}/users`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "X-LocalOS-Client": "web", Cookie: ownerCookie },
+  body: JSON.stringify({
+    email: `check-staff-link-c-${Date.now()}@example.com`,
+    password: "password-123",
+    staffId: anyStaffId,
+  }),
+});
+assert.strictEqual(conflictRes.status, 409, "linking a second account to an already-linked staff member through the API must be rejected with 409");
+const conflictBody: { error: string } = await conflictRes.json();
+assert.strictEqual(
+  conflictBody.error,
+  "That staff member is already linked to another account.",
+  "the 409 must show the friendly message, not a raw database error",
+);
+console.log("OK: linking a staff member already claimed by another account is rejected with a friendly 409 through the real API");
+
+// Clean up everything this block created.
+await db.delete(sessions).where(eq(sessions.userId, testOwner.id));
+await db.delete(users).where(eq(users.id, testOwner.id));
+await db.delete(users).where(eq(users.id, firstLinkedUser.id));
 
 // Session booking validation: past time and outside business hours must be rejected
 const timezone = clientConfig.business.timezone;
