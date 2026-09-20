@@ -69,11 +69,7 @@ export default function TeamPage() {
       setStaffId("");
       load();
     } catch (err) {
-      if (err instanceof ApiRequestError && err.status === 409) {
-        showToast("An account with that email already exists.", "error");
-      } else {
-        showToast(err instanceof ApiRequestError ? err.message : "Could not create the account.", "error");
-      }
+      showToast(err instanceof ApiRequestError ? err.message : "Could not create the account.", "error");
     } finally {
       setSubmitting(false);
     }

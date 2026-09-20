@@ -51,6 +51,10 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
       res.status(409).json({ error: "An account with that email already exists." });
       return;
     }
+    if (pgError.constraint_name === "users_staff_id_unique") {
+      res.status(409).json({ error: "That staff member is already linked to another account." });
+      return;
+    }
     res.status(409).json({ error: `duplicate: ${pgError.detail ?? "constraint violated"}` });
     return;
   }

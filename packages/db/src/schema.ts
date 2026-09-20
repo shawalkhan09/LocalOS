@@ -10,6 +10,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 // Single-tenant: one deployment serves exactly one client. Most catalog
@@ -189,15 +190,27 @@ export const userStatusEnum = pgEnum("user_status", ["active", "deactivated"]);
 // staffId is a real FK now, against the `staff` table above — same
 // upgrade, and the same reasoning, as bookings.staffId. Optional: an owner
 // account need not map to a staff row.
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  email: text("email").notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
-  role: userRoleEnum("role").notNull(),
-  status: userStatusEnum("status").notNull().default("active"),
-  staffId: text("staff_id").references(() => staff.id),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+export const users = pgTable(
+  "users",
+  {
+    id: serial("id").primaryKey(),
+    email: text("email").notNull().unique(),
+    passwordHash: text("password_hash").notNull(),
+    role: userRoleEnum("role").notNull(),
+    status: userStatusEnum("status").notNull().default("active"),
+    staffId: text("staff_id").references(() => staff.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    // A staff member can be linked to at most one login account.
+    // Partial (WHERE staff_id IS NOT NULL) so any number of accounts
+    // can stay unlinked (staffId: null) without colliding with each
+    // other — only an actual double-link is rejected.
+    oneAccountPerStaffMember: uniqueIndex("users_staff_id_unique")
+      .on(table.staffId)
+      .where(sql`${table.staffId} IS NOT NULL`),
+  }),
+);
 
 // id is a random opaque token (see apps/api/src/auth/session.ts), not a
 // serial int — a guessable/enumerable session id would defeat the point of
