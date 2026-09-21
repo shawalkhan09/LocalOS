@@ -7,6 +7,8 @@ import {
   type Booking,
   type ClassBooking,
   type Customer,
+  cancelBooking,
+  cancelClassBooking,
   getBookings,
   getCatalog,
   getClassBookings,
@@ -48,44 +50,105 @@ function riskBucket(score: string | null): RiskBucket | null {
 
 const RISK_LABEL: Record<RiskBucket, string> = { low: "Low", medium: "Medium", high: "High" };
 
+// Which row (if any) is mid two-step cancel — only one at a time, across
+// both tables, since they share the same confirm/keep UI pattern.
+type ConfirmTarget = { kind: "booking" | "classBooking"; id: number };
+
 export default function TodayPage() {
   const [config, setConfig] = useState<ClientConfig | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [classBookings, setClassBookings] = useState<ClassBooking[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<{ kind: ConfirmTarget["kind"]; message: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-
-    async function load() {
-      try {
-        const catalog = await getCatalog();
-        const today = todayInTimezone(catalog.business.timezone);
-        const [bookingsRes, classBookingsRes, customersRes] = await Promise.all([
-          getBookings(today),
-          getClassBookings(today),
-          getCustomers("all"),
-        ]);
+    getCatalog()
+      .then((catalog) => {
         if (cancelled) {
           return;
         }
         setConfig(catalog);
-        setBookings(bookingsRes);
-        setClassBookings(classBookingsRes);
-        setCustomers(customersRes);
-      } catch (err) {
+        setSelectedDate(todayInTimezone(catalog.business.timezone));
+      })
+      .catch((err) => {
         if (!cancelled) {
           setError(err instanceof ApiRequestError ? err.message : "Could not load today's schedule.");
         }
-      }
-    }
-
-    load();
+      });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (selectedDate === null) {
+      return;
+    }
+    let cancelled = false;
+    Promise.all([getBookings(selectedDate), getClassBookings(selectedDate), getCustomers("all")])
+      .then(([bookingsRes, classBookingsRes, customersRes]) => {
+        if (cancelled) {
+          return;
+        }
+        setBookings(bookingsRes);
+        setClassBookings(classBookingsRes);
+        setCustomers(customersRes);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err instanceof ApiRequestError ? err.message : "Could not load today's schedule.");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDate]);
+
+  async function reload() {
+    if (selectedDate === null) {
+      return;
+    }
+    const [bookingsRes, classBookingsRes] = await Promise.all([
+      getBookings(selectedDate),
+      getClassBookings(selectedDate),
+    ]);
+    setBookings(bookingsRes);
+    setClassBookings(classBookingsRes);
+  }
+
+  async function handleConfirmCancel() {
+    if (!confirmTarget) {
+      return;
+    }
+    setCancelling(true);
+    try {
+      if (confirmTarget.kind === "booking") {
+        await cancelBooking(confirmTarget.id);
+      } else {
+        await cancelClassBooking(confirmTarget.id);
+      }
+      setCancelError(null);
+      setConfirmTarget(null);
+      await reload();
+    } catch (err) {
+      setCancelError({
+        kind: confirmTarget.kind,
+        message: err instanceof ApiRequestError ? err.message : "Could not cancel this booking.",
+      });
+    } finally {
+      setCancelling(false);
+    }
+  }
+
+  function handleKeep() {
+    setConfirmTarget(null);
+    setCancelError(null);
+  }
 
   if (error) {
     return (
@@ -96,7 +159,7 @@ export default function TodayPage() {
     );
   }
 
-  if (!config) {
+  if (!config || selectedDate === null) {
     return (
       <div>
         <h1 className={styles.heading}>Today</h1>
@@ -123,8 +186,21 @@ export default function TodayPage() {
 
   return (
     <div>
-      <h1 className={styles.heading}>Today</h1>
-      <p className={styles.subheading}>{formatDateInTimezone(today, timezone)}</p>
+      <h1 className={styles.heading}>{selectedDate === today ? "Today" : formatDateInTimezone(selectedDate, timezone)}</h1>
+      <p className={styles.subheading}>{formatDateInTimezone(selectedDate, timezone)}</p>
+
+      <div className={`${styles.dateRow} ${styles.section}`}>
+        <label htmlFor="schedule-date" className={styles.dateLabel}>
+          Date
+        </label>
+        <input
+          id="schedule-date"
+          type="date"
+          className={styles.dateInput}
+          value={selectedDate}
+          onChange={(e) => setSelectedDate(e.target.value)}
+        />
+      </div>
 
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Bookings</h2>
@@ -138,20 +214,23 @@ export default function TodayPage() {
                 <th>Staff</th>
                 <th>Status</th>
                 <th>No-show risk</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {sortedBookings.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className={tableStyles.empty}>
+                  <td colSpan={7} className={tableStyles.empty}>
                     No bookings today.
                   </td>
                 </tr>
               ) : (
                 sortedBookings.map((b) => {
                   const bucket = riskBucket(b.noShowRiskScore);
+                  const isCancelled = b.status === "cancelled";
+                  const isConfirming = confirmTarget?.kind === "booking" && confirmTarget.id === b.id;
                   return (
-                    <tr key={b.id}>
+                    <tr key={b.id} className={isCancelled ? styles.mutedRow : ""}>
                       <td>{formatTimeInTimezone(b.startTime, timezone)}</td>
                       <td>{customerById.get(b.customerId)?.name ?? `Customer #${b.customerId}`}</td>
                       <td>{serviceById.get(b.serviceId)?.name ?? b.serviceId}</td>
@@ -166,6 +245,32 @@ export default function TodayPage() {
                           </span>
                         )}
                       </td>
+                      <td>
+                        {b.status === "confirmed" &&
+                          (isConfirming ? (
+                            <div className={styles.confirmActions}>
+                              <button
+                                type="button"
+                                className={styles.actionLinkWarn}
+                                onClick={handleConfirmCancel}
+                                disabled={cancelling}
+                              >
+                                Confirm cancel
+                              </button>
+                              <button type="button" className={styles.actionLink} onClick={handleKeep} disabled={cancelling}>
+                                Keep
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              className={styles.actionLinkWarn}
+                              onClick={() => setConfirmTarget({ kind: "booking", id: b.id })}
+                            >
+                              Cancel
+                            </button>
+                          ))}
+                      </td>
                     </tr>
                   );
                 })
@@ -173,6 +278,7 @@ export default function TodayPage() {
             </tbody>
           </table>
         </div>
+        {cancelError?.kind === "booking" && <p className={`${styles.error} ${styles.section}`}>{cancelError.message}</p>}
       </div>
 
       <div className={styles.section}>
@@ -212,6 +318,70 @@ export default function TodayPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>Class bookings</h2>
+        <div className={styles.panel}>
+          <table className={tableStyles.table}>
+            <thead>
+              <tr>
+                <th>Class</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {classBookings.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className={tableStyles.empty}>
+                    No class bookings today.
+                  </td>
+                </tr>
+              ) : (
+                classBookings.map((cb) => {
+                  const isCancelled = cb.status === "cancelled";
+                  const isConfirming = confirmTarget?.kind === "classBooking" && confirmTarget.id === cb.id;
+                  return (
+                    <tr key={cb.id} className={isCancelled ? styles.mutedRow : ""}>
+                      <td>{classById.get(cb.classId)?.name ?? cb.classId}</td>
+                      <td>{customerById.get(cb.customerId)?.name ?? `Customer #${cb.customerId}`}</td>
+                      <td>{cb.status}</td>
+                      <td>
+                        {cb.status === "booked" &&
+                          (isConfirming ? (
+                            <div className={styles.confirmActions}>
+                              <button
+                                type="button"
+                                className={styles.actionLinkWarn}
+                                onClick={handleConfirmCancel}
+                                disabled={cancelling}
+                              >
+                                Confirm cancel
+                              </button>
+                              <button type="button" className={styles.actionLink} onClick={handleKeep} disabled={cancelling}>
+                                Keep
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              className={styles.actionLinkWarn}
+                              onClick={() => setConfirmTarget({ kind: "classBooking", id: cb.id })}
+                            >
+                              Cancel
+                            </button>
+                          ))}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+        {cancelError?.kind === "classBooking" && <p className={`${styles.error} ${styles.section}`}>{cancelError.message}</p>}
       </div>
     </div>
   );

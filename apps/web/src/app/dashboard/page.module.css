@@ -81,3 +81,62 @@
   padding: 10px 14px;
   font-size: 13px;
 }
+
+.dateRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dateLabel {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.dateInput {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.mutedRow {
+  opacity: 0.55;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 10px;
+}
+
+.actionLink {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.actionLink:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.actionLinkWarn {
+  border: none;
+  background: none;
+  color: var(--warn);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.actionLinkWarn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
