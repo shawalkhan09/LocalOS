@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { ClientConfig } from "@localos/config-schema";
 import { ApiRequestError, createPublicClassBooking, getCatalog } from "@/lib/api";
-import { addDaysToDateString, formatDateInTimezone, todayInTimezone } from "@/lib/time";
+import { addDaysToDateString, formatDateInTimezone, getNextClassOccurrenceDate, localWeekday, nowTimeInTimezone, todayInTimezone } from "@/lib/time";
 import { BookingConfirmation } from "@/components/BookingConfirmation";
 import { PublicCustomerForm, type PublicCustomerInfo } from "@/components/PublicCustomerForm";
 import sharedStyles from "@/components/PublicShared.module.css";
@@ -38,9 +38,15 @@ export default function BookClassPage() {
     getCatalog()
       .then((c) => {
         setConfig(c);
-        setOccurrenceDate(todayInTimezone(c.business.timezone));
         if (c.classes[0]) {
           setClassId(c.classes[0].id);
+          const today = todayInTimezone(c.business.timezone);
+          const maxDate = addDaysToDateString(today, c.booking.advanceBookingDays);
+          const currentTime = nowTimeInTimezone(c.business.timezone);
+          const nextDate = getNextClassOccurrenceDate(c.classes[0].schedule, today, maxDate, c.business.timezone, currentTime);
+          setOccurrenceDate(nextDate ?? today);
+        } else {
+          setOccurrenceDate(todayInTimezone(c.business.timezone));
         }
       })
       .catch((err) => {
@@ -49,6 +55,38 @@ export default function BookClassPage() {
   }, []);
 
   const gymClass = config?.classes.find((c) => c.id === classId) ?? null;
+
+  const today = config ? todayInTimezone(config.business.timezone) : "";
+  const currentTime = config ? nowTimeInTimezone(config.business.timezone) : "";
+
+  const dateRunsClass = !!(
+    gymClass &&
+    occurrenceDate &&
+    gymClass.schedule.some((slot) => slot.day.toLowerCase() === localWeekday(occurrenceDate, config!.business.timezone))
+  );
+
+  const classAlreadyStartedToday = !!(
+    dateRunsClass &&
+    occurrenceDate === today &&
+    gymClass?.schedule.some((slot) => slot.day.toLowerCase() === localWeekday(occurrenceDate, config!.business.timezone) && slot.startTime <= currentTime)
+  );
+
+  const invalidDateMessage = !dateRunsClass
+    ? "This class does not run on the selected date."
+    : "That class has already started today.";
+
+  const isDateValid = dateRunsClass && !classAlreadyStartedToday;
+
+  const hasValidOccurrence = !!(
+    config && gymClass &&
+    getNextClassOccurrenceDate(
+      gymClass.schedule,
+      today,
+      addDaysToDateString(today, config.booking.advanceBookingDays),
+      config.business.timezone,
+      currentTime,
+    )
+  );
 
   async function handleCustomerSubmit(info: PublicCustomerInfo) {
     if (!gymClass) {
@@ -130,6 +168,14 @@ export default function BookClassPage() {
           onChange={(e) => {
             setClassId(e.target.value);
             setShowCustomerForm(false);
+            const selectedClass = config.classes.find((c) => c.id === e.target.value);
+            if (selectedClass) {
+              const today = todayInTimezone(timezone);
+              const maxDate = addDaysToDateString(today, config.booking.advanceBookingDays);
+              const time = nowTimeInTimezone(timezone);
+              const nextDate = getNextClassOccurrenceDate(selectedClass.schedule, today, maxDate, timezone, time);
+              setOccurrenceDate(nextDate ?? today);
+            }
           }}
         >
           {config.classes.map((c) => (
@@ -149,30 +195,46 @@ export default function BookClassPage() {
         </p>
       )}
 
-      <div className={sharedStyles.field}>
-        <label htmlFor="occurrence-date">Date</label>
-        <input
-          id="occurrence-date"
-          type="date"
-          value={occurrenceDate}
-          min={minDate}
-          max={maxDate}
-          onChange={(e) => {
-            setOccurrenceDate(e.target.value);
-            setShowCustomerForm(false);
-          }}
-        />
-      </div>
-
-      {!showCustomerForm ? (
-        <button type="button" className={sharedStyles.pillButton} onClick={() => setShowCustomerForm(true)}>
-          Continue
-        </button>
+      {!hasValidOccurrence ? (
+        <p className={sharedStyles.errorText}>
+          This class has no available dates to book within the next {config.booking.advanceBookingDays} days.
+        </p>
       ) : (
         <>
-          <h2 className={sharedStyles.sectionTitle}>Your details</h2>
-          {submitError && <p className={sharedStyles.errorText}>{submitError}</p>}
-          <PublicCustomerForm onSubmit={handleCustomerSubmit} submitting={submitting} submitLabel="Confirm booking" />
+          <div className={sharedStyles.field}>
+            <label htmlFor="occurrence-date">Date</label>
+            <input
+              id="occurrence-date"
+              type="date"
+              value={occurrenceDate}
+              min={minDate}
+              max={maxDate}
+              onChange={(e) => {
+                setOccurrenceDate(e.target.value);
+                setShowCustomerForm(false);
+              }}
+            />
+            {!isDateValid && (
+              <p className={sharedStyles.errorText}>{invalidDateMessage}</p>
+            )}
+          </div>
+
+          {!showCustomerForm ? (
+            <button
+              type="button"
+              className={sharedStyles.pillButton}
+              disabled={!isDateValid}
+              onClick={() => setShowCustomerForm(true)}
+            >
+              Continue
+            </button>
+          ) : (
+            <>
+              <h2 className={sharedStyles.sectionTitle}>Your details</h2>
+              {submitError && <p className={sharedStyles.errorText}>{submitError}</p>}
+              <PublicCustomerForm onSubmit={handleCustomerSubmit} submitting={submitting} submitLabel="Confirm booking" />
+            </>
+          )}
         </>
       )}
     </div>
