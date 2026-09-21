@@ -52,3 +52,41 @@ export function dateStringInTimezone(iso: string, timezone: string): string {
     timeZone: timezone,
   }).format(new Date(iso));
 }
+
+export function nowTimeInTimezone(timezone: string, at: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    hourCycle: "h23",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(at);
+}
+
+// Find the next date (in YYYY-MM-DD format) on which a class runs, or null if
+// no occurrence exists within the window. On startDate (today), a slot counts
+// only if its startTime is later than currentTime (HH:MM). On later days,
+// any matching weekday counts. Stays within [startDate, maxDate] inclusive.
+export function getNextClassOccurrenceDate(
+  classSchedule: Array<{ day: string; startTime: string }>,
+  startDate: string,
+  maxDate: string,
+  timezone: string,
+  currentTime: string,
+): string | null {
+  let currentDate = startDate;
+  while (currentDate <= maxDate) {
+    const dayOfWeek = localWeekday(currentDate, timezone);
+    for (const slot of classSchedule) {
+      if (slot.day.toLowerCase() === dayOfWeek) {
+        // On the first day (today), check if start time is in the future
+        if (currentDate === startDate && slot.startTime <= currentTime) {
+          continue;
+        }
+        return currentDate;
+      }
+    }
+    currentDate = addDaysToDateString(currentDate, 1);
+  }
+
+  return null;
+}
