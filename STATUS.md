@@ -84,13 +84,12 @@ a deliberate, considered choice — never propose multi-tenancy.
    A second bug was found and fixed after initial deploy: the schedule page displayed all times in the viewer's browser timezone instead of the business's configured timezone (e.g. a 6:00 AM class showed as 5:00 PM for a viewer in a different timezone), and grouped items by UTC calendar day instead of the business's calendar day. Fixed in PR #8 by reusing the existing formatTimeInTimezone/formatDateInTimezone helpers in apps/web/src/lib/time.ts (already used correctly elsewhere, e.g. new-booking/page.tsx) instead of raw, timezone-naive Date formatting.
 6. **Small UI bug fixes** (PR #10, fix-small-ui-bugs, merged to main at commit 8bad23e): Stale password-mismatch error on /dashboard/account now clears on input change, not just on resubmit. Password validation errors return a clean message instead of a raw Zod JSON blob (password-related throw sites only: POST /auth/change-password, POST /users, POST /users/:id/reset-password). Mobile account menu click-outside-to-close now works. Mobile account menu is now visible at every viewport width (fixed a CSS specificity tie between two .mobileAccountContainer rules with identical specificity, one unconditional display: none and one in @media (max-width: 639px) with display: flex — the later rule was always winning due to source-order specificity tie-breaking; moved the unconditional rule before the media query so the media query override wins at narrow widths).
 7. **Chunk 4b: Mobile account menu** (PR #5, merged to main): adds a compact "Account" button in the mobile nav (below 640px) with a toggle menu for "Change password" and "Log out," reusing the existing handler and route unchanged. Web-only, no schema change. Its missing click-outside-to-close and a CSS bug that hid the menu at every viewport width were both fixed later in PR #10 (entry 6).
+8. **Class booking default date fix** (PR #15, fix-class-booking-default-date, merged to main): the public class-booking page now defaults to the next date the selected class actually runs, counted from today in the business's timezone and inside the advance-booking window. A day only counts if the class runs on that weekday and, for today, the class start time is still in the future (matching the API's "already started" rule). Picking a date the class does not run, or today after the class has started, shows an inline message and disables Continue; a class with no bookable date in the window shows a friendly message instead of the form. Web-only: added nowTimeInTimezone and getNextClassOccurrenceDate to apps/web/src/lib/time.ts. Verified live on 2026-09-21.
 
 ## In review / not yet merged
 None currently.
 
 ## Known, confirmed, not-yet-fixed bugs
-- The public class-booking page defaults to today's date even when the
-  selected class doesn't run today, only erroring at final confirmation.
 - Leftover test/demo data in production (a stray "Test Booking" customer,
   an extra Dana Reliable booking, a class seat, plus QA-created records
   from 2026-09-20 testing) — no cleanup done, no cancel-booking feature
@@ -102,3 +101,16 @@ None currently.
 ## Backlog / not started
 - The "garage" vertical (a second demo business type) is explicitly
   paused — do not start it without being asked.
+- API startup: the `listen` callback in `apps/api/src/index.ts` ignores the
+  error argument, so a port conflict still logs "api listening". Make it fail
+  loudly (needs a Render deploy when done).
+- Timezone helpers: `localWeekday` and `formatDateInTimezone` in
+  `apps/web/src/lib/time.ts` format noon UTC in the business timezone, which
+  lands on the wrong calendar day at UTC+12 or later (New Zealand, Fiji,
+  Tonga). Check the API's `localWeekday` too. Fine for the Denver demo, fix
+  before onboarding a client in those timezones.
+- Multi-slot classes: `assertBookableClassOccurrence` in
+  `apps/api/src/bookingWindow.ts` checks only the first schedule slot for a
+  weekday, while the class-booking page checks every slot, so a class
+  scheduled twice on one weekday can pass the page and fail at confirmation.
+  The demo config has one slot per day.
