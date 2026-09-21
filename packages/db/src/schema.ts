@@ -9,7 +9,6 @@ import {
   serial,
   text,
   timestamp,
-  unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 
@@ -106,8 +105,10 @@ export const bookingStatusEnum = pgEnum("booking_status", [
 // timestamp: they represent unambiguous instants, and availability/conflict
 // logic across a business.timezone depends on that. There is also a
 // GiST EXCLUDE constraint here — `EXCLUDE USING gist (staff_id WITH =,
-// tstzrange(start_time, end_time) WITH &&) WHERE (staff_id IS NOT NULL)` —
-// preventing two overlapping bookings for the same staffId at the DB level.
+// tstzrange(start_time, end_time) WITH &&) WHERE (staff_id IS NOT NULL AND
+// (status IS NULL OR status <> 'cancelled'))` — preventing two overlapping
+// bookings for the same staffId at the DB level, except a cancelled booking
+// no longer counts as occupying its slot.
 // drizzle-orm's pg-core has no EXCLUDE constraint builder, so it's hand-added
 // to the generated migration SQL (see migrations/) instead of expressed
 // here; it requires the btree_gist extension, also hand-added there.
@@ -147,11 +148,14 @@ export const classBookings = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => ({
-    oneBookingPerOccurrence: unique().on(
+    // Partial (WHERE status IS NULL OR status <> 'cancelled') so a
+    // cancelled class booking no longer blocks re-booking the same
+    // occurrence — same reasoning as the bookings EXCLUDE constraint above.
+    oneBookingPerOccurrence: uniqueIndex("class_bookings_one_active_per_occurrence").on(
       table.customerId,
       table.classId,
       table.occurrenceDate,
-    ),
+    ).where(sql`${table.status} IS NULL OR ${table.status} <> 'cancelled'`),
   }),
 );
 
