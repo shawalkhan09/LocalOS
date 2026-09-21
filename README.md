@@ -12,7 +12,7 @@ Visit the live demo at https://localos-gym-demo.vercel.app (Ironclad Fitness, a 
 - Booking system with comprehensive validation: past time rejection, business hours enforcement, advance-booking window, duration matching, double-booking prevention, class-weekday validation, seat limit enforcement
 - Timezone-aware scheduling: business timezone configured per deployment, enforced API-side via Luxon, displayed client-side via Intl.DateTimeFormat (not server timezone or browser timezone)
 - Public customer booking flows for sessions and classes
-- Owner dashboard (Today page): view bookings and classes; bookings show customer no-show risk (Low/Medium/High based on historical completion)
+- Owner dashboard (Today page): view bookings and classes; each booking shows a rule-based no-show risk (Low/Medium/High) from the customer's past no-show rate, with a capped baseline for first-time customers
 - Staff schedule view: logged-in staff see their own upcoming sessions and classes for the next 14 days
 - Staff and owner accounts: owner-only account creation and email correction; owner can deactivate and reactivate staff accounts
 - Membership plans defined in config (price, billing interval, perks), with customer memberships recorded through the API (start and renewal dates, credits remaining)
