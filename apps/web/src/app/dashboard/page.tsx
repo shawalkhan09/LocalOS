@@ -50,6 +50,14 @@ function riskBucket(score: string | null): RiskBucket | null {
 
 const RISK_LABEL: Record<RiskBucket, string> = { low: "Low", medium: "Medium", high: "High" };
 
+// The native date input fires onChange with a partial or empty value while
+// a segment is mid-edit (e.g. the day segment cleared with Backspace) — not
+// just on a complete date. Only a complete yyyy-mm-dd string is a valid
+// selection; anything else is an in-progress edit to ignore, or the whole
+// page crashes downstream in formatDateInTimezone (`new Date` on a
+// malformed string).
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
 // Which row (if any) is mid two-step cancel — only one at a time, across
 // both tables, since they share the same confirm/keep UI pattern.
 type ConfirmTarget = { kind: "booking" | "classBooking"; id: number };
@@ -183,10 +191,11 @@ export default function TodayPage() {
   }
 
   const sortedBookings = [...bookings].sort((a, b) => a.startTime.localeCompare(b.startTime));
+  const isToday = selectedDate === today;
 
   return (
     <div>
-      <h1 className={styles.heading}>{selectedDate === today ? "Today" : formatDateInTimezone(selectedDate, timezone)}</h1>
+      <h1 className={styles.heading}>{isToday ? "Today" : formatDateInTimezone(selectedDate, timezone)}</h1>
       <p className={styles.subheading}>{formatDateInTimezone(selectedDate, timezone)}</p>
 
       <div className={`${styles.dateRow} ${styles.section}`}>
@@ -198,7 +207,14 @@ export default function TodayPage() {
           type="date"
           className={styles.dateInput}
           value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
+          onChange={(e) => {
+            if (!ISO_DATE.test(e.target.value)) {
+              return;
+            }
+            setSelectedDate(e.target.value);
+            setConfirmTarget(null);
+            setCancelError(null);
+          }}
         />
       </div>
 
@@ -221,7 +237,7 @@ export default function TodayPage() {
               {sortedBookings.length === 0 ? (
                 <tr>
                   <td colSpan={7} className={tableStyles.empty}>
-                    No bookings today.
+                    {isToday ? "No bookings today." : "No bookings on this date."}
                   </td>
                 </tr>
               ) : (
@@ -295,7 +311,7 @@ export default function TodayPage() {
               {classGroups.size === 0 ? (
                 <tr>
                   <td colSpan={2} className={tableStyles.empty}>
-                    No class bookings today.
+                    {isToday ? "No class bookings today." : "No class bookings on this date."}
                   </td>
                 </tr>
               ) : (
@@ -336,7 +352,7 @@ export default function TodayPage() {
               {classBookings.length === 0 ? (
                 <tr>
                   <td colSpan={4} className={tableStyles.empty}>
-                    No class bookings today.
+                    {isToday ? "No class bookings today." : "No class bookings on this date."}
                   </td>
                 </tr>
               ) : (
