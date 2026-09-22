@@ -132,6 +132,10 @@ export function createBooking(data: {
   return request<Booking>("/bookings", { method: "POST", body: JSON.stringify(data) });
 }
 
+export function cancelBooking(id: number): Promise<Booking> {
+  return request<Booking>(`/bookings/${id}/cancel`, { method: "POST" });
+}
+
 export type ClassBooking = {
   id: number;
   customerId: number;
@@ -143,6 +147,10 @@ export type ClassBooking = {
 
 export function getClassBookings(date?: string): Promise<ClassBooking[]> {
   return request<ClassBooking[]>(`/class-bookings${date ? `?date=${date}` : ""}`);
+}
+
+export function cancelClassBooking(id: number): Promise<ClassBooking> {
+  return request<ClassBooking>(`/class-bookings/${id}/cancel`, { method: "POST" });
 }
 
 export type AvailabilitySlot = { startTime: string; endTime: string };

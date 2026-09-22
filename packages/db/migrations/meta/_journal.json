@@ -22,6 +22,20 @@
       "when": 1789910643312,
       "tag": "0002_flawless_reptil",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789956146230,
+      "tag": "0003_bookings_exclude_ignores_cancelled",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789956200716,
+      "tag": "0004_class_bookings_unique_ignores_cancelled",
+      "breakpoints": true
     }
   ]
 }

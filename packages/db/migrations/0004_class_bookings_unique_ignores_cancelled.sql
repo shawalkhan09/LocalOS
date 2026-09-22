@@ -1,0 +1,2 @@
+ALTER TABLE "class_bookings" DROP CONSTRAINT "class_bookings_customer_id_class_id_occurrence_date_unique";--> statement-breakpoint
+CREATE UNIQUE INDEX "class_bookings_one_active_per_occurrence" ON "class_bookings" USING btree ("customer_id","class_id","occurrence_date") WHERE "class_bookings"."status" IS NULL OR "class_bookings"."status" <> 'cancelled';

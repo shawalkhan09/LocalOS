@@ -1,5 +1,5 @@
 import { bookings, db } from "@localos/db";
-import { and, gte, lt } from "drizzle-orm";
+import { and, eq, gte, isNull, lt, or } from "drizzle-orm";
 import { Router } from "express";
 import { DateTime } from "luxon";
 import { assertBookableSessionTime } from "../bookingWindow.js";
@@ -80,4 +80,39 @@ bookingsRouter.get("/bookings", async (req, res) => {
     .where(and(gte(bookings.startTime, start.toJSDate()), lt(bookings.startTime, end.toJSDate())))
     .limit(100);
   res.json(rows);
+});
+
+// Any authenticated role (owner or staff) may cancel — cancelling never
+// deletes a row, only sets status to 'cancelled', so there's no extra
+// permission risk here beyond what viewing the schedule already grants.
+// Time of day is irrelevant: a past booking can be cancelled the same as a
+// future one (e.g. correcting the record after a no-show call was wrong).
+bookingsRouter.post("/bookings/:id/cancel", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    throw new ApiError(400, "id must be a positive integer");
+  }
+
+  // One atomic conditional update, not a check-then-update: only a row
+  // that is still confirmed (or has a null status) gets cancelled, so two
+  // concurrent cancel requests can't both "succeed" against the same slot.
+  const [cancelled] = await db
+    .update(bookings)
+    .set({ status: "cancelled" })
+    .where(and(eq(bookings.id, id), or(isNull(bookings.status), eq(bookings.status, "confirmed"))))
+    .returning();
+
+  if (cancelled) {
+    res.json(cancelled);
+    return;
+  }
+
+  const [existing] = await db.select().from(bookings).where(eq(bookings.id, id)).limit(1);
+  if (!existing) {
+    throw new ApiError(404, "Booking not found.");
+  }
+  if (existing.status === "cancelled") {
+    throw new ApiError(409, "This booking is already cancelled.");
+  }
+  throw new ApiError(409, "Only bookings that are still confirmed can be cancelled.");
 });
