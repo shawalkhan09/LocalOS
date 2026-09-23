@@ -16,33 +16,41 @@ export function formatTimeInTimezone(iso: string, timezone: string): string {
 }
 
 export function addDaysToDateString(date: string, days: number): string {
-  // Noon UTC again, for the same reason as formatDateInTimezone: avoids any
-  // possibility of the day-add landing on the wrong calendar day.
-  const d = new Date(`${date}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + days);
+  const [year, month, day] = date.split("-").map(Number);
+  const d = new Date(Date.UTC(year, month - 1, day + days));
   return d.toISOString().slice(0, 10);
 }
 
+// Convert a YYYY-MM-DD date string to a Date object that lands on that exact
+// calendar date when formatted in `timezone`, regardless of offset (-12..+14).
+export function parseDateInTimezone(dateStr: string, timezone: string): Date {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  let date = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: timezone });
+  const formatted = fmt.format(date);
+  if (formatted > dateStr) {
+    date = new Date(date.getTime() - 24 * 3600 * 1000);
+  } else if (formatted < dateStr) {
+    date = new Date(date.getTime() + 24 * 3600 * 1000);
+  }
+  return date;
+}
+
 // Lowercase weekday name matching @localos/config-schema's Weekday union
-// ("monday".."sunday"), as observed in the business's own timezone — same
-// approach as apps/api's localWeekday, duplicated here rather than shared
-// since one is browser code and the other is server code with no common
-// runtime to share a module from.
+// ("monday".."sunday"), as observed in the business's own timezone.
 export function localWeekday(date: string, timezone: string): string {
   return new Intl.DateTimeFormat("en-US", { timeZone: timezone, weekday: "long" })
-    .format(new Date(`${date}T12:00:00Z`))
+    .format(parseDateInTimezone(date, timezone))
     .toLowerCase();
 }
 
 export function formatDateInTimezone(date: string, timezone: string): string {
-  // Noon UTC, not local time: with any real UTC offset (-12..+14) this can
-  // never format back to a different calendar day than `date` itself.
   return new Intl.DateTimeFormat("en-US", {
     timeZone: timezone,
     weekday: "long",
     month: "short",
     day: "numeric",
-  }).format(new Date(`${date}T12:00:00Z`));
+  }).format(parseDateInTimezone(date, timezone));
 }
 
 export function dateStringInTimezone(iso: string, timezone: string): string {

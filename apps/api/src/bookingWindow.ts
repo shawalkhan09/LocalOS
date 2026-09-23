@@ -70,8 +70,8 @@ export function assertBookableClassOccurrence(params: BookableClassOccurrencePar
 
   // Rule 1: occurrenceDate is on a weekday the class runs
   const weekday = localWeekday(occurrenceDate, timezone);
-  const scheduleForDay = gymClass.schedule.find((slot) => slot.day === weekday);
-  if (!scheduleForDay) {
+  const slotsForDay = gymClass.schedule.filter((slot) => slot.day === weekday);
+  if (slotsForDay.length === 0) {
     throw new ApiError(400, "That class doesn't run on that day.");
   }
 
@@ -83,9 +83,12 @@ export function assertBookableClassOccurrence(params: BookableClassOccurrencePar
     throw new ApiError(400, "That date is not available to book.");
   }
 
-  // Rule 3: the class start instant is not before now
-  const classStartInstant = localTimeToInstant(occurrenceDate, timezone, scheduleForDay.startTime);
-  if (classStartInstant < currentTime) {
+  // Rule 3: at least one class slot on that day has not already started
+  const hasFutureSlot = slotsForDay.some((slot) => {
+    const classStartInstant = localTimeToInstant(occurrenceDate, timezone, slot.startTime);
+    return classStartInstant >= currentTime;
+  });
+  if (!hasFutureSlot) {
     throw new ApiError(400, "That class has already started.");
   }
 }
