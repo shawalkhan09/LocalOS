@@ -331,11 +331,10 @@ console.log("OK: class occurrence validation enforces all rules in order");
 // Dates (which are UTC internally), and on a non-Denver server, DateTime.fromJSDate
 // must explicitly treat them as UTC before converting to business time.
 const service30min = clientConfig.services.find((s) => s.durationMinutes === 30)!;
-const fixedNowUTC = DateTime.fromISO("2026-09-21T16:00:00Z").setZone(clientConfig.business.timezone); // Monday 10 AM Denver
+const fixedNowUTC = DateTime.fromISO("2026-09-21T10:00:00", { zone: clientConfig.business.timezone }); // Monday 10 AM business time
 
-// 6 PM Denver booking (valid) — represented as UTC Date
-// 2026-09-21 6 PM Denver = 2026-09-22 12:00 AM UTC (midnight start of next day)
-const booking6pmStart = DateTime.fromISO("2026-09-22T00:00:00Z");
+// 6 PM booking (valid) — passed as JS Date (UTC internally)
+const booking6pmStart = fixedNowUTC.set({ hour: 18, minute: 0, second: 0, millisecond: 0 });
 const booking6pmEnd = booking6pmStart.plus({ minutes: 30 });
 assertBookableSessionTime({
   service: service30min,
@@ -344,9 +343,8 @@ assertBookableSessionTime({
   now: fixedNowUTC,
 });
 
-// 7 PM Denver booking (valid) — represented as UTC Date
-// 2026-09-21 7 PM Denver = 2026-09-22 1:00 AM UTC
-const booking7pmStart = DateTime.fromISO("2026-09-22T01:00:00Z");
+// 7 PM booking (valid) — passed as JS Date (UTC internally)
+const booking7pmStart = fixedNowUTC.set({ hour: 19, minute: 0, second: 0, millisecond: 0 });
 const booking7pmEnd = booking7pmStart.plus({ minutes: 30 });
 assertBookableSessionTime({
   service: service30min,
@@ -355,9 +353,8 @@ assertBookableSessionTime({
   now: fixedNowUTC,
 });
 
-// 8:30 PM Denver booking (valid, still before 9 PM close) — represented as UTC Date
-// 2026-09-21 8:30 PM Denver = 2026-09-22 2:30 AM UTC
-const booking830pmStart = DateTime.fromISO("2026-09-22T02:30:00Z");
+// 8:30 PM booking (valid, still before 9 PM close) — passed as JS Date (UTC internally)
+const booking830pmStart = fixedNowUTC.set({ hour: 20, minute: 30, second: 0, millisecond: 0 });
 const booking830pmEnd = booking830pmStart.plus({ minutes: 30 });
 assertBookableSessionTime({
   service: service30min,
@@ -366,9 +363,11 @@ assertBookableSessionTime({
   now: fixedNowUTC,
 });
 
-// Last allowed day (14 days out) at 7 PM Denver — represented as UTC Date
-// 2026-10-05 7 PM Denver = 2026-10-06 1:00 AM UTC
-const lastAllowedDayStart = DateTime.fromISO("2026-10-06T01:00:00Z");
+// Last allowed day (14 days out) at 7 PM — passed as JS Date (UTC internally)
+const lastAllowedDayStart = fixedNowUTC
+  .startOf("day")
+  .plus({ days: clientConfig.booking.advanceBookingDays })
+  .set({ hour: 19, minute: 0, second: 0, millisecond: 0 });
 const lastAllowedDayEnd = lastAllowedDayStart.plus({ minutes: 30 });
 assertBookableSessionTime({
   service: service30min,
@@ -377,11 +376,10 @@ assertBookableSessionTime({
   now: fixedNowUTC,
 });
 
-// 8:45 PM Denver booking (invalid: ends after 9 PM close) — represented as UTC Date
-// 2026-09-21 8:45 PM Denver = 2026-09-22 2:45 AM UTC
+// 8:45 PM booking (invalid: ends after 9 PM close) — passed as JS Date (UTC internally)
 let afterCloseUTCFailed = false;
 try {
-  const booking845pmStart = DateTime.fromISO("2026-09-22T02:45:00Z");
+  const booking845pmStart = fixedNowUTC.set({ hour: 20, minute: 45, second: 0, millisecond: 0 });
   const booking845pmEnd = booking845pmStart.plus({ minutes: 30 });
   assertBookableSessionTime({
     service: service30min,

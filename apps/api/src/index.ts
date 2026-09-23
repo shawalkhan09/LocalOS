@@ -6,6 +6,11 @@ const port = Number(process.env.PORT ?? 3000);
 
 await bootstrapOwnerAccount();
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`api listening on :${port}`);
 });
+server.on("error", (err) => {
+  console.error("api failed to start:", err.message);
+  process.exit(1);
+});
+
