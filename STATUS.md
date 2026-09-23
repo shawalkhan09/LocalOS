@@ -37,11 +37,7 @@ a deliberate, considered choice — never propose multi-tenancy.
   Commit" — every deploy requires a manual "Deploy latest commit" click.
   Render only hosts `apps/api`, so a chunk that only touches `apps/web`
   needs no Render step at all.
-- Any schema/migration change requires the careful sequence: migrate Neon
-  first (additive only, nullable columns / partial indexes), THEN deploy
-  the API code. Never the other way around. Plain code-only chunks (no
-  schema change) just need merge + Render manual deploy (only if
-  `apps/api` changed) + Vercel auto-build.
+- Any schema/migration change requires the careful sequence: apply the migration SQL against Neon first (additive only, nullable columns / partial indexes), THEN deploy the API code. Never the other way around. Note: Neon has no `drizzle.__drizzle_migrations` tracking table — earlier migrations were hand-applied as raw SQL, so `drizzle-kit migrate` cannot be run against Neon directly (it would try to replay every migration and fail on tables that already exist). Apply new migration files by hand via `psql`, wrapped in a transaction, rehearsed with `ROLLBACK` before the real `COMMIT`. Plain code-only chunks (no schema change) just need merge + Render manual deploy (only if `apps/api` changed) + Vercel auto-build.
 
 ## Chunks shipped
 1. **Customer archive/unarchive** (soft delete via `archivedAt` column).
@@ -85,15 +81,13 @@ a deliberate, considered choice — never propose multi-tenancy.
 6. **Small UI bug fixes** (PR #10, fix-small-ui-bugs, merged to main at commit 8bad23e): Stale password-mismatch error on /dashboard/account now clears on input change, not just on resubmit. Password validation errors return a clean message instead of a raw Zod JSON blob (password-related throw sites only: POST /auth/change-password, POST /users, POST /users/:id/reset-password). Mobile account menu click-outside-to-close now works. Mobile account menu is now visible at every viewport width (fixed a CSS specificity tie between two .mobileAccountContainer rules with identical specificity, one unconditional display: none and one in @media (max-width: 639px) with display: flex — the later rule was always winning due to source-order specificity tie-breaking; moved the unconditional rule before the media query so the media query override wins at narrow widths).
 7. **Chunk 4b: Mobile account menu** (PR #5, merged to main): adds a compact "Account" button in the mobile nav (below 640px) with a toggle menu for "Change password" and "Log out," reusing the existing handler and route unchanged. Web-only, no schema change. Its missing click-outside-to-close and a CSS bug that hid the menu at every viewport width were both fixed later in PR #10 (entry 6).
 8. **Class booking default date fix** (PR #15, fix-class-booking-default-date, merged to main): the public class-booking page now defaults to the next date the selected class actually runs, counted from today in the business's timezone and inside the advance-booking window. A day only counts if the class runs on that weekday and, for today, the class start time is still in the future (matching the API's "already started" rule). Picking a date the class does not run, or today after the class has started, shows an inline message and disables Continue; a class with no bookable date in the window shows a friendly message instead of the form. Web-only: added nowTimeInTimezone and getNextClassOccurrenceDate to apps/web/src/lib/time.ts. Verified live on 2026-09-21.
+9. **Cancel booking** (PR #16, chunk-6-cancel-bookings, merged to main): owner and staff can cancel a confirmed booking or a booked class seat from the Today dashboard via a two-step Cancel → Confirm cancel/Keep control. New endpoints `POST /bookings/:id/cancel` and `POST /class-bookings/:id/cancel` (atomic conditional update, no `DELETE`, any authenticated role). The Today page gained a date picker (defaults to today, guards against invalid partial input) and a new per-attendee "Class bookings" table (previously only the aggregate "Classes" table existed). Required two migrations so a cancelled row frees up its slot: the staff-overlap GiST exclude constraint and the class-booking uniqueness constraint were both changed to ignore cancelled rows. Applied by hand against Neon after a full local rehearsal and a Neon branch backup (`pre-chunk6-backup`). Verified against a local scratch DB, curl, and the live browser UI before merge. Used afterward, live, to cancel the test/demo data noted below.
 
 ## In review / not yet merged
 None currently.
 
 ## Known, confirmed, not-yet-fixed bugs
-- Leftover test/demo data in production (a stray "Test Booking" customer,
-  an extra Dana Reliable booking, a class seat, plus QA-created records
-  from 2026-09-20 testing) — no cleanup done, no cancel-booking feature
-  exists to do it cleanly through the UI.
+None currently.
 
 ## Open/unanswered
 None currently.
