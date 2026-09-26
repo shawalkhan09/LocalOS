@@ -124,4 +124,4 @@ All color combinations tested for WCAG AA compliance (minimum 4.5:1 contrast rat
 
 ## Public Booking Page Design
 
-Dark-theme treatment for `/book/*` pages is still under design and will be defined in the next chunk.
+Public pages (landing, class booking, session booking, confirmation) use the same dark theme and design tokens as the dashboard — no separate light theme. Layouts differ: public pages employ wider max-width containers, larger hero headings from the top of the type scale, and more vertical spacing between sections to match their outward-facing role. Accent color is reserved for primary CTAs only; all other content uses neutral tokens. Components (Button, Card, Input) and spacing scales are shared with the dashboard, ensuring consistent touch targets and information density across the product.

@@ -19,6 +19,7 @@
   background-color: var(--color-accent);
   color: var(--color-accent-foreground);
   border-color: var(--color-accent);
+  font-weight: 700;
 }
 
 .primary:hover:not(:disabled) {
@@ -27,6 +28,12 @@
 
 .primary:active:not(:disabled) {
   filter: brightness(0.95);
+}
+
+@media (min-width: 640px) {
+  .primary {
+    font-size: 18.66px;
+  }
 }
 
 .secondary {
@@ -46,7 +53,7 @@
 
 .destructive {
   background-color: var(--color-danger);
-  color: #ffffff;
+  color: var(--color-accent-foreground);
   border-color: var(--color-danger);
 }
 

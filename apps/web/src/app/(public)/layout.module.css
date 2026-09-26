@@ -1,13 +1,13 @@
 .shell {
-  --public-bg: #fafafa;
-  --public-card: #ffffff;
-  --public-ink: #1c1c1c;
-  --public-ink-muted: #6b6b6b;
-  --public-border: #ececec;
+  --public-bg: var(--color-bg);
+  --public-card: var(--color-surface);
+  --public-ink: var(--color-text);
+  --public-ink-muted: var(--color-text-muted);
+  --public-border: var(--color-border);
   background: var(--public-bg);
   color: var(--public-ink);
   min-height: 100vh;
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   display: flex;
   flex-direction: column;
 }
