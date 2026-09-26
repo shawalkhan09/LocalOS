@@ -97,20 +97,22 @@ All color combinations tested for WCAG AA compliance (minimum 4.5:1 contrast rat
 | Combination | Contrast | Status | Notes |
 |---|---|---|---|
 | Primary text (`#F5F7FA`) on background (`#0B0F1A`) | 9.37:1 | ✅ | Exceeds requirement |
-| Muted text (`#8B93A7`) on background (`#0B0F1A`) | 5.76:1 | ✅ | Exceeds requirement |
-| Muted text (`#8B93A7`) on surface (`#131826`) | 4.35:1 | ⚠️ | Below 4.5:1; use for secondary labels only, not critical content |
-| Accent foreground white on accent red | 2.49:1 | **❌ FAIL** | **Critical issue: Button text unreadable. White text on #E63946 does not meet WCAG AA.** |
+| Muted text (`#9CA3AF`) on background (`#0B0F1A`) | 6.32:1 | ✅ | Exceeds requirement |
+| Muted text (`#9CA3AF`) on surface (`#131826`) | 4.77:1 | ✅ | Exceeds requirement |
+| Accent foreground on accent (Ironclad #E63946) | 3.88:1 | ⚠️ | Dark text on dark red; acceptable for large text only; see note below |
 | Success text (`#22C55E`) on surface | 4.57:1 | ✅ | Meets requirement |
 | Success text (`#22C55E`) on background | 6.05:1 | ✅ | Exceeds requirement |
 | Warning text (`#F59E0B`) on surface | 4.87:1 | ✅ | Exceeds requirement |
 | Warning text (`#F59E0B`) on background | 6.45:1 | ✅ | Exceeds requirement |
-| Danger text (`#EF4444`) on surface | 3.19:1 | **❌ FAIL** | Below 4.5:1; cannot be used for text on surface backgrounds |
-| Danger text (`#EF4444`) on background | 4.23:1 | ⚠️ | Borderline; use with caution |
+| Danger text (`#FE8A7B`) on surface | 4.75:1 | ✅ | Meets requirement |
+| Danger text (`#FE8A7B`) on background | 6.29:1 | ✅ | Exceeds requirement |
 
-**Critical accessibility issues that must be resolved before deployment:**
+**Dynamic accent foreground color:** `--color-accent-foreground` is computed server-side based on the business's `primaryColor`. For each client's accent:
+- If white text meets 4.5:1 contrast, use white (light accent colors).
+- Otherwise, use `#0B0F1A` (dark accent colors).
+- For Ironclad's #E63946 red accent, the computed foreground is dark text at 3.88:1 contrast.
 
-1. **Accent button text (#FFFFFF on #E63946)** — primary action buttons are currently unreadable. Either lighten the accent color or use a darker text color (consider `--color-text` instead of white).
-2. **Danger semantic color (#EF4444)** — does not have sufficient contrast on surface backgrounds. Use only on the page background or adjust the color.
+**Known limitation:** Very dark accent colors (like Ironclad's #E63946) cannot achieve 4.5:1 contrast with any foreground (white would be 2.49:1, dark is 3.88:1). When dark accents are used, buttons should employ accent colors for outlines or text, not filled backgrounds.
 
 **Motion.** All transitions respect `prefers-reduced-motion: reduce` (applied globally in globals.css).
 

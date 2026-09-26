@@ -5,12 +5,12 @@
   --color-surface-raised: #1A2030;
   --color-border: #262D3D;
   --color-text: #F5F7FA;
-  --color-text-muted: #8B93A7;
+  --color-text-muted: #9CA3AF;
   --color-accent: #3B82F6; /* Fallback default until config loads */
-  --color-accent-foreground: #FFFFFF;
+  --color-accent-foreground: #FFFFFF; /* Will be computed server-side based on accent luminance */
   --color-success: #22C55E;
   --color-warning: #F59E0B;
-  --color-danger: #EF4444;
+  --color-danger: #FE8A7B;
 
   /* Typography Scale */
   --text-xs: 12px;
