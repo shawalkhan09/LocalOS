@@ -5,8 +5,8 @@
   height: 40px;
   padding: 0 var(--space-4);
   font-family: var(--font-sans);
-  font-size: var(--text-base);
-  font-weight: 500;
+  font-size: 18.66px;
+  font-weight: 700;
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   cursor: pointer;
@@ -19,7 +19,6 @@
   background-color: var(--color-accent);
   color: var(--color-accent-foreground);
   border-color: var(--color-accent);
-  font-weight: 700;
 }
 
 .primary:hover:not(:disabled) {
@@ -28,12 +27,6 @@
 
 .primary:active:not(:disabled) {
   filter: brightness(0.95);
-}
-
-@media (min-width: 640px) {
-  .primary {
-    font-size: 18.66px;
-  }
 }
 
 .secondary {
@@ -53,7 +46,7 @@
 
 .destructive {
   background-color: var(--color-danger);
-  color: var(--color-accent-foreground);
+  color: #ffffff;
   border-color: var(--color-danger);
 }
 

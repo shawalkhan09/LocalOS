@@ -11,6 +11,8 @@ import {
   getCatalog,
 } from "@/lib/api";
 import { addDaysToDateString, formatTimeInTimezone, todayInTimezone } from "@/lib/time";
+import { Button } from "@/components/Button";
+import { Input } from "@/components/Input";
 import { BookingConfirmation } from "@/components/BookingConfirmation";
 import { PublicCustomerForm, type PublicCustomerInfo } from "@/components/PublicCustomerForm";
 import sharedStyles from "@/components/PublicShared.module.css";
@@ -167,7 +169,7 @@ export default function BookSessionPage() {
 
       <div className={sharedStyles.field}>
         <label htmlFor="date">Date</label>
-        <input
+        <Input
           id="date"
           type="date"
           value={date}
@@ -186,15 +188,14 @@ export default function BookSessionPage() {
       ) : (
         <div className={styles.slots} role="group" aria-label="Available times">
           {slots.map((slot) => (
-            <button
+            <Button
               key={slot.startTime}
-              type="button"
-              className={`${styles.slot} ${selectedSlot?.startTime === slot.startTime ? styles.slotSelected : ""}`}
-              aria-pressed={selectedSlot?.startTime === slot.startTime}
+              variant={selectedSlot?.startTime === slot.startTime ? "primary" : "secondary"}
               onClick={() => setSelectedSlot(slot)}
+              className={`${selectedSlot?.startTime === slot.startTime ? styles.slotSelected : ""}`}
             >
               {formatTimeInTimezone(slot.startTime, timezone)}
-            </button>
+            </Button>
           ))}
         </div>
       )}

@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import type { ClientConfig } from "@localos/config-schema";
 import { ApiRequestError, createPublicClassBooking, getCatalog } from "@/lib/api";
 import { addDaysToDateString, formatDateInTimezone, getNextClassOccurrenceDate, localWeekday, nowTimeInTimezone, todayInTimezone } from "@/lib/time";
+import { Button } from "@/components/Button";
+import { Input } from "@/components/Input";
 import { BookingConfirmation } from "@/components/BookingConfirmation";
 import { PublicCustomerForm, type PublicCustomerInfo } from "@/components/PublicCustomerForm";
 import sharedStyles from "@/components/PublicShared.module.css";
@@ -203,7 +205,7 @@ export default function BookClassPage() {
         <>
           <div className={sharedStyles.field}>
             <label htmlFor="occurrence-date">Date</label>
-            <input
+            <Input
               id="occurrence-date"
               type="date"
               value={occurrenceDate}
@@ -220,14 +222,12 @@ export default function BookClassPage() {
           </div>
 
           {!showCustomerForm ? (
-            <button
-              type="button"
-              className={sharedStyles.pillButton}
+            <Button
               disabled={!isDateValid}
               onClick={() => setShowCustomerForm(true)}
             >
               Continue
-            </button>
+            </Button>
           ) : (
             <>
               <h2 className={sharedStyles.sectionTitle}>Your details</h2>

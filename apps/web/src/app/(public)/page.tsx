@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { ClientConfig } from "@localos/config-schema";
 import { ApiRequestError, getCatalog } from "@/lib/api";
 import { localWeekday, todayInTimezone } from "@/lib/time";
+import { Card } from "@/components/Card";
 import sharedStyles from "@/components/PublicShared.module.css";
 import styles from "./page.module.css";
 
@@ -64,14 +65,14 @@ export default function PublicLandingPage() {
         <h2 className={sharedStyles.sectionTitle}>Services</h2>
         <div className={styles.list}>
           {config.services.map((service) => (
-            <div key={service.id} className={sharedStyles.card}>
+            <Card key={service.id}>
               <p className={styles.itemTitle}>{service.name}</p>
               <p className={styles.itemMeta}>
                 <span>{service.durationMinutes} min</span>
                 {service.price > 0 && <span>${service.price}</span>}
               </p>
               {service.description && <p className={styles.itemDescription}>{service.description}</p>}
-            </div>
+            </Card>
           ))}
         </div>
       </section>
@@ -81,10 +82,10 @@ export default function PublicLandingPage() {
           <h2 className={sharedStyles.sectionTitle}>Classes</h2>
           <div className={styles.list}>
             {config.classes.map((gymClass) => (
-              <div key={gymClass.id} className={sharedStyles.card}>
+              <Card key={gymClass.id}>
                 <p className={styles.itemTitle}>{gymClass.name}</p>
                 <p className={styles.itemMeta}>{gymClass.durationMinutes} min</p>
-              </div>
+              </Card>
             ))}
           </div>
         </section>

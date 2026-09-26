@@ -124,4 +124,10 @@ All color combinations tested for WCAG AA compliance (minimum 4.5:1 contrast rat
 
 ## Public Booking Page Design
 
-Public pages (landing, class booking, session booking, confirmation) use the same dark theme and design tokens as the dashboard — no separate light theme. Layouts differ: public pages employ wider max-width containers, larger hero headings from the top of the type scale, and more vertical spacing between sections to match their outward-facing role. Accent color is reserved for primary CTAs only; all other content uses neutral tokens. Components (Button, Card, Input) and spacing scales are shared with the dashboard, ensuring consistent touch targets and information density across the product.
+- Same dark theme and tokens as dashboard (no separate light palette).
+- Layouts differ by container width and spacing, not colors.
+- Wider max-width containers (560px for booking flows, full width for hero).
+- Larger hero headings: 48px at desktop, 32px at mobile (top of type scale).
+- Increased vertical spacing between sections (larger `--space-*` values).
+- Accent color (`--color-accent`) used for primary CTAs only; all other content uses neutral tokens.
+- Shared components (Button, Card, Input) ensure consistent touch targets and density across dashboard and public site.
