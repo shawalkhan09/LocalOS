@@ -78,6 +78,21 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+input:not([class]),
+textarea:not([class]),
+select:not([class]) {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  padding: 8px 10px;
+}
+
+input:not([class])::placeholder,
+textarea:not([class])::placeholder {
+  color: var(--color-text-muted);
+}
+
 .font-mono {
   font-family: var(--font-mono);
 }

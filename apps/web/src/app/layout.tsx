@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { ToastProvider } from "@/components/Toast";
-import { AccentProvider } from "@/components/AccentProvider";
+import { getCatalog } from "@/lib/api";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -23,13 +23,19 @@ export const metadata: Metadata = {
   description: "Owner dashboard",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  let primaryColor: string | undefined;
+  try {
+    const config = await getCatalog();
+    primaryColor = config?.business?.primaryColor;
+  } catch {
+    // Fall back to CSS default variable if server fetch fails
+  }
+
   return (
-    <html lang="en">
+    <html lang="en" style={primaryColor ? ({ "--color-accent": primaryColor } as React.CSSProperties) : undefined}>
       <body className={`${plusJakartaSans.variable} ${jetbrainsMono.variable}`}>
-        <AccentProvider>
-          <ToastProvider>{children}</ToastProvider>
-        </AccentProvider>
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

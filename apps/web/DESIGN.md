@@ -8,195 +8,84 @@ is answering "what's happening right now and what's next" in under a few
 seconds — not persuading anyone of anything. Every choice below is judged
 against that job, not against what looks impressive in a screenshot.
 
-## Pass 1 — plan
+## Design System Tokens & Foundation (Dark / Premium Theme)
 
-### Color
+### Color Tokens
 
 | Token | Value | Role |
 |---|---|---|
-| `--bg` | `#F6F7F8` | Page background — cool light neutral |
-| `--surface` | `#FFFFFF` | Cards, table rows, sidebar — bordered, not shadowed |
-| `--border` | `#E3E5E8` | Dividers, table rules, card outlines |
-| `--ink` | `#1C2024` | Primary text |
-| `--ink-muted` | `#5B6470` | Secondary text — timestamps, helper copy, table meta |
-| `--accent` | `#0F6E5C` | Primary actions, active nav state, "confirmed" — nothing else |
-| `--warn` | `#B45309` | "At capacity," warnings — never used for anything else |
-| `--error` | `#B3261E` | Failed bookings, destructive states |
-| `--success` | `#15803D` | Booking-confirmed toast — distinct from `--accent` so "this is the primary action color" and "this succeeded" stay two different signals |
+| `--color-bg` | `#0B0F1A` | Page background — deep dark neutral |
+| `--color-surface` | `#131826` | Cards, table rows, sidebar — dark surface panel |
+| `--color-surface-raised` | `#1A2030` | Elevated cards, inputs, hover states |
+| `--color-border` | `#262D3D` | Dividers, table rules, card outlines |
+| `--color-text` | `#F5F7FA` | Primary text |
+| `--color-text-muted` | `#8B93A7` | Secondary text — timestamps, helper copy, table meta |
+| `--color-accent` | Dynamic (e.g. `#E63946`) | Client-driven primary color loaded server-side from business config `primaryColor` |
+| `--color-accent-foreground` | `#FFFFFF` | Text color on primary accent background |
+| `--color-success` | `#22C55E` | Booking confirmed, active status |
+| `--color-warning` | `#F59E0B` | Medium risk, capacity warnings |
+| `--color-danger` | `#EF4444` | Cancelled bookings, high risk, destructive actions |
 
-Reasoning: the brief's starting palette already does the work of avoiding
-the cream/terracotta and near-black/neon defaults, and it's grounded in the
-subject — teal and amber read as clinical/operational (think status
-indicators on gym equipment, not a consumer brand), not decorative. The one
-addition is `--success`, needed because the brief calls for toasts on
-booking success/failure and reusing `--accent` for "succeeded" would blur
-the rule that teal means "primary action," not "this went well." Kept it in
-the same cool, muted register as teal and amber rather than a stock
-Bootstrap green.
+Reasoning: The dark theme foundation provides a high-contrast, premium operational interface suited for low-light gym environments and quick scanning. `--color-accent` is dynamically injected per client deployment from server-side configuration rather than hardcoded.
 
-### Type
+### Typography & Scales
 
-- **Space Grotesk** — headings, sidebar nav, table column headers, stat
-  numbers (today's booking count, class fill counts). Slightly technical and
-  geometric; reads as instrumentation, not marketing.
-- **IBM Plex Sans** — body copy, table cell content, form labels and inputs.
-  Designed by IBM specifically for dense interface and data-table
-  legibility at small sizes, which is the actual constraint here (a phone
-  screen at a front desk), not just a stylistic pairing.
+- **Plus Jakarta Sans** (`--font-sans` / `--font-plus-jakarta-sans`) — primary UI font for headings, body copy, sidebar nav, form labels, and buttons.
+- **JetBrains Mono** (`--font-mono` / `--font-jetbrains-mono`) — monospace font for dates, times, prices, and numeric table values.
 
-Two families, clearly split by job (structural/label vs. content), not one
-default family stretched across every role.
+#### Type Scale Custom Properties:
+- `--text-xs`: `12px`
+- `--text-sm`: `13px`
+- `--text-base`: `14px`
+- `--text-lg`: `18px`
+- `--text-xl`: `24px`
+- `--text-2xl`: `32px`
+
+#### Spacing & Radius Custom Properties:
+- Spacing (8px base): `--space-1: 4px`, `--space-2: 8px`, `--space-3: 12px`, `--space-4: 16px`, `--space-6: 24px`, `--space-8: 32px`, `--space-12: 48px`
+- Border Radius: `--radius-sm: 6px`, `--radius-md: 10px`, `--radius-lg: 16px`
 
 ### Layout
 
-Persistent left sidebar (business name from config, three nav items: Today,
-Customers, New Booking), dense left-aligned main content, real `<table>`
-markup for bookings/customers/classes. Borders and whitespace carry
-structure; shadow is reserved for the modal and the availability dropdown,
-where it signals actual elevation above the page.
+Persistent left sidebar (business name from config, nav items: Today, Customers, New Booking), dense left-aligned main content, real `<table>` markup for bookings/customers/classes. Elevation is driven by border outlines and surface-raised contrast rather than heavy drop shadows on dark backgrounds.
 
 ```
 Desktop / tablet (≥640px):
 ┌────────────┬──────────────────────────────────────────┐
-│ IRONCLAD    │  Today                                    │
-│ FITNESS     │  Tue, Sep 15                               │
-│─────────── │                                            │
-│ ● Today     │  Bookings                                  │
-│   Customers │  Time    Customer     Service      Staff   │
-│   New       │  9:00    Jane Doe     PT Session   Priya   │
-│   Booking   │  ...                                       │
-│             │                                             │
-│             │  Classes                                   │
-│             │  Strength Fundamentals      7/10    09:00  │
-│             │  ...                                       │
+│ IRONCLAD   │  Today                                   │
+│ FITNESS    │  Tue, Sep 15                              │
+│─────────── │                                          │
+│ ● Today    │  Bookings                                │
+│   Customers│  Time    Customer     Service      Staff │
+│   New      │  09:00   Jane Doe     PT Session   Priya │
+│   Booking  │  ...                                     │
+│            │                                          │
+│            │  Classes                                 │
+│            │  Strength Fundamentals      7/10   06:00 │
 └────────────┴──────────────────────────────────────────┘
 
-Mobile (<640px): sidebar becomes a fixed bottom bar (3 icons + labels),
-content is full width above it. Not a hamburger — nav stays visible and
-reachable by thumb, it just moves to where a phone held at a front desk
-makes it reachable.
-┌──────────────────────────────┐
-│  Today                        │
-│  Tue, Sep 15                  │
-│  ...                          │
-│                                │
-├──────────────────────────────┤
-│  Today   Customers   New       │
-└──────────────────────────────┘
+Mobile (<640px): sidebar becomes a fixed bottom bar (nav items + labels).
 ```
 
-Alignment: left-aligned throughout. This is a scanning tool — centered
-content would force the eye to re-find the start of every line.
+### Shared Design System Components
+
+1. **Button** (`components/Button.tsx`)
+   - Height ~40px, `radius-md`, 150ms transition.
+   - Variants: `primary` (filled accent bg, white text), `secondary` (transparent bg, border, text color), `destructive` (danger bg, white text).
+   - Keyboard navigation with visible focus rings (`2px` accent ring).
+2. **Card** (`components/Card.tsx`)
+   - Surface background (`--color-surface`), 1px border (`--color-border`), `radius-lg`, padding `space-6`.
+   - Uses `--color-surface-raised` for elevation without drop shadows.
+3. **StatusPill** (`components/StatusPill.tsx`)
+   - Rounded-full badge with 15% opacity semantic background and full opacity text/border.
+   - Variants: `success`, `warning`, `danger`, `muted`.
+4. **Input** (`components/Input.tsx`)
+   - Styled text/date inputs with `--color-surface` background, `--color-border` border, `--radius-sm`, `--color-accent` focus ring, and muted placeholder text.
+   - Unclassed HTML `<input>`, `<textarea>`, and `<select>` elements fallback to dark surface tokens globally.
 
 ### Principles
 
-1. **Scanning over storytelling.** Every screen answers "what do I need to
-   know right now" without opening anything. No detail hidden behind an
-   accordion or a second click that a front-desk person doesn't have time
-   for.
-2. **Real tables, not cards.** Bookings and customers are rows of
-   comparable facts — alignment and whitespace should carry that structure,
-   not rounded corners and shadows standing in for it.
-3. **Two accents, two fixed jobs.** Teal = primary action / active state.
-   Amber = "pay attention." Never interchanged, never decorative.
-4. **One motion moment.** A booking row confirms with a brief highlight
-   flash. Nothing else animates on load, scroll, or hover.
-
-## Pass 2 — critique against the banned tells
-
-Checked against both the brief's explicit list and the skill's five
-generic AI-tells:
-
-- **Cream+terracotta / near-black+neon** — not present; palette is cool
-  neutral + teal/amber, confirmed above.
-- **Uniform rounded-card-with-shadow** — avoided by using real tables with
-  borders for the two data-heavy pages; the one place a "card" appears
-  (nothing does, structurally — sidebar and content are both plain
-  bordered panels) stays that way rather than becoming a shadowed tile.
-- **ALL-CAPS eyebrow labels** — none planned. Table column headers use
-  sentence case, small size, and `--ink-muted` to read as headers without
-  reaching for tracked-out caps — caps-with-letter-spacing is reserved for
-  nothing in this build.
-- **Meta text joined with middot/spaced em dash** — the class row's
-  "7/10" fill count and its time are separate table columns, not a joined
-  string, so this doesn't come up structurally. Anywhere else meta needs
-  joining (e.g. a toast body), plain words or separate lines are used
-  instead of `·` or ` — `.
-- **Monospace for ordinary labels** — none. Numbers (prices, fill counts,
-  times) render in IBM Plex Sans with tabular figures via
-  `font-variant-numeric: tabular-nums` for column alignment, not a
-  monospace typeface.
-- **Arrows on buttons/links** — none; buttons say what they do ("Confirm
-  booking," "Save customer"), no trailing `→`.
-- **Fade-and-slide-up on every section** — none; the only motion is the
-  one booking-confirmation highlight named in principle 4.
-
-Nothing in the plan drifted toward a default that needed revising going
-into pass 2 — the brief's starting values were already specific to this
-subject, so this pass confirmed rather than corrected. The one genuine
-design decision left open by the brief was the mobile nav treatment,
-resolved above (bottom bar, not a hamburger) and reasoned through against
-the "usable at 375px" + "not a hamburger" constraints together.
-
-## Accessibility floor
-
-- Text contrast ≥4.5:1 — `--ink` (`#1C2024`) on `--bg`/`--surface` is
-  ~15:1; `--ink-muted` (`#5B6470`) on white is ~5.3:1; `--accent` and
-  `--warn` are only ever used as backgrounds behind white text or as large
-  text/icons, checked individually where used.
-- Visible focus rings on every interactive element (`:focus-visible`, not
-  `outline: none`).
-- `prefers-reduced-motion: reduce` disables the booking-confirmation
-  highlight (shows the end state immediately instead).
-- Layout usable down to 375px width (verified with the mobile bottom nav
-  above).
-
-## Addendum — the public booking page
-
-Everything above is for the dashboard. The public site (`/` and the
-booking flow) is a different product for a different person, and gets its
-own read, not a reskin of the ops tool.
-
-**Subject.** A prospective or existing member on their phone, mid-scroll
-through something else, deciding whether to book a class tonight. The job
-is "make me want to come in, then get me booked in under a minute" — the
-opposite of the dashboard's "scan fast, feel nothing." Mobile-first this
-time: this person is on a phone far more often than a gym owner is
-checking the dashboard from one.
-
-**Color.** The accent is `business.primaryColor` from config, applied as a
-CSS custom property set at render time — never hardcoded, since a second
-client's page must look nothing like Ironclad's on this axis alone. For
-Ironclad specifically that resolves to `#E63946`, a bold coral-red — energetic
-and athletic, and deliberately far from the dashboard's muted teal, so the
-two surfaces never get mistaken for the same system. Background stays a
-clean, close-to-white neutral (`#FAFAFA`) — warmer than the dashboard's
-cool `#F6F7F8` since this page is allowed some warmth, but still nowhere
-near the banned cream-plus-terracotta combination (the accent here is a
-config-driven red, not a fixed terracotta, and it's used boldly on CTAs
-and highlights, not as a muted decorative wash).
-
-**Type.** Same two families as the dashboard (Space Grotesk, IBM Plex
-Sans) — one type system for the product as a whole is a legitimate choice,
-not a shortcut, and it avoids loading a third typeface for no functional
-reason. The distinction from the dashboard comes from how they're used:
-larger display sizes for the hero, more generous line-height and spacing,
-pill-shaped buttons instead of the dashboard's square-cornered utilitarian
-ones — scale and shape carry the "this is a storefront, not a tool"
-signal, not a font swap.
-
-**Layout.** Single-column, mobile-first, generous vertical rhythm: hero
-(name, logo if present, one-line description, today's hours), services,
-two clear CTAs into the two booking tracks ("Book a session" /
-"Book a class") — not one blended flow, since the schema itself treats
-one-off bookings and recurring classes as genuinely different things.
-Cards here use soft rounded corners and a light shadow deliberately,
-unlike the dashboard's bordered-not-shadowed rule — real elevation is
-appropriate on a page that's selling a visit, not filing a fact.
-
-**What's still banned:** the same list as the dashboard — no ALL-CAPS
-eyebrows, no meta text joined with middle dots or spaced em dashes, no
-monospace for ordinary labels, no arrows appended to buttons, no
-fade-and-slide-up on every section. The booking-confirmed state gets one
-deliberate moment (a checkmark/confirmation card appearing), not a
-page-load animation sequence.
+1. **Scanning over storytelling.** Every screen answers "what do I need to know right now" without unnecessary clicks.
+2. **Real tables, not cards.** Bookings and customers are tabular rows of comparable facts.
+3. **Dynamic Config Accents.** Brand primary color (`--color-accent`) is loaded server-side per business deployment.
+4. **Accessibility & Motion.** All interactive elements feature visible focus indicators. Transitions respect `prefers-reduced-motion`.

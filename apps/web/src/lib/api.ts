@@ -8,7 +8,11 @@ import type { ClientConfig, StaffMember, Trainer } from "@localos/config-schema"
 // hitting localhost directly, and every prior round's verification already
 // depends on NEXT_PUBLIC_API_URL working exactly as it does today.
 const API_URL =
-  process.env.NODE_ENV === "production" ? "/api-proxy" : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000");
+  typeof window === "undefined"
+    ? (process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000")
+    : process.env.NODE_ENV === "production"
+      ? "/api-proxy"
+      : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000");
 
 export class ApiRequestError extends Error {
   status: number;
