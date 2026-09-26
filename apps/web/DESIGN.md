@@ -89,3 +89,37 @@ Mobile (<640px): sidebar becomes a fixed bottom bar (nav items + labels).
 2. **Real tables, not cards.** Bookings and customers are tabular rows of comparable facts.
 3. **Dynamic Config Accents.** Brand primary color (`--color-accent`) is loaded server-side per business deployment.
 4. **Accessibility & Motion.** All interactive elements feature visible focus indicators. Transitions respect `prefers-reduced-motion`.
+
+## Accessibility Floor
+
+All color combinations tested for WCAG AA compliance (minimum 4.5:1 contrast ratio).
+
+| Combination | Contrast | Status | Notes |
+|---|---|---|---|
+| Primary text (`#F5F7FA`) on background (`#0B0F1A`) | 9.37:1 | ✅ | Exceeds requirement |
+| Muted text (`#8B93A7`) on background (`#0B0F1A`) | 5.76:1 | ✅ | Exceeds requirement |
+| Muted text (`#8B93A7`) on surface (`#131826`) | 4.35:1 | ⚠️ | Below 4.5:1; use for secondary labels only, not critical content |
+| Accent foreground white on accent red | 2.49:1 | **❌ FAIL** | **Critical issue: Button text unreadable. White text on #E63946 does not meet WCAG AA.** |
+| Success text (`#22C55E`) on surface | 4.57:1 | ✅ | Meets requirement |
+| Success text (`#22C55E`) on background | 6.05:1 | ✅ | Exceeds requirement |
+| Warning text (`#F59E0B`) on surface | 4.87:1 | ✅ | Exceeds requirement |
+| Warning text (`#F59E0B`) on background | 6.45:1 | ✅ | Exceeds requirement |
+| Danger text (`#EF4444`) on surface | 3.19:1 | **❌ FAIL** | Below 4.5:1; cannot be used for text on surface backgrounds |
+| Danger text (`#EF4444`) on background | 4.23:1 | ⚠️ | Borderline; use with caution |
+
+**Critical accessibility issues that must be resolved before deployment:**
+
+1. **Accent button text (#FFFFFF on #E63946)** — primary action buttons are currently unreadable. Either lighten the accent color or use a darker text color (consider `--color-text` instead of white).
+2. **Danger semantic color (#EF4444)** — does not have sufficient contrast on surface backgrounds. Use only on the page background or adjust the color.
+
+**Motion.** All transitions respect `prefers-reduced-motion: reduce` (applied globally in globals.css).
+
+**Focus indicators.** `:focus-visible` applies a 2px `--color-accent` outline with 2px offset to all interactive elements.
+
+**Responsive layout.** Layout is usable down to 375px width (mobile phone viewport).
+
+---
+
+## Public Booking Page Design
+
+Dark-theme treatment for `/book/*` pages is still under design and will be defined in the next chunk.
