@@ -125,9 +125,9 @@ All color combinations tested for WCAG AA compliance (minimum 4.5:1 contrast rat
 ## Public Booking Page Design
 
 - Same dark theme and tokens as dashboard (no separate light palette).
-- Layouts differ by container width and spacing, not colors.
-- Wider max-width containers (560px for booking flows, full width for hero).
-- Larger hero headings: 48px at desktop, 32px at mobile (top of type scale).
-- Increased vertical spacing between sections (larger `--space-*` values).
-- Accent color (`--color-accent`) used for primary CTAs only; all other content uses neutral tokens.
-- Shared components (Button, Card, Input) ensure consistent touch targets and density across dashboard and public site.
+- Booking flow containers max 560px; hero title/description max 480px.
+- Hero headings 48px at desktop (min-width: 720px), 32px on mobile.
+- Vertical spacing: hero padding `var(--space-8)` mobile / `var(--space-12)` desktop.
+- Section padding `var(--space-8)` mobile / `var(--space-8)` desktop (consistent).
+- Accent color for primary CTAs; neutral tokens elsewhere.
+- Shared Button, Card, Input components across dashboard and public.

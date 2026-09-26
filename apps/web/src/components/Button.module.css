@@ -5,8 +5,8 @@
   height: 40px;
   padding: 0 var(--space-4);
   font-family: var(--font-sans);
-  font-size: 18.66px;
-  font-weight: 700;
+  font-size: var(--text-base);
+  font-weight: 500;
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   cursor: pointer;
@@ -19,6 +19,8 @@
   background-color: var(--color-accent);
   color: var(--color-accent-foreground);
   border-color: var(--color-accent);
+  font-size: 18.66px;
+  font-weight: 700;
 }
 
 .primary:hover:not(:disabled) {

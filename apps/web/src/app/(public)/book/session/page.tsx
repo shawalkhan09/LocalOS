@@ -190,9 +190,10 @@ export default function BookSessionPage() {
           {slots.map((slot) => (
             <Button
               key={slot.startTime}
+              type="button"
               variant={selectedSlot?.startTime === slot.startTime ? "primary" : "secondary"}
+              aria-pressed={selectedSlot?.startTime === slot.startTime}
               onClick={() => setSelectedSlot(slot)}
-              className={`${selectedSlot?.startTime === slot.startTime ? styles.slotSelected : ""}`}
             >
               {formatTimeInTimezone(slot.startTime, timezone)}
             </Button>

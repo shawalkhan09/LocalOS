@@ -223,6 +223,7 @@ export default function BookClassPage() {
 
           {!showCustomerForm ? (
             <Button
+              type="button"
               disabled={!isDateValid}
               onClick={() => setShowCustomerForm(true)}
             >
