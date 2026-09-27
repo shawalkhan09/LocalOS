@@ -16,6 +16,8 @@ import {
 } from "@/lib/api";
 import { formatDateInTimezone, formatTimeInTimezone, todayInTimezone } from "@/lib/time";
 import tableStyles from "@/components/DataTable.module.css";
+import { Card, Input, StatusPill } from "@/components";
+import type { StatusPillVariant } from "@/components/StatusPill";
 import styles from "./page.module.css";
 
 // No auth gate yet — same accepted, documented gap as the rest of the API
@@ -49,6 +51,17 @@ function riskBucket(score: string | null): RiskBucket | null {
 }
 
 const RISK_LABEL: Record<RiskBucket, string> = { low: "Low", medium: "Medium", high: "High" };
+const RISK_VARIANT: Record<RiskBucket, StatusPillVariant> = { low: "muted", medium: "warning", high: "danger" };
+
+function bookingStatusVariant(status: string): StatusPillVariant {
+  if (status === "cancelled") {
+    return "danger";
+  }
+  if (status === "confirmed" || status === "booked") {
+    return "success";
+  }
+  return "muted";
+}
 
 // The native date input fires onChange with a partial or empty value while
 // a segment is mid-edit (e.g. the day segment cleared with Backspace) — not
@@ -202,7 +215,7 @@ export default function TodayPage() {
         <label htmlFor="schedule-date" className={styles.dateLabel}>
           Date
         </label>
-        <input
+        <Input
           id="schedule-date"
           type="date"
           className={styles.dateInput}
@@ -220,7 +233,7 @@ export default function TodayPage() {
 
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Bookings</h2>
-        <div className={styles.panel}>
+        <Card className={styles.panel}>
           <table className={tableStyles.table}>
             <thead>
               <tr>
@@ -251,15 +264,11 @@ export default function TodayPage() {
                       <td>{customerById.get(b.customerId)?.name ?? `Customer #${b.customerId}`}</td>
                       <td>{serviceById.get(b.serviceId)?.name ?? b.serviceId}</td>
                       <td>{b.staffId ? (staffById.get(b.staffId)?.name ?? b.staffId) : "Unassigned"}</td>
-                      <td>{b.status}</td>
                       <td>
-                        {bucket && (
-                          <span
-                            className={`${styles.risk} ${bucket === "medium" ? styles.riskMedium : ""} ${bucket === "high" ? styles.riskHigh : ""}`}
-                          >
-                            {RISK_LABEL[bucket]}
-                          </span>
-                        )}
+                        <StatusPill variant={bookingStatusVariant(b.status)}>{b.status}</StatusPill>
+                      </td>
+                      <td>
+                        {bucket && <StatusPill variant={RISK_VARIANT[bucket]}>{RISK_LABEL[bucket]}</StatusPill>}
                       </td>
                       <td>
                         {b.status === "confirmed" &&
@@ -293,13 +302,13 @@ export default function TodayPage() {
               )}
             </tbody>
           </table>
-        </div>
+        </Card>
         {cancelError?.kind === "booking" && <p className={`${styles.error} ${styles.section}`}>{cancelError.message}</p>}
       </div>
 
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Classes</h2>
-        <div className={styles.panel}>
+        <Card className={styles.panel}>
           <table className={tableStyles.table}>
             <thead>
               <tr>
@@ -333,12 +342,12 @@ export default function TodayPage() {
               )}
             </tbody>
           </table>
-        </div>
+        </Card>
       </div>
 
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>Class bookings</h2>
-        <div className={styles.panel}>
+        <Card className={styles.panel}>
           <table className={tableStyles.table}>
             <thead>
               <tr>
@@ -363,7 +372,9 @@ export default function TodayPage() {
                     <tr key={cb.id} className={isCancelled ? styles.mutedRow : ""}>
                       <td>{classById.get(cb.classId)?.name ?? cb.classId}</td>
                       <td>{customerById.get(cb.customerId)?.name ?? `Customer #${cb.customerId}`}</td>
-                      <td>{cb.status}</td>
+                      <td>
+                        <StatusPill variant={bookingStatusVariant(cb.status)}>{cb.status}</StatusPill>
+                      </td>
                       <td>
                         {cb.status === "booked" &&
                           (isConfirming ? (
@@ -396,7 +407,7 @@ export default function TodayPage() {
               )}
             </tbody>
           </table>
-        </div>
+        </Card>
         {cancelError?.kind === "classBooking" && <p className={`${styles.error} ${styles.section}`}>{cancelError.message}</p>}
       </div>
     </div>

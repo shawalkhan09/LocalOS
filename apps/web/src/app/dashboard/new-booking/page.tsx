@@ -15,6 +15,7 @@ import { addDaysToDateString, formatTimeInTimezone, todayInTimezone } from "@/li
 import { CustomerPickerModal } from "@/components/CustomerPickerModal";
 import formStyles from "@/components/FormField.module.css";
 import { useToast } from "@/components/Toast";
+import { Button, Input } from "@/components";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
 
@@ -197,7 +198,7 @@ export default function NewBookingPage() {
 
         <div className={formStyles.field}>
           <label htmlFor="date">Date</label>
-          <input
+          <Input
             id="date"
             type="date"
             value={date}
@@ -244,9 +245,9 @@ export default function NewBookingPage() {
           </div>
         </div>
 
-        <button type="button" className={formStyles.submit} disabled={!canSubmit} onClick={handleSubmit}>
+        <Button type="button" className={formStyles.submit} disabled={!canSubmit} onClick={handleSubmit}>
           {submitting ? "Booking…" : "Confirm booking"}
-        </button>
+        </Button>
       </div>
 
       {confirmed.length > 0 && (

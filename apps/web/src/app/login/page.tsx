@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiRequestError, getCatalog, login } from "@/lib/api";
 import { useToast } from "@/components/Toast";
+import { Button, Card, Input } from "@/components";
 import styles from "./page.module.css";
 
 export default function LoginPage() {
@@ -39,13 +40,13 @@ export default function LoginPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.card}>
+      <Card className={styles.card}>
         {businessName && <p className={styles.businessName}>{businessName}</p>}
         <h1 className={styles.heading}>Sign in</h1>
         <form onSubmit={handleSubmit}>
           <div className={styles.field}>
             <label htmlFor="email">Email</label>
-            <input
+            <Input
               id="email"
               type="email"
               autoComplete="email"
@@ -56,7 +57,7 @@ export default function LoginPage() {
           </div>
           <div className={styles.field}>
             <label htmlFor="password">Password</label>
-            <input
+            <Input
               id="password"
               type="password"
               autoComplete="current-password"
@@ -65,11 +66,11 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <button type="submit" className={styles.submit} disabled={submitting}>
+          <Button type="submit" className={styles.submit} disabled={submitting}>
             {submitting ? "Signing in…" : "Sign in"}
-          </button>
+          </Button>
         </form>
-      </div>
+      </Card>
     </div>
   );
 }

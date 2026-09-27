@@ -14,6 +14,7 @@ import {
 import { useToast } from "@/components/Toast";
 import tableStyles from "@/components/DataTable.module.css";
 import formStyles from "@/components/FormField.module.css";
+import { Button, Card, Input } from "@/components";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
 
@@ -203,7 +204,7 @@ export default function StaffPage() {
       <h1 className={pageStyles.heading}>Staff</h1>
       <p className={pageStyles.subheading}>{config.staff.length} staff members</p>
 
-      <div className={`${pageStyles.panel} ${pageStyles.section}`}>
+      <Card className={`${pageStyles.panel} ${pageStyles.section}`}>
         <table className={tableStyles.table}>
           <thead>
             <tr>
@@ -254,7 +255,7 @@ export default function StaffPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       {editing && (
         <div className={pageStyles.section}>
@@ -268,7 +269,7 @@ export default function StaffPage() {
               <>
                 <div className={formStyles.field}>
                   <label htmlFor="edit-staff-name">Name</label>
-                  <input
+                  <Input
                     id="edit-staff-name"
                     required
                     value={editing.name}
@@ -277,7 +278,7 @@ export default function StaffPage() {
                 </div>
                 <div className={formStyles.field}>
                   <label htmlFor="edit-staff-role">Role</label>
-                  <input
+                  <Input
                     id="edit-staff-role"
                     required
                     value={editing.role}
@@ -286,7 +287,7 @@ export default function StaffPage() {
                 </div>
                 <div className={formStyles.field}>
                   <label htmlFor="edit-staff-email">Email</label>
-                  <input
+                  <Input
                     id="edit-staff-email"
                     type="email"
                     value={editing.email}
@@ -295,7 +296,7 @@ export default function StaffPage() {
                 </div>
                 <div className={formStyles.field}>
                   <label htmlFor="edit-staff-phone">Phone</label>
-                  <input
+                  <Input
                     id="edit-staff-phone"
                     value={editing.phone}
                     onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
@@ -303,7 +304,7 @@ export default function StaffPage() {
                 </div>
                 <div className={formStyles.field}>
                   <label htmlFor="edit-staff-bio">Bio</label>
-                  <input
+                  <Input
                     id="edit-staff-bio"
                     value={editing.bio}
                     onChange={(e) => setEditing({ ...editing, bio: e.target.value })}
@@ -314,7 +315,7 @@ export default function StaffPage() {
               <>
                 <div className={formStyles.field}>
                   <label htmlFor="edit-trainer-specialties">Specialties (comma-separated)</label>
-                  <input
+                  <Input
                     id="edit-trainer-specialties"
                     value={editing.specialties}
                     onChange={(e) => setEditing({ ...editing, specialties: e.target.value })}
@@ -322,7 +323,7 @@ export default function StaffPage() {
                 </div>
                 <div className={formStyles.field}>
                   <label htmlFor="edit-trainer-certifications">Certifications (comma-separated)</label>
-                  <input
+                  <Input
                     id="edit-trainer-certifications"
                     value={editing.certifications}
                     onChange={(e) => setEditing({ ...editing, certifications: e.target.value })}
@@ -330,7 +331,7 @@ export default function StaffPage() {
                 </div>
                 <div className={formStyles.field}>
                   <label htmlFor="edit-trainer-bio">Bio</label>
-                  <input
+                  <Input
                     id="edit-trainer-bio"
                     value={editing.bio}
                     onChange={(e) => setEditing({ ...editing, bio: e.target.value })}
@@ -338,7 +339,7 @@ export default function StaffPage() {
                 </div>
                 <div className={formStyles.field}>
                   <label htmlFor="edit-trainer-photo">Photo URL</label>
-                  <input
+                  <Input
                     id="edit-trainer-photo"
                     type="url"
                     value={editing.photoUrl}
@@ -348,9 +349,9 @@ export default function StaffPage() {
               </>
             )}
             <div className={styles.formActions}>
-              <button type="submit" className={formStyles.submit} disabled={submitting}>
+              <Button type="submit" className={formStyles.submit} disabled={submitting}>
                 {submitting ? "Saving…" : "Save"}
-              </button>
+              </Button>
               <button type="button" className={styles.cancelLink} onClick={() => setEditing(null)}>
                 Cancel
               </button>
@@ -364,15 +365,15 @@ export default function StaffPage() {
         <form className={formStyles.form} onSubmit={handleAddStaff}>
           <div className={formStyles.field}>
             <label htmlFor="new-staff-name">Name</label>
-            <input id="new-staff-name" required value={newName} onChange={(e) => setNewName(e.target.value)} />
+            <Input id="new-staff-name" required value={newName} onChange={(e) => setNewName(e.target.value)} />
           </div>
           <div className={formStyles.field}>
             <label htmlFor="new-staff-role">Role</label>
-            <input id="new-staff-role" required value={newRole} onChange={(e) => setNewRole(e.target.value)} />
+            <Input id="new-staff-role" required value={newRole} onChange={(e) => setNewRole(e.target.value)} />
           </div>
           <div className={formStyles.field}>
             <label htmlFor="new-staff-email">Email (optional)</label>
-            <input
+            <Input
               id="new-staff-email"
               type="email"
               value={newEmail}
@@ -381,11 +382,11 @@ export default function StaffPage() {
           </div>
           <div className={formStyles.field}>
             <label htmlFor="new-staff-phone">Phone (optional)</label>
-            <input id="new-staff-phone" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
+            <Input id="new-staff-phone" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} />
           </div>
-          <button type="submit" className={formStyles.submit} disabled={submitting}>
+          <Button type="submit" className={formStyles.submit} disabled={submitting}>
             {submitting ? "Adding…" : "Add staff member"}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

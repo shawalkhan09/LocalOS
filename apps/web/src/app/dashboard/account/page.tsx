@@ -5,7 +5,8 @@ import { useState } from "react";
 import { ApiRequestError, changePassword } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import formStyles from "@/components/FormField.module.css";
-import pageStyles from "../page.module.css";
+import { Button, Input } from "@/components";
+import pageStyles from "./page.module.css";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function AccountPage() {
         <form className={formStyles.form} onSubmit={handleSubmit}>
           <div className={formStyles.field}>
             <label htmlFor="current-password">Current password</label>
-            <input
+            <Input
               id="current-password"
               type="password"
               required
@@ -66,7 +67,7 @@ export default function AccountPage() {
           </div>
           <div className={formStyles.field}>
             <label htmlFor="new-password">New password</label>
-            <input
+            <Input
               id="new-password"
               type="password"
               required
@@ -80,7 +81,7 @@ export default function AccountPage() {
           </div>
           <div className={formStyles.field}>
             <label htmlFor="confirm-password">Confirm new password</label>
-            <input
+            <Input
               id="confirm-password"
               type="password"
               required
@@ -91,15 +92,11 @@ export default function AccountPage() {
                 setPasswordMismatch(false);
               }}
             />
-            {passwordMismatch && (
-              <p style={{ color: "var(--color-error)", fontSize: "0.875rem", marginTop: "0.25rem" }}>
-                Passwords do not match
-              </p>
-            )}
+            {passwordMismatch && <p className={pageStyles.mismatch}>Passwords do not match</p>}
           </div>
-          <button type="submit" className={formStyles.submit} disabled={submitting || passwordMismatch}>
+          <Button type="submit" className={formStyles.submit} disabled={submitting || passwordMismatch}>
             {submitting ? "Changing…" : "Change password"}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

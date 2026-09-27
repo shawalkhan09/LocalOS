@@ -1,29 +1,27 @@
 .heading {
-  font-size: 22px;
+  font-size: var(--text-xl);
   font-weight: 600;
   margin: 0;
 }
 
 .subheading {
-  color: var(--ink-muted);
-  margin: 4px 0 0;
-  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-sm);
 }
 
 .section {
-  margin-top: 28px;
+  margin-top: var(--space-6);
 }
 
 .sectionTitle {
-  font-size: 15px;
+  font-size: var(--text-lg);
   font-weight: 600;
-  margin: 0 0 10px;
+  margin: 0 0 var(--space-2);
 }
 
 .panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  padding: 0;
   overflow-x: auto;
 }
 
@@ -34,72 +32,44 @@
 .capacity {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
   font-weight: 500;
-  background: var(--bg);
-  color: var(--ink-muted);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
 }
 
 .capacityFull {
-  background: var(--warn-bg);
-  color: var(--warn);
-}
-
-/* Same badge shape as .capacity/.capacityFull above, reusing the same
-   amber status accent rather than inventing a new color for risk — Medium
-   uses the same outline treatment as "at capacity," High uses a bolder,
-   filled version of the same amber so the two read as different
-   intensities of one signal, not two different alerts. */
-.risk {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
-  background: var(--bg);
-  color: var(--ink-muted);
-}
-
-.riskMedium {
-  background: var(--warn-bg);
-  color: var(--warn);
-}
-
-.riskHigh {
-  background: var(--warn);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  color: var(--color-warning);
 }
 
 .error {
-  color: var(--error);
-  background: var(--error-bg);
-  border: 1px solid var(--error);
-  border-radius: 6px;
-  padding: 10px 14px;
-  font-size: 13px;
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
 }
 
 .dateRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .dateLabel {
-  font-size: 13px;
-  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
 }
 
 .dateInput {
-  padding: 6px 10px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 13px;
+  width: auto;
+  height: auto;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-sm);
 }
 
 .mutedRow {
@@ -108,14 +78,14 @@
 
 .confirmActions {
   display: flex;
-  gap: 10px;
+  gap: var(--space-3);
 }
 
 .actionLink {
   border: none;
   background: none;
-  color: var(--accent);
-  font-size: 13px;
+  color: var(--color-accent);
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
   padding: 0;
@@ -129,8 +99,8 @@
 .actionLinkWarn {
   border: none;
   background: none;
-  color: var(--warn);
-  font-size: 13px;
+  color: var(--color-warning);
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
   padding: 0;

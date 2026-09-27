@@ -1,52 +1,54 @@
 .slots {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .slot {
-  padding: 8px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-  font-size: 13px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 
 .slot:hover {
-  border-color: var(--accent);
+  border-color: var(--color-accent);
 }
 
 .slotSelected {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--accent-ink);
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
 }
 
 .slotsEmpty {
-  color: var(--ink-muted);
-  font-size: 13px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 .customerRow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 13px;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--color-text);
 }
 
 .customerRowEmpty {
-  color: var(--ink-muted);
+  color: var(--color-text-muted);
 }
 
 .linkButton {
   border: none;
   background: none;
-  color: var(--accent);
-  font-size: 13px;
+  color: var(--color-accent);
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
   padding: 0;
@@ -54,36 +56,36 @@
 }
 
 .confirmedSection {
-  margin-top: 32px;
+  margin-top: var(--space-8);
   max-width: 560px;
 }
 
 .confirmedTitle {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 500;
-  color: var(--ink-muted);
-  margin: 0 0 8px;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-2);
 }
 
 .confirmedRow {
   display: flex;
   align-items: baseline;
-  gap: 16px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 13px;
-  margin-bottom: 6px;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  margin-bottom: var(--space-2);
 }
 
 .confirmedTime {
-  font-family: var(--font-heading);
+  font-family: var(--font-mono);
   font-weight: 500;
   width: 68px;
   flex-shrink: 0;
 }
 
 .confirmedService {
-  color: var(--ink-muted);
+  color: var(--color-text-muted);
   margin-left: auto;
 }
