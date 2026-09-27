@@ -19,6 +19,8 @@
   background-color: var(--color-accent);
   color: var(--color-accent-foreground);
   border-color: var(--color-accent);
+  font-size: 18.66px;
+  font-weight: 700;
 }
 
 .primary:hover:not(:disabled) {

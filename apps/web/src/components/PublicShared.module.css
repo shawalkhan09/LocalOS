@@ -2,17 +2,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 13px 24px;
+  padding: var(--space-3) var(--space-4);
   border-radius: 999px;
   border: none;
-  background: var(--public-accent);
-  color: #ffffff;
-  font-family: var(--font-heading);
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
+  font-family: var(--font-sans);
   font-weight: 600;
-  font-size: 15px;
+  font-size: var(--text-base);
   cursor: pointer;
   text-decoration: none;
   text-align: center;
+  transition: filter 150ms ease-in-out;
 }
 
 .pillButton:disabled {
@@ -21,63 +22,102 @@
 }
 
 .pillButtonSecondary {
-  composes: pillButton;
-  background: var(--public-card);
-  color: var(--public-ink);
-  border: 1.5px solid var(--public-border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-4);
+  border-radius: 999px;
+  border: 1.5px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: var(--text-base);
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color 150ms ease-in-out, border-color 150ms ease-in-out;
+}
+
+.pillButtonSecondary:hover:not(:disabled) {
+  background-color: var(--color-surface-raised);
+  border-color: var(--color-text-muted);
+}
+
+.pillButtonSecondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .card {
-  background: var(--public-card);
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  padding: 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
 }
 
 .sectionTitle {
-  font-family: var(--font-heading);
-  font-size: 22px;
+  font-family: var(--font-sans);
+  font-size: var(--text-xl);
   font-weight: 700;
-  margin: 0 0 16px;
+  margin: 0 0 var(--space-4);
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
 }
 
 .field label {
-  font-size: 14px;
+  font-size: var(--text-base);
   font-weight: 600;
+  color: var(--color-text);
 }
 
 .field input,
 .field select {
-  padding: 13px 14px;
-  border: 1.5px solid var(--public-border);
-  border-radius: 12px;
-  font-size: 16px;
-  font-family: var(--font-body);
-  background: var(--public-card);
-  color: var(--public-ink);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  font-family: var(--font-sans);
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition: border-color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+
+.field input:focus-visible,
+.field select:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+
+.field input::placeholder {
+  color: var(--color-text-muted);
 }
 
 .helperText {
-  color: var(--public-ink-muted);
-  font-size: 13px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
 
 .errorText {
-  color: #b3261e;
-  font-size: 13px;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
 }
 
 .backLink {
   display: inline-block;
-  color: var(--public-ink-muted);
-  font-size: 14px;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
   text-decoration: none;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-4);
+  transition: color 150ms ease-in-out;
+}
+
+.backLink:hover {
+  color: var(--color-text);
 }

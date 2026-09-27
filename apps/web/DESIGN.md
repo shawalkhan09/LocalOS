@@ -124,4 +124,10 @@ All color combinations tested for WCAG AA compliance (minimum 4.5:1 contrast rat
 
 ## Public Booking Page Design
 
-Dark-theme treatment for `/book/*` pages is still under design and will be defined in the next chunk.
+- Same dark theme and tokens as dashboard (no separate light palette).
+- Booking flow containers max 560px; hero title/description max 480px.
+- Hero headings 48px at desktop (min-width: 720px), 32px on mobile.
+- Vertical spacing: hero padding `var(--space-8)` mobile / `var(--space-12)` desktop.
+- Section padding `var(--space-8)` mobile / `var(--space-12)` desktop.
+- Accent color for primary CTAs; neutral tokens elsewhere.
+- Shared Button, Card, Input components across dashboard and public.

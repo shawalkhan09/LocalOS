@@ -1,82 +1,83 @@
 .hero {
-  padding: 40px 20px 32px;
+  padding: var(--space-8) var(--space-4) var(--space-6);
   text-align: left;
 }
 
 .heroTitle {
-  font-family: var(--font-heading);
-  font-size: 32px;
+  font-family: var(--font-sans);
+  font-size: var(--text-2xl);
   font-weight: 700;
   line-height: 1.15;
-  margin: 0 0 12px;
+  margin: 0 0 var(--space-3);
   max-width: 480px;
 }
 
 .heroDescription {
-  color: var(--public-ink-muted);
-  font-size: 16px;
+  color: var(--color-text-muted);
+  font-size: var(--text-lg);
   line-height: 1.5;
-  margin: 0 0 20px;
+  margin: 0 0 var(--space-6);
   max-width: 480px;
 }
 
 .ctaRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
 }
 
 .hoursNote {
-  font-size: 14px;
-  color: var(--public-ink-muted);
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
 }
 
 .hoursNote strong {
-  color: var(--public-ink);
+  color: var(--color-text);
 }
 
 .section {
-  padding: 8px 20px 40px;
+  padding: var(--space-2) var(--space-4) var(--space-8);
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .itemTitle {
-  font-family: var(--font-heading);
+  font-family: var(--font-sans);
   font-weight: 600;
-  font-size: 16px;
-  margin: 0 0 4px;
+  font-size: var(--text-lg);
+  margin: 0 0 var(--space-1);
 }
 
 .itemMeta {
   display: flex;
-  gap: 12px;
-  color: var(--public-ink-muted);
-  font-size: 13px;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-family: var(--font-mono);
 }
 
 .itemDescription {
-  color: var(--public-ink-muted);
-  font-size: 14px;
-  margin: 8px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+  margin: var(--space-2) 0 0;
 }
 
 @media (min-width: 720px) {
   .hero {
-    padding: 64px 40px 48px;
+    padding: var(--space-12) var(--space-8) var(--space-8);
   }
 
   .heroTitle {
-    font-size: 42px;
+    font-size: 48px;
   }
 
   .section {
-    padding: 8px 40px 56px;
+    padding: var(--space-2) var(--space-8) var(--space-12);
   }
 
   .list {
