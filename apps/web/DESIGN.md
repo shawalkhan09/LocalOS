@@ -128,6 +128,6 @@ All color combinations tested for WCAG AA compliance (minimum 4.5:1 contrast rat
 - Booking flow containers max 560px; hero title/description max 480px.
 - Hero headings 48px at desktop (min-width: 720px), 32px on mobile.
 - Vertical spacing: hero padding `var(--space-8)` mobile / `var(--space-12)` desktop.
-- Section padding `var(--space-8)` mobile / `var(--space-8)` desktop (consistent).
+- Section padding `var(--space-8)` mobile / `var(--space-12)` desktop.
 - Accent color for primary CTAs; neutral tokens elsewhere.
 - Shared Button, Card, Input components across dashboard and public.
