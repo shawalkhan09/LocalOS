@@ -1,5 +1,4 @@
-import type { GymConfig } from "@localos/config-schema";
-import { bookings, classBookings, customers, db, services, staff, type Customer, type Service } from "@localos/db";
+import { bookings, classBookings, classes, customers, db, services, staff, type Class, type Customer, type Service } from "@localos/db";
 import { and, eq, gt, inArray, lt, ne, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { ApiError } from "./errors.js";
@@ -26,8 +25,11 @@ export async function findService(serviceId: string): Promise<Service> {
   return service;
 }
 
-export function findGymClass(config: GymConfig, classId: string): GymConfig["classes"][number] {
-  const gymClass = config.classes.find((c) => c.id === classId);
+// Classes moved from config.json into the database this round (see
+// packages/db's `classes` table), so this is now a DB lookup instead of a
+// config.classes scan — same 400-if-not-found contract as findService.
+export async function findClass(classId: string): Promise<Class> {
+  const [gymClass] = await db.select().from(classes).where(eq(classes.id, classId)).limit(1);
   if (!gymClass) {
     throw new ApiError(400, `unknown classId "${classId}"`);
   }

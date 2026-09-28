@@ -1,4 +1,4 @@
-import { customers as customersTable, db, bookings, services, staff, trainerProfiles } from "@localos/db";
+import { customers as customersTable, db, bookings, classes, services, staff, trainerProfiles } from "@localos/db";
 import { and, eq, gte, lt, ne, inArray } from "drizzle-orm";
 import { Router } from "express";
 import { DateTime } from "luxon";
@@ -66,9 +66,15 @@ staffRouter.get("/staff/me/schedule", async (req, res) => {
     classId: string;
     capacity: number;
   }> = [];
+  // Classes moved from config.json into the database this round (see
+  // packages/db's `classes` table) — same DB lookup as serviceRows below
+  // instead of a config.classes scan.
+  const classRows = trainerId
+    ? await db.select().from(classes).where(eq(classes.trainerId, trainerId))
+    : [];
+
   if (trainerId) {
-    // Find classes with this trainerId in config
-    const classList = clientConfig.classes.filter((c) => c.trainerId === trainerId);
+    const classList = classRows;
     const dayMap: Record<string, number> = {
       monday: 0,
       tuesday: 1,
@@ -157,7 +163,7 @@ staffRouter.get("/staff/me/schedule", async (req, res) => {
         type: "class" as const,
         start: startISO || new Date().toISOString(),
         end: endISO || new Date().toISOString(),
-        label: clientConfig.classes.find((cl) => cl.id === c.classId)?.name || c.classId,
+        label: classRows.find((cl) => cl.id === c.classId)?.name || c.classId,
         seatCount: c.capacity,
       };
     }),

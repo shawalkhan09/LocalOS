@@ -9,13 +9,12 @@ import {
   assertNotAlreadyInClass,
   assertStaffQualified,
   computeNoShowRisk,
+  findClass,
   findCustomerByEmail,
-  findGymClass,
   findOrCreateCustomerByEmail,
   findService,
   isClassAtCapacity,
 } from "../bookingRules.js";
-import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
 import { PublicCreateBookingSchema, PublicCreateClassBookingSchema } from "../validation.js";
 
@@ -113,7 +112,7 @@ publicRouter.post("/public/class-bookings", async (req, res) => {
   }
   const { customerName, customerEmail, customerPhone, classId, occurrenceDate } = parsed.data;
 
-  const gymClass = findGymClass(clientConfig, classId);
+  const gymClass = await findClass(classId);
   assertBookableClassOccurrence({
     gymClass,
     occurrenceDate,

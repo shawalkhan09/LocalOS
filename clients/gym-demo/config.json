@@ -19,7 +19,7 @@
       "country": "US"
     }
   },
-  "_note": "staff, trainer profiles, and services moved to the database this round — see packages/db/scripts/migrate-staff-from-config.ts, migrate-services-from-config.ts, and the `staff`/`trainer_profiles`/`services` tables in packages/db/src/schema.ts",
+  "_note": "staff, trainer profiles, services, and classes moved to the database this round — see packages/db/scripts/migrate-staff-from-config.ts, migrate-services-from-config.ts, migrate-classes-from-config.ts, and the `staff`/`trainer_profiles`/`services`/`classes` tables in packages/db/src/schema.ts",
   "booking": {
     "advanceBookingDays": 14,
     "cancellationWindowHours": 12,
@@ -61,44 +61,6 @@
       "billingInterval": "annual",
       "description": "Unlimited classes and open gym access, billed annually (2 months free).",
       "perks": ["Unlimited classes", "Open gym access", "2 free personal training sessions"]
-    }
-  ],
-  "classes": [
-    {
-      "id": "class-strength-101",
-      "name": "Strength Fundamentals",
-      "trainerId": "trainer-priya",
-      "durationMinutes": 45,
-      "capacity": 12,
-      "category": "strength",
-      "schedule": [
-        { "day": "monday", "startTime": "06:00" },
-        { "day": "wednesday", "startTime": "06:00" },
-        { "day": "friday", "startTime": "06:00" }
-      ]
-    },
-    {
-      "id": "class-hiit-blast",
-      "name": "HIIT Blast",
-      "trainerId": "trainer-marcus",
-      "durationMinutes": 30,
-      "capacity": 16,
-      "category": "conditioning",
-      "schedule": [
-        { "day": "tuesday", "startTime": "17:30" },
-        { "day": "thursday", "startTime": "17:30" }
-      ]
-    },
-    {
-      "id": "class-mobility-flow",
-      "name": "Mobility Flow",
-      "trainerId": "trainer-priya",
-      "durationMinutes": 45,
-      "capacity": 10,
-      "category": "recovery",
-      "schedule": [
-        { "day": "saturday", "startTime": "09:00" }
-      ]
     }
   ]
 }

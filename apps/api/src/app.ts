@@ -6,6 +6,7 @@ import { availabilityRouter } from "./routes/availability.js";
 import { bookingsRouter } from "./routes/bookings.js";
 import { catalogRouter } from "./routes/catalog.js";
 import { classBookingsRouter } from "./routes/classBookings.js";
+import { classesRouter } from "./routes/classes.js";
 import { customersRouter } from "./routes/customers.js";
 import { membershipsRouter } from "./routes/memberships.js";
 import { publicRouter } from "./routes/public.js";
@@ -68,6 +69,10 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     // but confusing here.
     if (pgError.constraint_name === "bookings_service_id_services_id_fk") {
       res.status(409).json({ error: "This service can't be deleted because it has existing bookings." });
+      return;
+    }
+    if (pgError.constraint_name === "class_bookings_class_id_classes_id_fk") {
+      res.status(409).json({ error: "This class can't be deleted because it has existing bookings." });
       return;
     }
     res.status(400).json({ error: `referenced row does not exist: ${pgError.detail ?? ""}` });
@@ -144,6 +149,7 @@ export function createApp() {
   app.use(usersRouter);
   app.use(staffRouter);
   app.use(servicesRouter);
+  app.use(classesRouter);
 
   app.use(errorHandler);
 

@@ -1,4 +1,4 @@
-import type { ClientConfig, Service, StaffMember, Trainer } from "@localos/config-schema";
+import type { ClientConfig, ClassScheduleSlot, GymClass, Service, StaffMember, Trainer } from "@localos/config-schema";
 
 // Production calls go through the same-origin /api-proxy rewrite (see
 // next.config.ts) instead of straight to Render's own domain — that's
@@ -309,6 +309,42 @@ export function updateService(
 // service still has bookings rather than orphaning them.
 export function deleteService(id: string): Promise<void> {
   return request<void>(`/services/${id}`, { method: "DELETE" });
+}
+
+// Owner-only (POST/PATCH/DELETE /classes) — same pattern as the service
+// endpoints above. Reads still go through getCatalog() — these are
+// write-only, there's no separate GET /classes.
+export function createClass(data: {
+  name: string;
+  trainerId: string;
+  durationMinutes: number;
+  capacity: number;
+  category?: string;
+  schedule: ClassScheduleSlot[];
+}): Promise<GymClass> {
+  return request<GymClass>("/classes", { method: "POST", body: JSON.stringify(data) });
+}
+
+// All fields optional and .strict() on the API side — matches
+// PATCH /classes/:id, which rejects (400) any unrecognized key.
+export function updateClass(
+  id: string,
+  data: Partial<{
+    name: string;
+    trainerId: string;
+    durationMinutes: number;
+    capacity: number;
+    category: string;
+    schedule: ClassScheduleSlot[];
+  }>,
+): Promise<GymClass> {
+  return request<GymClass>(`/classes/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+// Matches DELETE /classes/:id, which 409s (friendly message) if the class
+// still has bookings rather than orphaning them.
+export function deleteClass(id: string): Promise<void> {
+  return request<void>(`/classes/${id}`, { method: "DELETE" });
 }
 
 export function changePassword(data: { currentPassword: string; newPassword: string }): Promise<void> {

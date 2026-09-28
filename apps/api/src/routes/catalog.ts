@@ -1,5 +1,5 @@
 import type { ClientConfig } from "@localos/config-schema";
-import { db, services, staff, trainerProfiles } from "@localos/db";
+import { classes, db, services, staff, trainerProfiles } from "@localos/db";
 import { Router } from "express";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
@@ -41,6 +41,16 @@ const SERVICE_COLUMNS = {
   staffIds: services.staffIds,
 };
 
+const CLASS_COLUMNS = {
+  id: classes.id,
+  name: classes.name,
+  trainerId: classes.trainerId,
+  durationMinutes: classes.durationMinutes,
+  capacity: classes.capacity,
+  category: classes.category,
+  schedule: classes.schedule,
+};
+
 function stripNulls<T extends Record<string, unknown>>(row: T): { [K in keyof T]: Exclude<T[K], null> } {
   return Object.fromEntries(Object.entries(row).filter(([, v]) => v !== null)) as {
     [K in keyof T]: Exclude<T[K], null>;
@@ -48,20 +58,21 @@ function stripNulls<T extends Record<string, unknown>>(row: T): { [K in keyof T]
 }
 
 catalogRouter.get("/catalog", async (_req, res) => {
-  const [staffRows, trainerRows, serviceRows] = await Promise.all([
+  const [staffRows, trainerRows, serviceRows, classRows] = await Promise.all([
     db.select(STAFF_COLUMNS).from(staff),
     db.select(TRAINER_COLUMNS).from(trainerProfiles),
     db.select(SERVICE_COLUMNS).from(services),
+    db.select(CLASS_COLUMNS).from(classes),
   ]);
 
-  // classes are still config-driven (see @localos/config-schema), but
-  // trainerId now points at a trainer_profiles row instead of a config
-  // array — this is the one place classes are actually read for output,
-  // so it's the one place a stale trainerId (config.json and the database
-  // drifting out of sync) gets caught, the same way a malformed
-  // config.json is caught at boot (see config.ts) rather than served.
+  // classes moved out of config.json into the database this round too, but
+  // trainerId still just points at a trainer_profiles row id — this is the
+  // one place classes are actually read for output, so it's the one place
+  // a stale trainerId (a trainer profile deleted out from under a class)
+  // gets caught, the same way a malformed config.json is caught at boot
+  // (see config.ts) rather than served.
   const trainerIds = new Set(trainerRows.map((t) => t.id));
-  for (const gymClass of clientConfig.classes) {
+  for (const gymClass of classRows) {
     if (!trainerIds.has(gymClass.trainerId)) {
       throw new ApiError(400, `unknown trainerId "${gymClass.trainerId}" for class "${gymClass.id}"`);
     }
@@ -75,6 +86,8 @@ catalogRouter.get("/catalog", async (_req, res) => {
     // match ServiceSchema (and the old config.json shape, which held a
     // plain JSON number).
     services: serviceRows.map((row) => stripNulls({ ...row, price: Number(row.price) })),
+    // schedule is jsonb and round-trips natively — no cast needed like price.
+    classes: classRows.map(stripNulls),
   };
   res.json(catalog);
 });
