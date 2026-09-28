@@ -91,6 +91,7 @@
     position: relative;
     display: flex;
     align-items: center;
+    flex-shrink: 0;
   }
 
   .mobileAccountButton {
@@ -173,12 +174,17 @@
 
   .nav {
     flex-direction: row;
-    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
     justify-content: space-around;
+    overflow-x: auto;
+    flex-wrap: nowrap;
   }
 
   .navLink {
+    flex-shrink: 0;
     text-align: center;
+    padding: var(--space-2) var(--space-1);
     font-size: var(--text-xs);
     border-left: none;
     border-top: 2px solid transparent;
