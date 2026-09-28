@@ -11,6 +11,7 @@ import {
 import { Modal } from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import tableStyles from "@/components/DataTable.module.css";
+import { Button, Card } from "@/components";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
 
@@ -116,25 +117,25 @@ export default function CustomersPage() {
       </p>
 
       <div className={styles.viewToggle}>
-        <button
+        <Button
           type="button"
-          className={`${styles.toggleButton} ${view === "active" ? styles.toggleActive : ""}`}
+          variant={view === "active" ? "primary" : "secondary"}
           onClick={() => setView("active")}
         >
           Active
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className={`${styles.toggleButton} ${view === "archived" ? styles.toggleActive : ""}`}
+          variant={view === "archived" ? "primary" : "secondary"}
           onClick={() => setView("archived")}
         >
           Archived
-        </button>
+        </Button>
       </div>
 
       {error && <p className={`${pageStyles.error} ${pageStyles.section}`}>{error}</p>}
 
-      <div className={`${pageStyles.panel} ${pageStyles.section}`}>
+      <Card className={`${pageStyles.panel} ${pageStyles.section}`}>
         <table className={tableStyles.table}>
           <thead>
             <tr>
@@ -191,7 +192,7 @@ export default function CustomersPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       {customerToArchive && (
         <Modal title="Archive customer" onClose={() => setCustomerToArchive(null)}>
@@ -200,22 +201,22 @@ export default function CustomersPage() {
               Are you sure you want to archive <strong>{customerToArchive.name}</strong>? Their booking history will be kept.
             </p>
             <div className={styles.modalActions}>
-              <button
+              <Button
                 type="button"
-                className={styles.cancelButton}
+                variant="secondary"
                 onClick={() => setCustomerToArchive(null)}
                 disabled={archiving}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
-                className={styles.archiveButton}
+                variant="destructive"
                 onClick={handleConfirmArchive}
                 disabled={archiving}
               >
                 {archiving ? "Archiving…" : "Archive customer"}
-              </button>
+              </Button>
             </div>
           </div>
         </Modal>

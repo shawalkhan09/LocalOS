@@ -1,0 +1,21 @@
+.heading {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  margin: 0;
+}
+
+.section {
+  margin-top: var(--space-6);
+}
+
+.sectionTitle {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  margin: 0 0 var(--space-2);
+}
+
+.mismatch {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  margin-top: var(--space-1);
+}

@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { ApiRequestError, type Customer, createCustomer } from "@/lib/api";
 import { Modal } from "./Modal";
+import { Button } from "./Button";
+import { Input } from "./Input";
 import styles from "./CustomerPickerModal.module.css";
 
 export function CustomerPickerModal({
@@ -58,7 +60,7 @@ export function CustomerPickerModal({
 
   return (
     <Modal title="Find or add a customer" onClose={onClose}>
-      <input
+      <Input
         type="text"
         className={styles.search}
         placeholder="Search by name or email"
@@ -83,20 +85,20 @@ export function CustomerPickerModal({
 
       <div className={styles.field}>
         <label htmlFor="new-customer-name">Name</label>
-        <input id="new-customer-name" value={name} onChange={(e) => setName(e.target.value)} />
+        <Input id="new-customer-name" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
       <div className={styles.field}>
         <label htmlFor="new-customer-email">Email</label>
-        <input id="new-customer-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <Input id="new-customer-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
       </div>
       <div className={styles.field}>
         <label htmlFor="new-customer-phone">Phone</label>
-        <input id="new-customer-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        <Input id="new-customer-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
       </div>
       {createError && <p className={styles.formError}>{createError}</p>}
-      <button type="button" className={styles.createButton} onClick={handleCreate} disabled={creating}>
+      <Button type="button" className={styles.createButton} onClick={handleCreate} disabled={creating}>
         {creating ? "Adding…" : "Add customer"}
-      </button>
+      </Button>
     </Modal>
   );
 }

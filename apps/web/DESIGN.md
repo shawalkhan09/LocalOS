@@ -122,6 +122,16 @@ All color combinations tested for WCAG AA compliance (minimum 4.5:1 contrast rat
 
 ---
 
+## Dashboard
+
+- Login and every `/dashboard/*` page now use `Button`, `Card`, `Input`, and `StatusPill` from the design system; no page-local color/spacing/radius values remain (`--color-*`, `--space-*`, `--radius-*`, `--text-*` tokens only).
+- Booking/class-booking status (`confirmed`/`booked` → success, `cancelled` → danger) and no-show risk (`medium` → warning, `high` → danger, `low` → muted) render as `StatusPill`.
+- Table chrome (`DataTable.module.css`) and inline dashboard forms (`FormField.module.css`) are token-only; no shared `Select` component exists yet, so raw `<select>` elements are styled to match `Input`'s look via `.field select` in `FormField.module.css`.
+- Compact, inline uses of `Input` (the Today page's date picker, Team's inline email/password-reset fields) override `Input`'s default `width: 100%; height: 40px` with a page-local class so they stay dense inside a table row or toolbar, instead of stretching full width.
+- Dense inline text actions inside table rows (Cancel, Archive, Edit, Deactivate, etc.) stay as plain `<button>` elements styled with tokens, not the `Button` component — `Button`'s smallest footprint is a 40px-tall, bordered control, which would break the dense/scannable table layout the design calls for. `Button` is used for real CTAs: form submits, modal confirm/cancel pairs, and the Customers active/archived toggle.
+- `apps/web/src/app/dashboard/account/page.module.css` is new (the page previously borrowed `../page.module.css`); it defines only `heading`/`section`/`sectionTitle`/`mismatch`, matching the token conventions used elsewhere.
+- Fixed a pre-existing bug in `dashboard/schedule/page.module.css`: it referenced `--color-text-secondary` and `--color-bg-secondary`, which never existed in `globals.css`, so those rules always fell back to the browser default. Mapped to `--color-text-muted` and `--color-surface`.
+
 ## Public Booking Page Design
 
 - Same dark theme and tokens as dashboard (no separate light palette).

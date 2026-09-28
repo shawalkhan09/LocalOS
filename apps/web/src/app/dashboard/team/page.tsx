@@ -6,6 +6,7 @@ import { type Account, ApiRequestError, createUser, getCatalog, getMe, getUsers,
 import { useToast } from "@/components/Toast";
 import tableStyles from "@/components/DataTable.module.css";
 import formStyles from "@/components/FormField.module.css";
+import { Button, Card, Input } from "@/components";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
 
@@ -211,7 +212,7 @@ export default function TeamPage() {
       <h1 className={pageStyles.heading}>Team</h1>
       <p className={pageStyles.subheading}>{accounts.length} dashboard accounts</p>
 
-      <div className={`${pageStyles.panel} ${pageStyles.section}`}>
+      <Card className={`${pageStyles.panel} ${pageStyles.section}`}>
         <table className={tableStyles.table}>
           <thead>
             <tr>
@@ -240,7 +241,7 @@ export default function TeamPage() {
                     <td>
                       {isEditingEmail ? (
                         <div className={styles.emailCell}>
-                          <input
+                          <Input
                             type="email"
                             className={styles.inlineInput}
                             value={emailDraft}
@@ -262,7 +263,7 @@ export default function TeamPage() {
                         </div>
                       ) : isResetingPassword ? (
                         <div className={styles.emailCell}>
-                          <input
+                          <Input
                             type="password"
                             className={styles.inlineInput}
                             placeholder="New password (min 8 characters)"
@@ -335,14 +336,14 @@ export default function TeamPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
 
       <div className={pageStyles.section}>
         <h2 className={pageStyles.sectionTitle}>Add a staff account</h2>
         <form className={formStyles.form} onSubmit={handleSubmit}>
           <div className={formStyles.field}>
             <label htmlFor="team-email">Email</label>
-            <input
+            <Input
               id="team-email"
               type="email"
               required
@@ -352,7 +353,7 @@ export default function TeamPage() {
           </div>
           <div className={formStyles.field}>
             <label htmlFor="team-password">Password</label>
-            <input
+            <Input
               id="team-password"
               type="password"
               required
@@ -372,9 +373,9 @@ export default function TeamPage() {
               ))}
             </select>
           </div>
-          <button type="submit" className={formStyles.submit} disabled={submitting}>
+          <Button type="submit" className={formStyles.submit} disabled={submitting}>
             {submitting ? "Adding…" : "Add staff account"}
-          </button>
+          </Button>
         </form>
       </div>
     </div>
