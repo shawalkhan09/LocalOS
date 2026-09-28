@@ -28,6 +28,7 @@ const OWNER_NAV_ITEMS = [
   { href: "/dashboard/classes", label: "Classes" },
   { href: "/dashboard/business-hours", label: "Business hours" },
   { href: "/dashboard/business-info", label: "Business info" },
+  { href: "/dashboard/membership-plans", label: "Membership plans" },
 ];
 
 export function Sidebar() {

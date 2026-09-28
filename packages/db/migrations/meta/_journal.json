@@ -64,6 +64,13 @@
       "when": 1790600412770,
       "tag": "0008_business-info",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1790602475206,
+      "tag": "0009_membership-plans",
+      "breakpoints": true
     }
   ]
 }

@@ -1,6 +1,6 @@
 import { db, memberships } from "@localos/db";
 import { Router } from "express";
-import { clientConfig } from "../config.js";
+import { findMembershipPlan } from "../bookingRules.js";
 import { ApiError } from "../errors.js";
 import { CreateMembershipSchema } from "../validation.js";
 
@@ -13,9 +13,10 @@ membershipsRouter.post("/memberships", async (req, res) => {
   }
   const { customerId, planId, startDate, renewalDate, creditsRemaining } = parsed.data;
 
-  if (!clientConfig.membershipPlans.some((p) => p.id === planId)) {
-    throw new ApiError(400, `unknown planId "${planId}"`);
-  }
+  // Membership plans moved from config.json into the database this round
+  // (see packages/db's `membership_plans` table) — findMembershipPlan
+  // throws its own 400 if planId doesn't resolve to a real row.
+  await findMembershipPlan(planId);
 
   const [membership] = await db
     .insert(memberships)

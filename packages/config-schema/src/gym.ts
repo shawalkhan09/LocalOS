@@ -9,6 +9,12 @@ export const GymFeaturesSchema = BaseFeaturesSchema.extend({
   waiverRequired: z.boolean().default(false),
 });
 
+// Membership plans no longer live in config.json (see packages/db's
+// `membership_plans` table), but this shape is still the contract for it:
+// apps/api reads plan rows through it when assembling GET /catalog's
+// response, and it's what ClientConfigSchema (index.ts) extends the
+// deploy-time config with to describe that response's full shape — same
+// role ServiceSchema/GymClassSchema play for services/classes.
 export const MembershipPlanSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
@@ -46,24 +52,6 @@ export const GymClassSchema = z.object({
   category: z.string().optional(),
 });
 
-function assertUniqueIds(
-  items: { id: string }[],
-  arrayName: string,
-  ctx: z.RefinementCtx,
-): void {
-  const seen = new Set<string>();
-  items.forEach((item, index) => {
-    if (seen.has(item.id)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: [arrayName, index, "id"],
-        message: `duplicate id "${item.id}" in ${arrayName}`,
-      });
-    }
-    seen.add(item.id);
-  });
-}
-
 // classes[].trainerId still references a trainer (now a trainer_profiles
 // row instead of a config array), but that reference can no longer be
 // checked here: trainer_profiles lives in the database, and zod's parse
@@ -72,28 +60,21 @@ function assertUniqueIds(
 // "runtime check, not a config-time one" move made for service.staffIds
 // (see apps/api/src/bookingRules.ts's assertStaffQualified).
 
-// Plain object shape, pre-refinement: kept separate from GymConfigSchema
-// so index.ts can .extend() it with staff/trainers to describe GET
-// /catalog's full response shape (ZodEffects, which superRefine produces,
-// can't be .extend()ed).
+// Named separately from GymConfigSchema below so index.ts's .extend() call
+// (to describe GET /catalog's full response shape with staff/trainers/etc.
+// added) has a clear name to extend, even though the two are now the same
+// object — see GymConfigSchema's comment for why.
 export const GymConfigObjectSchema = BaseConfigSchema.extend({
   features: GymFeaturesSchema,
-  membershipPlans: z.array(MembershipPlanSchema),
 });
 
-// services no longer gets an assertUniqueIds call here: it moved out of
-// config.json into the `services` table (see packages/db's schema), whose
-// primary key already enforces uniqueness at the DB level — the same
-// reasoning staff/trainers already went through. classes went through the
-// same move this round (see packages/db's `classes` table). businessHours
-// went through the same move too (see packages/db's `business_hours`
-// table) — its closeTime>openTime check now lives in apps/api's
-// CreateBusinessHoursSchema instead, the same "runtime check, not a
-// config-time one" move classes.trainerId's existence check already went
-// through.
-export const GymConfigSchema = GymConfigObjectSchema.superRefine((config, ctx) => {
-  assertUniqueIds(config.membershipPlans, "membershipPlans", ctx);
-});
+// No superRefine/assertUniqueIds left here: services, classes,
+// businessHours, and now membershipPlans have all moved out of config.json
+// into their own DB tables (see packages/db's schema), whose primary keys
+// already enforce uniqueness at the DB level — same reasoning staff/
+// trainers went through first. GymConfigSchema is just an alias of
+// GymConfigObjectSchema now that there's nothing left to refine.
+export const GymConfigSchema = GymConfigObjectSchema;
 
 export type GymFeatures = z.infer<typeof GymFeaturesSchema>;
 export type MembershipPlan = z.infer<typeof MembershipPlanSchema>;

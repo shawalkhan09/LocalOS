@@ -1,5 +1,5 @@
 import type { ClientConfig } from "@localos/config-schema";
-import { businessHours, businessInfo, classes, db, services, staff, trainerProfiles } from "@localos/db";
+import { businessHours, businessInfo, classes, db, membershipPlans, services, staff, trainerProfiles } from "@localos/db";
 import { Router } from "express";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
@@ -72,6 +72,15 @@ const BUSINESS_INFO_COLUMNS = {
   address: businessInfo.address,
 };
 
+const MEMBERSHIP_PLAN_COLUMNS = {
+  id: membershipPlans.id,
+  name: membershipPlans.name,
+  price: membershipPlans.price,
+  billingInterval: membershipPlans.billingInterval,
+  description: membershipPlans.description,
+  perks: membershipPlans.perks,
+};
+
 function stripNulls<T extends Record<string, unknown>>(row: T): { [K in keyof T]: Exclude<T[K], null> } {
   return Object.fromEntries(Object.entries(row).filter(([, v]) => v !== null)) as {
     [K in keyof T]: Exclude<T[K], null>;
@@ -79,14 +88,16 @@ function stripNulls<T extends Record<string, unknown>>(row: T): { [K in keyof T]
 }
 
 catalogRouter.get("/catalog", async (_req, res) => {
-  const [staffRows, trainerRows, serviceRows, classRows, businessHoursRows, businessInfoRows] = await Promise.all([
-    db.select(STAFF_COLUMNS).from(staff),
-    db.select(TRAINER_COLUMNS).from(trainerProfiles),
-    db.select(SERVICE_COLUMNS).from(services),
-    db.select(CLASS_COLUMNS).from(classes),
-    db.select(BUSINESS_HOURS_COLUMNS).from(businessHours),
-    db.select(BUSINESS_INFO_COLUMNS).from(businessInfo),
-  ]);
+  const [staffRows, trainerRows, serviceRows, classRows, businessHoursRows, businessInfoRows, membershipPlanRows] =
+    await Promise.all([
+      db.select(STAFF_COLUMNS).from(staff),
+      db.select(TRAINER_COLUMNS).from(trainerProfiles),
+      db.select(SERVICE_COLUMNS).from(services),
+      db.select(CLASS_COLUMNS).from(classes),
+      db.select(BUSINESS_HOURS_COLUMNS).from(businessHours),
+      db.select(BUSINESS_INFO_COLUMNS).from(businessInfo),
+      db.select(MEMBERSHIP_PLAN_COLUMNS).from(membershipPlans),
+    ]);
 
   const businessInfoRow = businessInfoRows[0];
   if (!businessInfoRow) {
@@ -135,6 +146,10 @@ catalogRouter.get("/catalog", async (_req, res) => {
     // schedule is jsonb and round-trips natively — no cast needed like price.
     classes: classRows.map(stripNulls),
     businessHours: businessHoursRows,
+    // price comes back from postgres `numeric` as a string — same cast as
+    // services above, back to match the old config.json shape's plain
+    // JSON number.
+    membershipPlans: membershipPlanRows.map((row) => stripNulls({ ...row, price: Number(row.price) })),
   };
   res.json(catalog);
 });

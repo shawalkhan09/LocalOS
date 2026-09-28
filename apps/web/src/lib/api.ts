@@ -1,4 +1,4 @@
-import type { Address, BusinessHoursSlot, ClientConfig, ClassScheduleSlot, GymClass, Service, StaffMember, Trainer } from "@localos/config-schema";
+import type { Address, BusinessHoursSlot, ClientConfig, ClassScheduleSlot, GymClass, MembershipPlan, Service, StaffMember, Trainer } from "@localos/config-schema";
 
 // Production calls go through the same-origin /api-proxy rewrite (see
 // next.config.ts) instead of straight to Render's own domain — that's
@@ -345,6 +345,40 @@ export function updateClass(
 // still has bookings rather than orphaning them.
 export function deleteClass(id: string): Promise<void> {
   return request<void>(`/classes/${id}`, { method: "DELETE" });
+}
+
+// Owner-only (POST/PATCH/DELETE /membership-plans) — same pattern as the
+// service/class endpoints above. Reads still go through getCatalog() —
+// these are write-only, there's no separate GET /membership-plans.
+export function createMembershipPlan(data: {
+  name: string;
+  price: number;
+  billingInterval: "monthly" | "annual" | "week" | "day";
+  description?: string;
+  perks?: string[];
+}): Promise<MembershipPlan> {
+  return request<MembershipPlan>("/membership-plans", { method: "POST", body: JSON.stringify(data) });
+}
+
+// All fields optional and .strict() on the API side — matches
+// PATCH /membership-plans/:id, which rejects (400) any unrecognized key.
+export function updateMembershipPlan(
+  id: string,
+  data: Partial<{
+    name: string;
+    price: number;
+    billingInterval: "monthly" | "annual" | "week" | "day";
+    description: string;
+    perks: string[];
+  }>,
+): Promise<MembershipPlan> {
+  return request<MembershipPlan>(`/membership-plans/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+// Matches DELETE /membership-plans/:id, which has no FK to protect against
+// (see routes/membershipPlans.ts) — just deletes and 404s if missing.
+export function deleteMembershipPlan(id: string): Promise<void> {
+  return request<void>(`/membership-plans/${id}`, { method: "DELETE" });
 }
 
 // Owner-only, replace-all: PATCH /business-hours takes the whole week at
