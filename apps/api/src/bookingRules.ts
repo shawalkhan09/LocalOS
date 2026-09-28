@@ -1,4 +1,4 @@
-import { bookings, businessHours, classBookings, classes, customers, db, services, staff, type BusinessHours, type Class, type Customer, type Service } from "@localos/db";
+import { bookings, businessHours, classBookings, classes, customers, db, membershipPlans, services, staff, type BusinessHours, type Class, type Customer, type MembershipPlanRow, type Service } from "@localos/db";
 import { and, eq, gt, inArray, lt, ne, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { ApiError } from "./errors.js";
@@ -34,6 +34,18 @@ export async function findClass(classId: string): Promise<Class> {
     throw new ApiError(400, `unknown classId "${classId}"`);
   }
   return gymClass;
+}
+
+// Membership plans moved from config.json into the database this round
+// (see packages/db's `membership_plans` table), so this is now a DB lookup
+// instead of a clientConfig.membershipPlans scan — same 400-if-not-found
+// contract as findService/findClass above.
+export async function findMembershipPlan(planId: string): Promise<MembershipPlanRow> {
+  const [plan] = await db.select().from(membershipPlans).where(eq(membershipPlans.id, planId)).limit(1);
+  if (!plan) {
+    throw new ApiError(400, `unknown planId "${planId}"`);
+  }
+  return plan;
 }
 
 // Staff moved from config.json into the database this round (see

@@ -3,7 +3,7 @@
     "timezone": "Asia/Karachi",
     "currency": "USD"
   },
-  "_note": "staff, trainer profiles, services, classes, business hours, and business branding/contact info moved to the database this round — see packages/db/scripts/migrate-staff-from-config.ts, migrate-services-from-config.ts, migrate-classes-from-config.ts, migrate-business-hours-from-config.ts, migrate-business-info-from-config.ts, and the `staff`/`trainer_profiles`/`services`/`classes`/`business_hours`/`business_info` tables in packages/db/src/schema.ts. timezone/currency stay here: deploy-time infrastructure settings read synchronously across every date/availability calculation.",
+  "_note": "staff, trainer profiles, services, classes, business hours, business branding/contact info, and membership plans moved to the database this round — see packages/db/scripts/migrate-staff-from-config.ts, migrate-services-from-config.ts, migrate-classes-from-config.ts, migrate-business-hours-from-config.ts, migrate-business-info-from-config.ts, migrate-membership-plans-from-config.ts, and the `staff`/`trainer_profiles`/`services`/`classes`/`business_hours`/`business_info`/`membership_plans` tables in packages/db/src/schema.ts. timezone/currency stay here: deploy-time infrastructure settings read synchronously across every date/availability calculation.",
   "booking": {
     "advanceBookingDays": 14,
     "cancellationWindowHours": 12,
@@ -20,23 +20,5 @@
     "trainerBooking": true,
     "dropInBooking": true,
     "waiverRequired": true
-  },
-  "membershipPlans": [
-    {
-      "id": "plan-monthly-unlimited",
-      "name": "Unlimited Monthly",
-      "price": 129,
-      "billingInterval": "monthly",
-      "description": "Unlimited classes and open gym access, billed monthly.",
-      "perks": ["Unlimited classes", "Open gym access", "Guest pass 1x/month"]
-    },
-    {
-      "id": "plan-annual-unlimited",
-      "name": "Unlimited Annual",
-      "price": 1290,
-      "billingInterval": "annual",
-      "description": "Unlimited classes and open gym access, billed annually (2 months free).",
-      "perks": ["Unlimited classes", "Open gym access", "2 free personal training sessions"]
-    }
-  ]
+  }
 }

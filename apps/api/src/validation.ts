@@ -163,6 +163,29 @@ export const UpdateServiceSchema = z
   .strict()
   .refine((data) => Object.keys(data).length > 0, { message: "at least one field must be provided" });
 
+export const CreateMembershipPlanSchema = z.object({
+  name: z.string().min(1),
+  price: z.number().nonnegative(),
+  billingInterval: z.enum(["monthly", "annual", "week", "day"]),
+  description: z.string().min(1).optional(),
+  perks: z.array(z.string().min(1)).optional(),
+});
+
+// .strict() so an unrecognized key fails validation instead of being
+// silently dropped — same reasoning as UpdateServiceSchema above. No field
+// here is nullable: same "change it or leave it alone" contract, no
+// "clear this value" case requested this round.
+export const UpdateMembershipPlanSchema = z
+  .object({
+    name: z.string().min(1).optional(),
+    price: z.number().nonnegative().optional(),
+    billingInterval: z.enum(["monthly", "annual", "week", "day"]).optional(),
+    description: z.string().min(1).optional(),
+    perks: z.array(z.string().min(1)).optional(),
+  })
+  .strict()
+  .refine((data) => Object.keys(data).length > 0, { message: "at least one field must be provided" });
+
 const ClassScheduleSlotShape = z.object({
   day: z.enum(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]),
   startTime: z.string().regex(/^\d{2}:\d{2}$/, "expected HH:MM"),

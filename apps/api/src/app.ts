@@ -10,6 +10,7 @@ import { catalogRouter } from "./routes/catalog.js";
 import { classBookingsRouter } from "./routes/classBookings.js";
 import { classesRouter } from "./routes/classes.js";
 import { customersRouter } from "./routes/customers.js";
+import { membershipPlansRouter } from "./routes/membershipPlans.js";
 import { membershipsRouter } from "./routes/memberships.js";
 import { publicRouter } from "./routes/public.js";
 import { servicesRouter } from "./routes/services.js";
@@ -147,6 +148,7 @@ export function createApp() {
   app.use(bookingsRouter);
   app.use(classBookingsRouter);
   app.use(membershipsRouter);
+  app.use(membershipPlansRouter);
   app.use(publicRouter);
   app.use(usersRouter);
   app.use(staffRouter);

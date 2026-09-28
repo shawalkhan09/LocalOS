@@ -252,14 +252,37 @@ export const classBookings = pgTable(
   }),
 );
 
+// Membership plans used to live entirely in config.json too — same
+// reasoning as services/classes above, and the same cutover pattern: id
+// stays a plain string (e.g. "plan-monthly-unlimited"), preserved
+// unchanged from config.json by the one-time migration in
+// scripts/migrate-membership-plans-from-config.ts. billingInterval uses
+// $type<...>() on a plain text column, same style as businessHours.day —
+// no new pgEnum needed for a 4-value set that's validated at the API layer
+// (CreateMembershipPlanSchema/UpdateMembershipPlanSchema in apps/api), not
+// enforced at the DB level.
+export const membershipPlans = pgTable("membership_plans", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  price: numeric("price").notNull(),
+  billingInterval: text("billing_interval").notNull().$type<"monthly" | "annual" | "week" | "day">(),
+  description: text("description"),
+  perks: jsonb("perks").$type<string[]>(),
+});
+
+export type MembershipPlanRow = typeof membershipPlans.$inferSelect;
+
 export const membershipStatusEnum = pgEnum("membership_status", [
   "active",
   "paused",
   "cancelled",
 ]);
 
-// planId is a config.json id, same reasoning as bookings.serviceId above:
-// not a FK, validated against the loaded config at the API layer.
+// planId is a membershipPlans id, not a FK: unlike bookings.serviceId/
+// classId (upgraded to real FKs once services/classes moved into the
+// database), nothing today needs a DB-level guarantee here strong enough
+// to justify one — validated against the loaded membershipPlans table at
+// the API layer instead (see bookingRules.ts's findMembershipPlan).
 export const memberships = pgTable("memberships", {
   id: serial("id").primaryKey(),
   customerId: integer("customer_id")
