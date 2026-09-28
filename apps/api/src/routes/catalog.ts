@@ -1,5 +1,5 @@
 import type { ClientConfig } from "@localos/config-schema";
-import { businessHours, classes, db, services, staff, trainerProfiles } from "@localos/db";
+import { businessHours, businessInfo, classes, db, services, staff, trainerProfiles } from "@localos/db";
 import { Router } from "express";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
@@ -57,6 +57,21 @@ const BUSINESS_HOURS_COLUMNS = {
   closeTime: businessHours.closeTime,
 };
 
+// No .where() needed — business_info is a singleton, always exactly one
+// row (id "default") once the cutover script has run. See packages/db's
+// schema comment on `businessInfo`.
+const BUSINESS_INFO_COLUMNS = {
+  name: businessInfo.name,
+  legalName: businessInfo.legalName,
+  description: businessInfo.description,
+  primaryColor: businessInfo.primaryColor,
+  logoUrl: businessInfo.logoUrl,
+  contactEmail: businessInfo.contactEmail,
+  contactPhone: businessInfo.contactPhone,
+  contactWebsite: businessInfo.contactWebsite,
+  address: businessInfo.address,
+};
+
 function stripNulls<T extends Record<string, unknown>>(row: T): { [K in keyof T]: Exclude<T[K], null> } {
   return Object.fromEntries(Object.entries(row).filter(([, v]) => v !== null)) as {
     [K in keyof T]: Exclude<T[K], null>;
@@ -64,13 +79,19 @@ function stripNulls<T extends Record<string, unknown>>(row: T): { [K in keyof T]
 }
 
 catalogRouter.get("/catalog", async (_req, res) => {
-  const [staffRows, trainerRows, serviceRows, classRows, businessHoursRows] = await Promise.all([
+  const [staffRows, trainerRows, serviceRows, classRows, businessHoursRows, businessInfoRows] = await Promise.all([
     db.select(STAFF_COLUMNS).from(staff),
     db.select(TRAINER_COLUMNS).from(trainerProfiles),
     db.select(SERVICE_COLUMNS).from(services),
     db.select(CLASS_COLUMNS).from(classes),
     db.select(BUSINESS_HOURS_COLUMNS).from(businessHours),
+    db.select(BUSINESS_INFO_COLUMNS).from(businessInfo),
   ]);
+
+  const businessInfoRow = businessInfoRows[0];
+  if (!businessInfoRow) {
+    throw new ApiError(500, "business_info has no row — has the migrate:business-info cutover run?");
+  }
 
   // classes moved out of config.json into the database this round too, but
   // trainerId still just points at a trainer_profiles row id — this is the
@@ -87,6 +108,24 @@ catalogRouter.get("/catalog", async (_req, res) => {
 
   const catalog: ClientConfig = {
     ...clientConfig,
+    // business/contact: merge config.json's deploy-time timezone/currency
+    // with the business_info DB row's branding/contact fields — same flat
+    // shape GET /catalog already returned before those fields moved to the
+    // database, so apps/web needs zero changes.
+    business: {
+      ...clientConfig.business,
+      name: businessInfoRow.name,
+      legalName: businessInfoRow.legalName ?? undefined,
+      description: businessInfoRow.description ?? undefined,
+      primaryColor: businessInfoRow.primaryColor,
+      logoUrl: businessInfoRow.logoUrl ?? undefined,
+    },
+    contact: {
+      email: businessInfoRow.contactEmail,
+      phone: businessInfoRow.contactPhone,
+      website: businessInfoRow.contactWebsite ?? undefined,
+      address: businessInfoRow.address,
+    },
     staff: staffRows.map(stripNulls),
     trainers: trainerRows.map(stripNulls),
     // price comes back from postgres `numeric` as a string — cast to

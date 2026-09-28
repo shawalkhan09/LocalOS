@@ -18,11 +18,25 @@ export const AddressSchema = z.object({
   country: z.string().min(1),
 });
 
-export const BusinessSchema = z.object({
-  name: z.string().min(1),
-  legalName: z.string().optional(),
+// Deploy-time only: timezone/currency are infrastructure settings read
+// synchronously across every date/availability calculation, unlike the
+// rest of BusinessSchema below (branding/contact), which moved into the
+// database this round (see packages/db's `business_info` table) — those
+// fields change on their own schedule (an owner editing their profile),
+// not at deploy time.
+export const BusinessSettingsSchema = z.object({
   timezone: z.string().min(1),
   currency: z.string().length(3),
+});
+
+// The full shape, not what's parsed from config.json anymore — this is the
+// contract for GET /catalog's response (ClientConfigSchema in index.ts
+// merges BusinessSettingsSchema's two deploy-time fields with a
+// business_info DB row at the API layer), same role StaffMemberSchema
+// plays for staff.
+export const BusinessSchema = BusinessSettingsSchema.extend({
+  name: z.string().min(1),
+  legalName: z.string().optional(),
   description: z.string().optional(),
   // Base-level, not gym-specific: every vertical's public booking page
   // needs branding. logoUrl is optional — the public UI must render fine
@@ -87,8 +101,7 @@ export const BaseFeaturesSchema = z.object({
 });
 
 export const BaseConfigSchema = z.object({
-  business: BusinessSchema,
-  contact: ContactSchema,
+  business: BusinessSettingsSchema,
   booking: BookingSettingsSchema,
   features: BaseFeaturesSchema,
 });
@@ -96,6 +109,7 @@ export const BaseConfigSchema = z.object({
 export type Weekday = z.infer<typeof WeekdaySchema>;
 export type BusinessHoursSlot = z.infer<typeof BusinessHoursSlotSchema>;
 export type Address = z.infer<typeof AddressSchema>;
+export type BusinessSettings = z.infer<typeof BusinessSettingsSchema>;
 export type Business = z.infer<typeof BusinessSchema>;
 export type Contact = z.infer<typeof ContactSchema>;
 export type Service = z.infer<typeof ServiceSchema>;

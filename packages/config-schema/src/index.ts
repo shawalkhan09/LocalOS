@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BusinessHoursSlotSchema, ServiceSchema, StaffMemberSchema } from "./base.js";
+import { BusinessHoursSlotSchema, BusinessSchema, ContactSchema, ServiceSchema, StaffMemberSchema } from "./base.js";
 import { GymClassSchema, GymConfigObjectSchema, GymConfigSchema, TrainerSchema, type GymConfig } from "./gym.js";
 
 export * from "./base.js";
@@ -18,6 +18,15 @@ export * from "./gym.js";
 // plus staff/trainers." When a second vertical is added, swap this for a
 // discriminated union on e.g. `business.vertical`.
 export const ClientConfigSchema = GymConfigObjectSchema.extend({
+  // Overrides GymConfigObjectSchema's narrower (timezone/currency-only)
+  // business field with the full shape — business name, branding, and
+  // description moved out of config.json into the database this round
+  // (see packages/db's `business_info` table), same story as
+  // staff/trainers/services/classes/businessHours below.
+  business: BusinessSchema,
+  // Contact info, same story: moved out of config.json into the database
+  // (see packages/db's `business_info` table) this round.
+  contact: ContactSchema,
   staff: z.array(StaffMemberSchema),
   trainers: z.array(TrainerSchema),
   // Services, same story as staff/trainers above: moved out of config.json

@@ -212,6 +212,37 @@ const BusinessHoursSlotShape = z
     path: ["closeTime"],
   });
 
+const BusinessInfoAddressShape = z.object({
+  street: z.string().min(1),
+  city: z.string().min(1),
+  state: z.string().min(1),
+  zip: z.string().min(1),
+  country: z.string().min(1),
+});
+
+// .strict() + "at least one field" pattern, same as UpdateServiceSchema —
+// business_info is a single settings row (see packages/db's schema), so
+// PATCH /business-info is a plain update, not replace-all like
+// businessHours. address, like schedule elsewhere, is replaced as a whole
+// object when provided rather than merged field-by-field.
+export const UpdateBusinessInfoSchema = z
+  .object({
+    name: z.string().min(1).optional(),
+    legalName: z.string().min(1).optional(),
+    description: z.string().min(1).optional(),
+    primaryColor: z
+      .string()
+      .regex(/^#[0-9a-fA-F]{6}$/, "expected a 6-digit hex color, e.g. #1A2B3C")
+      .optional(),
+    logoUrl: z.string().url().optional(),
+    contactEmail: z.string().email().optional(),
+    contactPhone: z.string().min(1).optional(),
+    contactWebsite: z.string().url().optional(),
+    address: BusinessInfoAddressShape.optional(),
+  })
+  .strict()
+  .refine((data) => Object.keys(data).length > 0, { message: "at least one field must be provided" });
+
 // PATCH /business-hours is replace-all (see routes/businessHours.ts), so
 // this validates the whole week array at once: closeTime>openTime moved
 // here from config-schema's assertBusinessHoursValid (business hours no
