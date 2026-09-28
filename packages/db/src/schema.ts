@@ -79,6 +79,26 @@ export const trainerProfiles = pgTable("trainer_profiles", {
 
 export type TrainerProfile = typeof trainerProfiles.$inferSelect;
 
+// Services used to live entirely in config.json too — same reasoning as
+// `staff` above, and the same cutover pattern: id stays a plain string
+// (e.g. "svc-personal-training"), preserved unchanged from config.json by
+// the one-time migration in scripts/migrate-services-from-config.ts, so
+// every existing reference to a serviceId elsewhere (bookings) needed no
+// changes of its own. staffIds mirrors trainerProfiles.specialties: a text
+// array rather than a join table, since "which staff can perform this
+// service" is service-owned data with no per-row attributes of its own.
+export const services = pgTable("services", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  durationMinutes: integer("duration_minutes").notNull(),
+  price: numeric("price").notNull(),
+  category: text("category"),
+  staffIds: text("staff_ids").array(),
+});
+
+export type Service = typeof services.$inferSelect;
+
 export const bookingStatusEnum = pgEnum("booking_status", [
   "confirmed",
   "cancelled",
@@ -86,20 +106,19 @@ export const bookingStatusEnum = pgEnum("booking_status", [
   "no_show",
 ]);
 
-// serviceId is a config.json id (e.g. "svc-personal-training") — the
-// service catalog stays config-driven this round, so this is intentionally
-// plain text, validated against the loaded config at the API layer. Do not
-// "fix" this into a FK against a table that doesn't exist.
+// serviceId IS a real FK now, against the `services` table above — the
+// same upgrade, and the same reasoning, as staffId below: services used to
+// live in config.json (a deploy-time file, not a database), so a DB-level
+// FK was never possible before. Now that both catalogs live in the
+// database, bookings can finally be guaranteed to reference a real row on
+// both sides instead of just one.
 //
-// staffId IS a real FK now, against the `staff` table above: staff used to
+// staffId is a real FK too, against the `staff` table above: staff used to
 // live in config.json (a deploy-time file, not a database), so a DB-level
 // FK was never possible before. Now that staff has moved into the database
 // itself, the same guarantee Postgres already gave bookings->customers can
-// finally cover bookings->staff too. serviceId isn't getting the same
-// upgrade because *it* is staying in config.json — this isn't an
-// inconsistency, it's the same rule applied to two different states of
-// data. Nullable: a booking isn't required to be scoped to a specific
-// staff member.
+// finally cover bookings->staff too. Nullable: a booking isn't required to
+// be scoped to a specific staff member.
 //
 // startTime/endTime are timestamptz (withTimezone: true), not plain
 // timestamp: they represent unambiguous instants, and availability/conflict
@@ -117,7 +136,9 @@ export const bookings = pgTable("bookings", {
   customerId: integer("customer_id")
     .notNull()
     .references(() => customers.id),
-  serviceId: text("service_id").notNull(),
+  serviceId: text("service_id")
+    .notNull()
+    .references(() => services.id),
   staffId: text("staff_id").references(() => staff.id),
   startTime: timestamp("start_time", { withTimezone: true }).notNull(),
   endTime: timestamp("end_time", { withTimezone: true }).notNull(),

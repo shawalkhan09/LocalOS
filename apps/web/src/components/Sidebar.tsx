@@ -24,6 +24,7 @@ const STAFF_NAV_ITEMS = [{ href: "/dashboard/schedule", label: "My schedule" }];
 const OWNER_NAV_ITEMS = [
   { href: "/dashboard/team", label: "Team" },
   { href: "/dashboard/staff", label: "Staff" },
+  { href: "/dashboard/services", label: "Services" },
 ];
 
 export function Sidebar() {

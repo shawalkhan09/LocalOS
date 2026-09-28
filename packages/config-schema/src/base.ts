@@ -89,7 +89,6 @@ export const BaseFeaturesSchema = z.object({
 export const BaseConfigSchema = z.object({
   business: BusinessSchema,
   contact: ContactSchema,
-  services: z.array(ServiceSchema).min(1),
   booking: BookingSettingsSchema,
   businessHours: z.array(BusinessHoursSlotSchema),
   features: BaseFeaturesSchema,

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { StaffMemberSchema } from "./base.js";
+import { ServiceSchema, StaffMemberSchema } from "./base.js";
 import { GymConfigObjectSchema, GymConfigSchema, TrainerSchema, type GymConfig } from "./gym.js";
 
 export * from "./base.js";
@@ -20,6 +20,10 @@ export * from "./gym.js";
 export const ClientConfigSchema = GymConfigObjectSchema.extend({
   staff: z.array(StaffMemberSchema),
   trainers: z.array(TrainerSchema),
+  // Services, same story as staff/trainers above: moved out of config.json
+  // into the database (see packages/db's `services` table), so GET
+  // /catalog's response carries them here instead.
+  services: z.array(ServiceSchema),
 });
 export type ClientConfig = z.infer<typeof ClientConfigSchema>;
 

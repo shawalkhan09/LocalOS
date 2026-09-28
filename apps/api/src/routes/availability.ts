@@ -8,7 +8,7 @@ import {
   localWeekday,
   overlaps,
 } from "../availability.js";
-import { assertStaffExists } from "../bookingRules.js";
+import { assertStaffExists, findService } from "../bookingRules.js";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
 
@@ -27,10 +27,7 @@ availabilityRouter.get("/bookings/check-availability", async (req, res) => {
   }
   const { serviceId, staffId, date } = parsed.data;
 
-  const service = clientConfig.services.find((s) => s.id === serviceId);
-  if (!service) {
-    throw new ApiError(400, `unknown serviceId "${serviceId}"`);
-  }
+  const service = await findService(serviceId);
   if (staffId !== undefined) {
     await assertStaffExists(staffId);
   }

@@ -1,0 +1,43 @@
+.qualifiedAny {
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-4);
+}
+
+.actionLink {
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.deleteLink {
+  border: none;
+  background: none;
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.formActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.cancelLink {
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  padding: 0;
+}

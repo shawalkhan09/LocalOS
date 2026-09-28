@@ -1,11 +1,12 @@
 import type { GymConfig } from "@localos/config-schema";
+import type { Service } from "@localos/db";
 import { DateTime } from "luxon";
 import { localTimeToInstant, localWeekday } from "./availability.js";
 import { ApiError } from "./errors.js";
 import { clientConfig } from "./config.js";
 
 export interface BookableSessionTimeParams {
-  service: GymConfig["services"][number];
+  service: Service;
   startTime: DateTime | Date;
   endTime: DateTime | Date;
   now?: DateTime;

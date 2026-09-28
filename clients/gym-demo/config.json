@@ -19,42 +19,7 @@
       "country": "US"
     }
   },
-  "services": [
-    {
-      "id": "svc-personal-training",
-      "name": "1-on-1 Personal Training",
-      "description": "60-minute personal training session with a certified trainer.",
-      "durationMinutes": 60,
-      "price": 85,
-      "category": "training",
-      "staffIds": ["staff-priya", "staff-marcus"]
-    },
-    {
-      "id": "svc-drop-in-class",
-      "name": "Drop-In Class",
-      "description": "Single-visit access to any scheduled group class.",
-      "durationMinutes": 45,
-      "price": 25,
-      "category": "class"
-    },
-    {
-      "id": "svc-fitness-assessment",
-      "name": "Fitness Assessment",
-      "description": "Baseline strength, mobility, and conditioning assessment.",
-      "durationMinutes": 30,
-      "price": 40,
-      "category": "assessment"
-    },
-    {
-      "id": "svc-nutrition-consult",
-      "name": "Nutrition Consult",
-      "description": "One-on-one nutrition planning session.",
-      "durationMinutes": 45,
-      "price": 60,
-      "category": "coaching"
-    }
-  ],
-  "_note": "staff and trainer profiles moved to the database this round — see packages/db/scripts/migrate-staff-from-config.ts and the `staff`/`trainer_profiles` tables in packages/db/src/schema.ts",
+  "_note": "staff, trainer profiles, and services moved to the database this round — see packages/db/scripts/migrate-staff-from-config.ts, migrate-services-from-config.ts, and the `staff`/`trainer_profiles`/`services` tables in packages/db/src/schema.ts",
   "booking": {
     "advanceBookingDays": 14,
     "cancellationWindowHours": 12,

@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { DateTime } from "luxon";
-import { db, users, sessions, staff } from "@localos/db";
+import { db, users, sessions, staff, services } from "@localos/db";
 import { eq } from "drizzle-orm";
 import { createApp } from "./app.js";
 import { assertBookableSessionTime, assertBookableClassOccurrence } from "./bookingWindow.js";
@@ -116,8 +116,13 @@ assert(
 );
 console.log("OK: request validation rejects and accepts the expected shapes");
 
+// Services moved from config.json into the database this round (see
+// packages/db's `services` table) — read once here for the checks below
+// that need a real service row.
+const dbServices = await db.select().from(services);
+
 // Booking time validation: assertBookableSessionTime must enforce all four rules in order.
-const service60min = clientConfig.services.find((s) => s.durationMinutes === 60)!;
+const service60min = dbServices.find((s) => s.durationMinutes === 60)!;
 const fixedNow = DateTime.fromISO("2026-09-21T10:00:00", { zone: clientConfig.business.timezone }); // Monday
 
 // Rule 1: past start rejected
@@ -330,7 +335,7 @@ console.log("OK: class occurrence validation enforces all rules in order");
 // converted to the business timezone before validation. The routes pass JS
 // Dates (which are UTC internally), and on a non-Denver server, DateTime.fromJSDate
 // must explicitly treat them as UTC before converting to business time.
-const service30min = clientConfig.services.find((s) => s.durationMinutes === 30)!;
+const service30min = dbServices.find((s) => s.durationMinutes === 30)!;
 const fixedNowUTC = DateTime.fromISO("2026-09-21T10:00:00", { zone: clientConfig.business.timezone }); // Monday 10 AM business time
 
 // 6 PM booking (valid) — passed as JS Date (UTC internally)
@@ -436,7 +441,7 @@ assert.deepStrictEqual(health, { ok: true });
 
 const catalog = await fetch(`${baseUrl}/catalog`).then((r) => r.json());
 assert.strictEqual(catalog.business.name, clientConfig.business.name);
-assert.strictEqual(catalog.services.length, clientConfig.services.length);
+assert.strictEqual(catalog.services.length, dbServices.length);
 assert(Array.isArray(catalog.staff) && catalog.staff.length > 0, "catalog should include staff from the database");
 assert(
   Array.isArray(catalog.trainers) && catalog.trainers.length > 0,
@@ -646,7 +651,7 @@ const timezone = clientConfig.business.timezone;
 const now = DateTime.now().setZone(timezone);
 const pastTime = now.minus({ hours: 1 });
 const futureClosedTime = now.plus({ days: 1 }).set({ hour: 23, minute: 0 });
-const futureService = clientConfig.services.find((s) => s.durationMinutes === 60)!;
+const futureService = dbServices.find((s) => s.durationMinutes === 60)!;
 
 // Past time rejected
 const pastBookingRes = await fetch(`${baseUrl}/public/bookings`, {
