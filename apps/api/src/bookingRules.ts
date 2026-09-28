@@ -1,4 +1,4 @@
-import { bookings, classBookings, classes, customers, db, services, staff, type Class, type Customer, type Service } from "@localos/db";
+import { bookings, businessHours, classBookings, classes, customers, db, services, staff, type BusinessHours, type Class, type Customer, type Service } from "@localos/db";
 import { and, eq, gt, inArray, lt, ne, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { ApiError } from "./errors.js";
@@ -40,6 +40,16 @@ export async function findClass(classId: string): Promise<Class> {
 // packages/db's `staff` table), so this is now a DB lookup instead of a
 // config.staff scan — same 400-if-not-found contract as findService/
 // findGymClass above.
+// Business hours moved from config.json into the database this round (see
+// packages/db's `business_hours` table), so this is now a DB lookup
+// instead of a config.businessHours scan. Shared by both call sites that
+// need the full week (bookingWindow.ts's assertBookableSessionTime and
+// routes/availability.ts's check-availability) so they don't each write
+// their own near-identical query.
+export async function getBusinessHours(): Promise<BusinessHours[]> {
+  return db.select().from(businessHours);
+}
+
 export async function assertStaffExists(staffId: string): Promise<void> {
   const [row] = await db.select({ id: staff.id }).from(staff).where(eq(staff.id, staffId)).limit(1);
   if (!row) {

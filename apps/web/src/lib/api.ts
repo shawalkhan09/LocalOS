@@ -1,4 +1,4 @@
-import type { ClientConfig, ClassScheduleSlot, GymClass, Service, StaffMember, Trainer } from "@localos/config-schema";
+import type { BusinessHoursSlot, ClientConfig, ClassScheduleSlot, GymClass, Service, StaffMember, Trainer } from "@localos/config-schema";
 
 // Production calls go through the same-origin /api-proxy rewrite (see
 // next.config.ts) instead of straight to Render's own domain — that's
@@ -345,6 +345,13 @@ export function updateClass(
 // still has bookings rather than orphaning them.
 export function deleteClass(id: string): Promise<void> {
   return request<void>(`/classes/${id}`, { method: "DELETE" });
+}
+
+// Owner-only, replace-all: PATCH /business-hours takes the whole week at
+// once (a day omitted is closed) rather than per-day add/remove, since
+// business hours is a settings form, not a table like Services/Classes.
+export function updateBusinessHours(data: BusinessHoursSlot[]): Promise<BusinessHoursSlot[]> {
+  return request<BusinessHoursSlot[]>("/business-hours", { method: "PATCH", body: JSON.stringify(data) });
 }
 
 export function changePassword(data: { currentPassword: string; newPassword: string }): Promise<void> {

@@ -1,0 +1,39 @@
+.dayRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dayRow:last-of-type {
+  border-bottom: none;
+}
+
+.dayLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 140px;
+  cursor: pointer;
+}
+
+.dayName {
+  text-transform: capitalize;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.timeControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.closedLabel {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}

@@ -16,11 +16,6 @@ const raw = JSON.parse(readFileSync(configPath, "utf-8"));
 // (assertStaffQualified) and apps/api/src/routes/catalog.ts.
 const config = parseClientConfig(raw);
 assert(config.business.name.length > 0, "expected a business name");
-assert(config.businessHours.length > 0, "expected at least one business hours slot");
-assert(
-  config.businessHours.every((slot) => slot.closeTime > slot.openTime),
-  "every business hours slot must close after it opens",
-);
 assert(/^#[0-9a-fA-F]{6}$/.test(config.business.primaryColor), "expected a 6-digit hex primaryColor");
 console.log("OK: gym-demo config.json is valid");
 
@@ -34,14 +29,6 @@ assert.throws(
   "duplicate service id should be rejected",
 );
 console.log("OK: duplicate id within an array is rejected");
-
-const closeTimeBeforeOpenTime = structuredClone(raw);
-closeTimeBeforeOpenTime.businessHours[0].closeTime = "04:00"; // before that day's 05:00 openTime
-assert.throws(
-  () => parseClientConfig(closeTimeBeforeOpenTime),
-  "closeTime at or before openTime should be rejected",
-);
-console.log("OK: business hours with closeTime <= openTime is rejected");
 
 const badPrimaryColor = structuredClone(raw);
 badPrimaryColor.business.primaryColor = "not-a-hex-color";

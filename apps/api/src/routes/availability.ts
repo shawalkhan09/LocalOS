@@ -8,7 +8,7 @@ import {
   localWeekday,
   overlaps,
 } from "../availability.js";
-import { assertStaffExists, findService } from "../bookingRules.js";
+import { assertStaffExists, findService, getBusinessHours } from "../bookingRules.js";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
 
@@ -54,7 +54,8 @@ availabilityRouter.get("/bookings/check-availability", async (req, res) => {
   }
 
   const weekday = localWeekday(date, timezone);
-  const hoursSlot = clientConfig.businessHours.find((slot) => slot.day === weekday);
+  const businessHours = await getBusinessHours();
+  const hoursSlot = businessHours.find((slot) => slot.day === weekday);
   if (!hoursSlot) {
     // No entry for this weekday means closed — an empty slots array, not an
     // error.

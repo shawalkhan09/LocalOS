@@ -4,6 +4,7 @@ import { ApiError } from "./errors.js";
 import { authRouter } from "./routes/auth.js";
 import { availabilityRouter } from "./routes/availability.js";
 import { bookingsRouter } from "./routes/bookings.js";
+import { businessHoursRouter } from "./routes/businessHours.js";
 import { catalogRouter } from "./routes/catalog.js";
 import { classBookingsRouter } from "./routes/classBookings.js";
 import { classesRouter } from "./routes/classes.js";
@@ -150,6 +151,7 @@ export function createApp() {
   app.use(staffRouter);
   app.use(servicesRouter);
   app.use(classesRouter);
+  app.use(businessHoursRouter);
 
   app.use(errorHandler);
 

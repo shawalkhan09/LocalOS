@@ -3,11 +3,13 @@ import { DateTime } from "luxon";
 import { db, users, sessions, staff, services, classes } from "@localos/db";
 import { eq } from "drizzle-orm";
 import { createApp } from "./app.js";
+import { getBusinessHours } from "./bookingRules.js";
 import { assertBookableSessionTime, assertBookableClassOccurrence } from "./bookingWindow.js";
 import { clientConfig } from "./config.js";
 import { hashPassword } from "./auth/password.js";
 import {
   CreateBookingSchema,
+  CreateBusinessHoursSchema,
   CreateClassBookingSchema,
   CreateCustomerSchema,
   CreateMembershipSchema,
@@ -114,6 +116,25 @@ assert(
   !UpdateTrainerProfileSchema.safeParse({ staffId: "staff-someone-else" }).success,
   "reassigning staffId is not supported and must be rejected, not silently ignored",
 );
+// Moved here from config-schema's check.ts (see base.ts/gym.ts): business
+// hours no longer round-trips through parseClientConfig, so the
+// closeTime>openTime rejection is now exercised against the API's own
+// CreateBusinessHoursSchema instead.
+assert(
+  !CreateBusinessHoursSchema.safeParse([{ day: "monday", openTime: "09:00", closeTime: "04:00" }]).success,
+  "closeTime at or before openTime should be rejected",
+);
+assert(
+  CreateBusinessHoursSchema.safeParse([{ day: "monday", openTime: "09:00", closeTime: "17:00" }]).success,
+  "closeTime after openTime should be valid",
+);
+assert(
+  !CreateBusinessHoursSchema.safeParse([
+    { day: "monday", openTime: "09:00", closeTime: "17:00" },
+    { day: "monday", openTime: "18:00", closeTime: "20:00" },
+  ]).success,
+  "a duplicate day should be rejected",
+);
 console.log("OK: request validation rejects and accepts the expected shapes");
 
 // Services moved from config.json into the database this round (see
@@ -128,7 +149,7 @@ const fixedNow = DateTime.fromISO("2026-09-21T10:00:00", { zone: clientConfig.bu
 // Rule 1: past start rejected
 let pastStartFailed = false;
 try {
-  assertBookableSessionTime({
+  await assertBookableSessionTime({
     service: service60min,
     startTime: fixedNow.minus({ hours: 1 }),
     endTime: fixedNow.plus({ minutes: 0 }),
@@ -143,7 +164,7 @@ assert(pastStartFailed, "should reject past start with 'already passed' message"
 let beyondWindowFailed = false;
 try {
   const beyondWindow = fixedNow.plus({ days: clientConfig.booking.advanceBookingDays + 1 });
-  assertBookableSessionTime({
+  await assertBookableSessionTime({
     service: service60min,
     startTime: beyondWindow.set({ hour: 10, minute: 0 }),
     endTime: beyondWindow.set({ hour: 11, minute: 0 }),
@@ -159,7 +180,7 @@ const lastAllowed = fixedNow.plus({ days: clientConfig.booking.advanceBookingDay
   hour: 10,
   minute: 0,
 });
-assertBookableSessionTime({
+await assertBookableSessionTime({
   service: service60min,
   startTime: lastAllowed,
   endTime: lastAllowed.plus({ minutes: 60 }),
@@ -170,7 +191,7 @@ assertBookableSessionTime({
 let closedDayFailed = false;
 try {
   const sunday = fixedNow.plus({ days: 6 }); // Next Sunday
-  assertBookableSessionTime({
+  await assertBookableSessionTime({
     service: service60min,
     startTime: sunday.set({ hour: 10, minute: 0 }),
     endTime: sunday.set({ hour: 11, minute: 0 }),
@@ -185,7 +206,7 @@ assert(closedDayFailed, "should reject closed day (Sunday) with 'closed' message
 let beforeOpenFailed = false;
 try {
   const wednesday = fixedNow.plus({ days: 2 }); // Wednesday
-  assertBookableSessionTime({
+  await assertBookableSessionTime({
     service: service60min,
     startTime: wednesday.set({ hour: 4, minute: 0 }),
     endTime: wednesday.set({ hour: 5, minute: 0 }),
@@ -200,7 +221,7 @@ assert(beforeOpenFailed, "should reject before open with 'closed' message");
 let afterCloseFailed = false;
 try {
   const tuesday = fixedNow.plus({ days: 1 }); // Tuesday closes at 21:00
-  assertBookableSessionTime({
+  await assertBookableSessionTime({
     service: service60min,
     startTime: tuesday.set({ hour: 20, minute: 30 }),
     endTime: tuesday.set({ hour: 21, minute: 30 }), // Ends after close
@@ -215,7 +236,7 @@ assert(afterCloseFailed, "should reject after close with 'closed' message");
 let wrongDurationFailed = false;
 try {
   const wednesday = fixedNow.plus({ days: 2 }); // Wednesday
-  assertBookableSessionTime({
+  await assertBookableSessionTime({
     service: service60min,
     startTime: wednesday.set({ hour: 10, minute: 0 }),
     endTime: wednesday.set({ hour: 10, minute: 45 }), // 45 min, not 60
@@ -228,7 +249,7 @@ assert(wrongDurationFailed, "should reject wrong duration with 'doesn't match' m
 
 // Valid future slot accepted
 const wednesday = fixedNow.plus({ days: 2 }); // Wednesday
-assertBookableSessionTime({
+await assertBookableSessionTime({
   service: service60min,
   startTime: wednesday.set({ hour: 10, minute: 0 }),
   endTime: wednesday.set({ hour: 11, minute: 0 }),
@@ -344,7 +365,7 @@ const fixedNowUTC = DateTime.fromISO("2026-09-21T10:00:00", { zone: clientConfig
 // 6 PM booking (valid) — passed as JS Date (UTC internally)
 const booking6pmStart = fixedNowUTC.set({ hour: 18, minute: 0, second: 0, millisecond: 0 });
 const booking6pmEnd = booking6pmStart.plus({ minutes: 30 });
-assertBookableSessionTime({
+await assertBookableSessionTime({
   service: service30min,
   startTime: booking6pmStart.toJSDate(),
   endTime: booking6pmEnd.toJSDate(),
@@ -354,7 +375,7 @@ assertBookableSessionTime({
 // 7 PM booking (valid) — passed as JS Date (UTC internally)
 const booking7pmStart = fixedNowUTC.set({ hour: 19, minute: 0, second: 0, millisecond: 0 });
 const booking7pmEnd = booking7pmStart.plus({ minutes: 30 });
-assertBookableSessionTime({
+await assertBookableSessionTime({
   service: service30min,
   startTime: booking7pmStart.toJSDate(),
   endTime: booking7pmEnd.toJSDate(),
@@ -364,7 +385,7 @@ assertBookableSessionTime({
 // 8:30 PM booking (valid, still before 9 PM close) — passed as JS Date (UTC internally)
 const booking830pmStart = fixedNowUTC.set({ hour: 20, minute: 30, second: 0, millisecond: 0 });
 const booking830pmEnd = booking830pmStart.plus({ minutes: 30 });
-assertBookableSessionTime({
+await assertBookableSessionTime({
   service: service30min,
   startTime: booking830pmStart.toJSDate(),
   endTime: booking830pmEnd.toJSDate(),
@@ -377,7 +398,7 @@ const lastAllowedDayStart = fixedNowUTC
   .plus({ days: clientConfig.booking.advanceBookingDays })
   .set({ hour: 19, minute: 0, second: 0, millisecond: 0 });
 const lastAllowedDayEnd = lastAllowedDayStart.plus({ minutes: 30 });
-assertBookableSessionTime({
+await assertBookableSessionTime({
   service: service30min,
   startTime: lastAllowedDayStart.toJSDate(),
   endTime: lastAllowedDayEnd.toJSDate(),
@@ -389,7 +410,7 @@ let afterCloseUTCFailed = false;
 try {
   const booking845pmStart = fixedNowUTC.set({ hour: 20, minute: 45, second: 0, millisecond: 0 });
   const booking845pmEnd = booking845pmStart.plus({ minutes: 30 });
-  assertBookableSessionTime({
+  await assertBookableSessionTime({
     service: service30min,
     startTime: booking845pmStart.toJSDate(),
     endTime: booking845pmEnd.toJSDate(),
@@ -414,7 +435,7 @@ const eveningStart = DateTime.now()
   .set({ hour: 19, minute: 0, second: 0, millisecond: 0 });
 let eveningRejected = false;
 try {
-  assertBookableSessionTime({
+  await assertBookableSessionTime({
     service: service60min,
     startTime: eveningStart,
     endTime: eveningStart.plus({ minutes: service60min.durationMinutes }),
@@ -451,6 +472,17 @@ assert(
   "catalog should include trainers from the database",
 );
 console.log("OK: /health and /catalog serve the loaded config plus database-backed staff/trainers");
+
+// Business hours moved from config.json into the database this round (see
+// packages/db's `business_hours` table) — boot-smoke check that they read
+// correctly, through both the direct DB helper and GET /catalog.
+const dbBusinessHours = await getBusinessHours();
+assert(dbBusinessHours.length > 0, "expected at least one business hours row in the database");
+assert(
+  Array.isArray(catalog.businessHours) && catalog.businessHours.length === dbBusinessHours.length,
+  "catalog should include business hours from the database",
+);
+console.log("OK: business hours read correctly from the database");
 
 // Auth boundary: a protected route must 401 without a session, and this
 // doesn't need a live DB — no cookie means requireAuth rejects before ever

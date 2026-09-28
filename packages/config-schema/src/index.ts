@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ServiceSchema, StaffMemberSchema } from "./base.js";
+import { BusinessHoursSlotSchema, ServiceSchema, StaffMemberSchema } from "./base.js";
 import { GymClassSchema, GymConfigObjectSchema, GymConfigSchema, TrainerSchema, type GymConfig } from "./gym.js";
 
 export * from "./base.js";
@@ -27,6 +27,9 @@ export const ClientConfigSchema = GymConfigObjectSchema.extend({
   // Classes, same story: moved out of config.json into the database (see
   // packages/db's `classes` table) this round.
   classes: z.array(GymClassSchema),
+  // Business hours, same story: moved out of config.json into the
+  // database (see packages/db's `business_hours` table) this round.
+  businessHours: z.array(BusinessHoursSlotSchema),
 });
 export type ClientConfig = z.infer<typeof ClientConfigSchema>;
 

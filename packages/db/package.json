@@ -12,7 +12,8 @@
     "seed:demo": "tsx scripts/seed-demo-data.ts",
     "migrate:staff": "tsx scripts/migrate-staff-from-config.ts",
     "migrate:services": "tsx scripts/migrate-services-from-config.ts",
-    "migrate:classes": "tsx scripts/migrate-classes-from-config.ts"
+    "migrate:classes": "tsx scripts/migrate-classes-from-config.ts",
+    "migrate:business-hours": "tsx scripts/migrate-business-hours-from-config.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
