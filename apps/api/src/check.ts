@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { DateTime } from "luxon";
-import { db, users, sessions, staff, services, classes } from "@localos/db";
+import { db, users, sessions, staff, services, classes, businessInfo } from "@localos/db";
 import { eq } from "drizzle-orm";
 import { createApp } from "./app.js";
 import { getBusinessHours } from "./bookingRules.js";
@@ -17,6 +17,7 @@ import {
   CreateTrainerProfileSchema,
   CreateUserSchema,
   PublicCreateBookingSchema,
+  UpdateBusinessInfoSchema,
   UpdateStaffSchema,
   UpdateTrainerProfileSchema,
   UpdateUserSchema,
@@ -135,12 +136,36 @@ assert(
   ]).success,
   "a duplicate day should be rejected",
 );
+assert(!UpdateBusinessInfoSchema.safeParse({}).success, "an update with no fields at all should be rejected");
+assert(
+  UpdateBusinessInfoSchema.safeParse({ name: "New Name" }).success,
+  "updating just the name should be valid",
+);
+assert(
+  !UpdateBusinessInfoSchema.safeParse({ primaryColor: "not-a-hex-color" }).success,
+  "a malformed primaryColor should be rejected",
+);
+assert(
+  !UpdateBusinessInfoSchema.safeParse({ id: "something-else" }).success,
+  "changing id is not supported and must be rejected, not silently ignored",
+);
 console.log("OK: request validation rejects and accepts the expected shapes");
 
 // Services moved from config.json into the database this round (see
 // packages/db's `services` table) — read once here for the checks below
 // that need a real service row.
 const dbServices = await db.select().from(services);
+
+// Business branding/contact moved from config.json into the database this
+// round (see packages/db's `business_info` table) — read once here.
+// name/primaryColor assertions moved from config-schema's check.ts: those
+// fields no longer round-trip through parseClientConfig, so they're
+// checked against the real business_info row instead.
+const [dbBusinessInfo] = await db.select().from(businessInfo);
+assert(dbBusinessInfo, "expected a business_info row in the database");
+assert(dbBusinessInfo.name.length > 0, "expected a business name");
+assert(/^#[0-9a-fA-F]{6}$/.test(dbBusinessInfo.primaryColor), "expected a 6-digit hex primaryColor");
+console.log("OK: business_info row has a valid name and primaryColor");
 
 // Booking time validation: assertBookableSessionTime must enforce all four rules in order.
 const service60min = dbServices.find((s) => s.durationMinutes === 60)!;
@@ -464,7 +489,7 @@ const health = await fetch(`${baseUrl}/health`).then((r) => r.json());
 assert.deepStrictEqual(health, { ok: true });
 
 const catalog = await fetch(`${baseUrl}/catalog`).then((r) => r.json());
-assert.strictEqual(catalog.business.name, clientConfig.business.name);
+assert.strictEqual(catalog.business.name, dbBusinessInfo.name);
 assert.strictEqual(catalog.services.length, dbServices.length);
 assert(Array.isArray(catalog.staff) && catalog.staff.length > 0, "catalog should include staff from the database");
 assert(
@@ -483,6 +508,14 @@ assert(
   "catalog should include business hours from the database",
 );
 console.log("OK: business hours read correctly from the database");
+
+// Business info boot-smoke check: reads correctly from the database and
+// GET /catalog reflects it (branding merged with contact into the same
+// flat shape apps/web already reads).
+assert.strictEqual(catalog.business.primaryColor, dbBusinessInfo.primaryColor);
+assert.strictEqual(catalog.contact.email, dbBusinessInfo.contactEmail);
+assert.strictEqual(catalog.contact.address.city, dbBusinessInfo.address.city);
+console.log("OK: business info reads correctly from the database and GET /catalog reflects it");
 
 // Auth boundary: a protected route must 401 without a session, and this
 // doesn't need a live DB — no cookie means requireAuth rejects before ever

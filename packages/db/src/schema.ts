@@ -140,6 +140,33 @@ export const businessHours = pgTable("business_hours", {
 
 export type BusinessHours = typeof businessHours.$inferSelect;
 
+// Business branding/contact used to live in config.json too, but unlike
+// businessHours it's not a bounded per-key settings object — it's a single
+// row of fields with no natural per-field key, so (like classes.schedule)
+// there's no better primary key than a fixed literal. id is always the
+// string "default", set once by the cutover script and never changed —
+// this table only ever holds that one row. address is jsonb for the same
+// reason classes.schedule is: it has no independent identity of its own
+// outside this one row. timezone/currency stay in config.json (deploy-time
+// infrastructure settings, read synchronously across every date/
+// availability calculation) — only branding/contact moved here.
+export const businessInfo = pgTable("business_info", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  legalName: text("legal_name"),
+  description: text("description"),
+  primaryColor: text("primary_color").notNull(),
+  logoUrl: text("logo_url"),
+  contactEmail: text("contact_email").notNull(),
+  contactPhone: text("contact_phone").notNull(),
+  contactWebsite: text("contact_website"),
+  address: jsonb("address")
+    .$type<{ street: string; city: string; state: string; zip: string; country: string }>()
+    .notNull(),
+});
+
+export type BusinessInfo = typeof businessInfo.$inferSelect;
+
 export const bookingStatusEnum = pgEnum("booking_status", [
   "confirmed",
   "cancelled",

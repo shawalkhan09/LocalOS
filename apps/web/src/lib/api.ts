@@ -1,4 +1,4 @@
-import type { BusinessHoursSlot, ClientConfig, ClassScheduleSlot, GymClass, Service, StaffMember, Trainer } from "@localos/config-schema";
+import type { Address, BusinessHoursSlot, ClientConfig, ClassScheduleSlot, GymClass, Service, StaffMember, Trainer } from "@localos/config-schema";
 
 // Production calls go through the same-origin /api-proxy rewrite (see
 // next.config.ts) instead of straight to Render's own domain — that's
@@ -352,6 +352,25 @@ export function deleteClass(id: string): Promise<void> {
 // business hours is a settings form, not a table like Services/Classes.
 export function updateBusinessHours(data: BusinessHoursSlot[]): Promise<BusinessHoursSlot[]> {
   return request<BusinessHoursSlot[]>("/business-hours", { method: "PATCH", body: JSON.stringify(data) });
+}
+
+// Owner-only, single-row update: PATCH /business-info patches the one
+// settings row (business_info always has exactly one row), unlike
+// business-hours' replace-all week array above.
+export type BusinessInfoUpdate = Partial<{
+  name: string;
+  legalName: string;
+  description: string;
+  primaryColor: string;
+  logoUrl: string;
+  contactEmail: string;
+  contactPhone: string;
+  contactWebsite: string;
+  address: Address;
+}>;
+
+export function updateBusinessInfo(data: BusinessInfoUpdate): Promise<BusinessInfoUpdate> {
+  return request<BusinessInfoUpdate>("/business-info", { method: "PATCH", body: JSON.stringify(data) });
 }
 
 export function changePassword(data: { currentPassword: string; newPassword: string }): Promise<void> {

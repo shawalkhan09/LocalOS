@@ -14,9 +14,12 @@ const raw = JSON.parse(readFileSync(configPath, "utf-8"));
 // checked against the database at runtime now that staff/trainers live
 // there instead of in this file. See apps/api/src/bookingRules.ts
 // (assertStaffQualified) and apps/api/src/routes/catalog.ts.
-const config = parseClientConfig(raw);
-assert(config.business.name.length > 0, "expected a business name");
-assert(/^#[0-9a-fA-F]{6}$/.test(config.business.primaryColor), "expected a 6-digit hex primaryColor");
+//
+// business.name/primaryColor assertions moved to apps/api/src/check.ts:
+// those fields no longer exist on the parsed deploy-time config (business
+// name/branding moved to the database this round — see packages/db's
+// `business_info` table), only timezone/currency remain here.
+parseClientConfig(raw);
 console.log("OK: gym-demo config.json is valid");
 
 assert.throws(() => parseClientConfig({ business: {} }), "malformed config should throw");
@@ -29,8 +32,3 @@ assert.throws(
   "duplicate service id should be rejected",
 );
 console.log("OK: duplicate id within an array is rejected");
-
-const badPrimaryColor = structuredClone(raw);
-badPrimaryColor.business.primaryColor = "not-a-hex-color";
-assert.throws(() => parseClientConfig(badPrimaryColor), "malformed primaryColor should be rejected");
-console.log("OK: a malformed primaryColor is rejected");

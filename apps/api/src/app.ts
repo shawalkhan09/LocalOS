@@ -5,6 +5,7 @@ import { authRouter } from "./routes/auth.js";
 import { availabilityRouter } from "./routes/availability.js";
 import { bookingsRouter } from "./routes/bookings.js";
 import { businessHoursRouter } from "./routes/businessHours.js";
+import { businessInfoRouter } from "./routes/businessInfo.js";
 import { catalogRouter } from "./routes/catalog.js";
 import { classBookingsRouter } from "./routes/classBookings.js";
 import { classesRouter } from "./routes/classes.js";
@@ -152,6 +153,7 @@ export function createApp() {
   app.use(servicesRouter);
   app.use(classesRouter);
   app.use(businessHoursRouter);
+  app.use(businessInfoRouter);
 
   app.use(errorHandler);
 

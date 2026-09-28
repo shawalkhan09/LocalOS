@@ -1,25 +1,9 @@
 {
   "business": {
-    "name": "Ironclad Fitness",
-    "legalName": "Ironclad Fitness LLC",
     "timezone": "Asia/Karachi",
-    "currency": "USD",
-    "description": "Neighborhood strength and conditioning gym in Denver, CO.",
-    "primaryColor": "#E63946"
+    "currency": "USD"
   },
-  "contact": {
-    "email": "hello@ironcladfitness.com",
-    "phone": "+1-303-555-0142",
-    "website": "https://ironcladfitness.com",
-    "address": {
-      "street": "1420 Larimer St",
-      "city": "Denver",
-      "state": "CO",
-      "zip": "80202",
-      "country": "US"
-    }
-  },
-  "_note": "staff, trainer profiles, services, classes, and business hours moved to the database this round — see packages/db/scripts/migrate-staff-from-config.ts, migrate-services-from-config.ts, migrate-classes-from-config.ts, migrate-business-hours-from-config.ts, and the `staff`/`trainer_profiles`/`services`/`classes`/`business_hours` tables in packages/db/src/schema.ts",
+  "_note": "staff, trainer profiles, services, classes, business hours, and business branding/contact info moved to the database this round — see packages/db/scripts/migrate-staff-from-config.ts, migrate-services-from-config.ts, migrate-classes-from-config.ts, migrate-business-hours-from-config.ts, migrate-business-info-from-config.ts, and the `staff`/`trainer_profiles`/`services`/`classes`/`business_hours`/`business_info` tables in packages/db/src/schema.ts. timezone/currency stay here: deploy-time infrastructure settings read synchronously across every date/availability calculation.",
   "booking": {
     "advanceBookingDays": 14,
     "cancellationWindowHours": 12,
