@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { DateTime } from "luxon";
-import { db, users, sessions, staff, services } from "@localos/db";
+import { db, users, sessions, staff, services, classes } from "@localos/db";
 import { eq } from "drizzle-orm";
 import { createApp } from "./app.js";
 import { assertBookableSessionTime, assertBookableClassOccurrence } from "./bookingWindow.js";
@@ -238,7 +238,10 @@ assertBookableSessionTime({
 console.log("OK: booking time validation enforces all rules in order");
 
 // Class booking occurrence validation: assertBookableClassOccurrence must enforce all rules in order.
-const sampleClass = clientConfig.classes[0]!;
+// Classes moved from config.json into the database this round (see
+// packages/db's `classes` table) — read once here, same as dbServices above.
+const dbClasses = await db.select().from(classes);
+const sampleClass = dbClasses[0]!;
 const fixedClassNow = DateTime.fromISO("2026-09-21T10:00:00", { zone: clientConfig.business.timezone }); // Monday
 
 // Rule 1: wrong weekday rejected

@@ -3,6 +3,7 @@ import {
   check,
   date,
   integer,
+  jsonb,
   numeric,
   pgEnum,
   pgTable,
@@ -99,6 +100,30 @@ export const services = pgTable("services", {
 
 export type Service = typeof services.$inferSelect;
 
+// Classes used to live entirely in config.json too (gym-vertical-specific,
+// see packages/config-schema's gym.ts) — same cutover pattern as services
+// above: id stays a plain string (e.g. "class-strength-101"), preserved
+// unchanged from config.json by the one-time migration in
+// scripts/migrate-classes-from-config.ts. trainerId is not a FK — same
+// "runtime-checked, not DB-enforced" reasoning as services.staffIds;
+// trainerId is validated against trainer_profiles at the one place classes
+// are read (GET /catalog), same as before. schedule is jsonb (an array of
+// { day, startTime } slots) rather than a separate table, since a class's
+// recurring weekly schedule has no independent identity of its own.
+type Weekday = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+
+export const classes = pgTable("classes", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  trainerId: text("trainer_id").notNull(),
+  durationMinutes: integer("duration_minutes").notNull(),
+  capacity: integer("capacity").notNull(),
+  category: text("category"),
+  schedule: jsonb("schedule").$type<{ day: Weekday; startTime: string }[]>().notNull(),
+});
+
+export type Class = typeof classes.$inferSelect;
+
 export const bookingStatusEnum = pgEnum("booking_status", [
   "confirmed",
   "cancelled",
@@ -154,8 +179,10 @@ export const classBookingStatusEnum = pgEnum("class_booking_status", [
   "cancelled",
 ]);
 
-// classId is a config.json id, same reasoning as bookings.serviceId above:
-// not a FK, validated against the loaded config at the API layer.
+// classId IS a real FK now, against the `classes` table above — the same
+// upgrade, and the same reasoning, as bookings.serviceId: classes used to
+// live in config.json (a deploy-time file, not a database), so a DB-level
+// FK was never possible before.
 export const classBookings = pgTable(
   "class_bookings",
   {
@@ -163,7 +190,9 @@ export const classBookings = pgTable(
     customerId: integer("customer_id")
       .notNull()
       .references(() => customers.id),
-    classId: text("class_id").notNull(),
+    classId: text("class_id")
+      .notNull()
+      .references(() => classes.id),
     occurrenceDate: date("occurrence_date").notNull(),
     status: classBookingStatusEnum("status").default("booked"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

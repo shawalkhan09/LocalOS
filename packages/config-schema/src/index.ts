@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ServiceSchema, StaffMemberSchema } from "./base.js";
-import { GymConfigObjectSchema, GymConfigSchema, TrainerSchema, type GymConfig } from "./gym.js";
+import { GymClassSchema, GymConfigObjectSchema, GymConfigSchema, TrainerSchema, type GymConfig } from "./gym.js";
 
 export * from "./base.js";
 export * from "./gym.js";
@@ -24,6 +24,9 @@ export const ClientConfigSchema = GymConfigObjectSchema.extend({
   // into the database (see packages/db's `services` table), so GET
   // /catalog's response carries them here instead.
   services: z.array(ServiceSchema),
+  // Classes, same story: moved out of config.json into the database (see
+  // packages/db's `classes` table) this round.
+  classes: z.array(GymClassSchema),
 });
 export type ClientConfig = z.infer<typeof ClientConfigSchema>;
 

@@ -1,5 +1,4 @@
-import type { GymConfig } from "@localos/config-schema";
-import type { Service } from "@localos/db";
+import type { Class, Service } from "@localos/db";
 import { DateTime } from "luxon";
 import { localTimeToInstant, localWeekday } from "./availability.js";
 import { ApiError } from "./errors.js";
@@ -59,7 +58,7 @@ export function assertBookableSessionTime(params: BookableSessionTimeParams): vo
 }
 
 export interface BookableClassOccurrenceParams {
-  gymClass: GymConfig["classes"][number];
+  gymClass: Class;
   occurrenceDate: string;
   now?: DateTime;
 }

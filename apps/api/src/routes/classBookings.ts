@@ -3,8 +3,7 @@ import { and, eq, isNull, or } from "drizzle-orm";
 import { Router } from "express";
 import { DateTime } from "luxon";
 import { assertBookableClassOccurrence } from "../bookingWindow.js";
-import { assertNotAlreadyInClass, findGymClass, isClassAtCapacity } from "../bookingRules.js";
-import { clientConfig } from "../config.js";
+import { assertNotAlreadyInClass, findClass, isClassAtCapacity } from "../bookingRules.js";
 import { ApiError } from "../errors.js";
 import { CreateClassBookingSchema, DateQuerySchema } from "../validation.js";
 
@@ -17,7 +16,7 @@ classBookingsRouter.post("/class-bookings", async (req, res) => {
   }
   const { customerId, classId, occurrenceDate } = parsed.data;
 
-  const gymClass = findGymClass(clientConfig, classId);
+  const gymClass = await findClass(classId);
   assertBookableClassOccurrence({
     gymClass,
     occurrenceDate,
