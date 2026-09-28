@@ -18,7 +18,7 @@
 //   DATABASE_URL=... npm run migrate:classes
 import { db, classes } from "../src/index.js";
 
-const CLASSES = [
+const CLASSES: (typeof classes.$inferInsert)[] = [
   {
     id: "class-strength-101",
     name: "Strength Fundamentals",
