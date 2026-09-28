@@ -36,6 +36,13 @@
       "when": 1789956200716,
       "tag": "0004_class_bookings_unique_ignores_cancelled",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790574517238,
+      "tag": "0005_pale_tinkerer",
+      "breakpoints": true
     }
   ]
 }

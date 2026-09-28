@@ -82,8 +82,11 @@ export const GymConfigObjectSchema = BaseConfigSchema.extend({
   classes: z.array(GymClassSchema),
 });
 
+// services no longer gets an assertUniqueIds call here: it moved out of
+// config.json into the `services` table (see packages/db's schema), whose
+// primary key already enforces uniqueness at the DB level — the same
+// reasoning staff/trainers already went through.
 export const GymConfigSchema = GymConfigObjectSchema.superRefine((config, ctx) => {
-  assertUniqueIds(config.services, "services", ctx);
   assertUniqueIds(config.classes, "classes", ctx);
   assertUniqueIds(config.membershipPlans, "membershipPlans", ctx);
   assertBusinessHoursValid(config, ctx);

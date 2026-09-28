@@ -9,6 +9,7 @@ import { classBookingsRouter } from "./routes/classBookings.js";
 import { customersRouter } from "./routes/customers.js";
 import { membershipsRouter } from "./routes/memberships.js";
 import { publicRouter } from "./routes/public.js";
+import { servicesRouter } from "./routes/services.js";
 import { staffRouter } from "./routes/staff.js";
 import { usersRouter } from "./routes/users.js";
 
@@ -59,6 +60,16 @@ const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     return;
   }
   if (pgError?.code === "23503") {
+    // Named specifically, same reasoning as users_staff_id_unique above:
+    // DELETE /services/:id hits this directly through normal use (a
+    // service still referenced by bookings) not just abuse, so it gets a
+    // human sentence instead of the generic "referenced row does not
+    // exist" message below, which is accurate for insert-time violations
+    // but confusing here.
+    if (pgError.constraint_name === "bookings_service_id_services_id_fk") {
+      res.status(409).json({ error: "This service can't be deleted because it has existing bookings." });
+      return;
+    }
     res.status(400).json({ error: `referenced row does not exist: ${pgError.detail ?? ""}` });
     return;
   }
@@ -132,6 +143,7 @@ export function createApp() {
   app.use(publicRouter);
   app.use(usersRouter);
   app.use(staffRouter);
+  app.use(servicesRouter);
 
   app.use(errorHandler);
 

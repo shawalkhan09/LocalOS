@@ -1,4 +1,4 @@
-import type { ClientConfig, StaffMember, Trainer } from "@localos/config-schema";
+import type { ClientConfig, Service, StaffMember, Trainer } from "@localos/config-schema";
 
 // Production calls go through the same-origin /api-proxy rewrite (see
 // next.config.ts) instead of straight to Render's own domain — that's
@@ -273,6 +273,42 @@ export function updateTrainerProfile(
   data: Partial<{ specialties: string[]; certifications: string[]; bio: string; photoUrl: string }>,
 ): Promise<Trainer> {
   return request<Trainer>(`/staff/${staffId}/trainer-profile`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+// Owner-only (POST/PATCH/DELETE /services) — same 403-not-401 reasoning as
+// the staff endpoints above. Reads still go through getCatalog() — these
+// are write-only, there's no separate GET /services.
+export function createService(data: {
+  name: string;
+  description?: string;
+  durationMinutes: number;
+  price: number;
+  category?: string;
+  staffIds?: string[];
+}): Promise<Service> {
+  return request<Service>("/services", { method: "POST", body: JSON.stringify(data) });
+}
+
+// All fields optional and .strict() on the API side — matches
+// PATCH /services/:id, which rejects (400) any unrecognized key.
+export function updateService(
+  id: string,
+  data: Partial<{
+    name: string;
+    description: string;
+    durationMinutes: number;
+    price: number;
+    category: string;
+    staffIds: string[];
+  }>,
+): Promise<Service> {
+  return request<Service>(`/services/${id}`, { method: "PATCH", body: JSON.stringify(data) });
+}
+
+// Matches DELETE /services/:id, which 409s (friendly message) if the
+// service still has bookings rather than orphaning them.
+export function deleteService(id: string): Promise<void> {
+  return request<void>(`/services/${id}`, { method: "DELETE" });
 }
 
 export function changePassword(data: { currentPassword: string; newPassword: string }): Promise<void> {

@@ -1,5 +1,5 @@
 import type { GymConfig } from "@localos/config-schema";
-import { bookings, classBookings, customers, db, staff, type Customer } from "@localos/db";
+import { bookings, classBookings, customers, db, services, staff, type Customer, type Service } from "@localos/db";
 import { and, eq, gt, inArray, lt, ne, sql } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { ApiError } from "./errors.js";
@@ -15,8 +15,11 @@ import { ApiError } from "./errors.js";
 // are worded per-caller at the route level instead, see routes/bookings.ts
 // and routes/public.ts.
 
-export function findService(config: GymConfig, serviceId: string): GymConfig["services"][number] {
-  const service = config.services.find((s) => s.id === serviceId);
+// Services moved from config.json into the database this round (see
+// packages/db's `services` table), so this is now a DB lookup instead of a
+// config.services scan — same 400-if-not-found contract as before.
+export async function findService(serviceId: string): Promise<Service> {
+  const [service] = await db.select().from(services).where(eq(services.id, serviceId)).limit(1);
   if (!service) {
     throw new ApiError(400, `unknown serviceId "${serviceId}"`);
   }
@@ -43,7 +46,7 @@ export async function assertStaffExists(staffId: string): Promise<void> {
 }
 
 export async function assertStaffQualified(
-  service: GymConfig["services"][number],
+  service: Service,
   staffId: string | undefined,
 ): Promise<void> {
   if (staffId !== undefined) {

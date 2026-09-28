@@ -1,5 +1,5 @@
 import type { ClientConfig } from "@localos/config-schema";
-import { db, staff, trainerProfiles } from "@localos/db";
+import { db, services, staff, trainerProfiles } from "@localos/db";
 import { Router } from "express";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
@@ -31,6 +31,16 @@ const TRAINER_COLUMNS = {
   photoUrl: trainerProfiles.photoUrl,
 };
 
+const SERVICE_COLUMNS = {
+  id: services.id,
+  name: services.name,
+  description: services.description,
+  durationMinutes: services.durationMinutes,
+  price: services.price,
+  category: services.category,
+  staffIds: services.staffIds,
+};
+
 function stripNulls<T extends Record<string, unknown>>(row: T): { [K in keyof T]: Exclude<T[K], null> } {
   return Object.fromEntries(Object.entries(row).filter(([, v]) => v !== null)) as {
     [K in keyof T]: Exclude<T[K], null>;
@@ -38,9 +48,10 @@ function stripNulls<T extends Record<string, unknown>>(row: T): { [K in keyof T]
 }
 
 catalogRouter.get("/catalog", async (_req, res) => {
-  const [staffRows, trainerRows] = await Promise.all([
+  const [staffRows, trainerRows, serviceRows] = await Promise.all([
     db.select(STAFF_COLUMNS).from(staff),
     db.select(TRAINER_COLUMNS).from(trainerProfiles),
+    db.select(SERVICE_COLUMNS).from(services),
   ]);
 
   // classes are still config-driven (see @localos/config-schema), but
@@ -60,6 +71,10 @@ catalogRouter.get("/catalog", async (_req, res) => {
     ...clientConfig,
     staff: staffRows.map(stripNulls),
     trainers: trainerRows.map(stripNulls),
+    // price comes back from postgres `numeric` as a string — cast to
+    // match ServiceSchema (and the old config.json shape, which held a
+    // plain JSON number).
+    services: serviceRows.map((row) => stripNulls({ ...row, price: Number(row.price) })),
   };
   res.json(catalog);
 });

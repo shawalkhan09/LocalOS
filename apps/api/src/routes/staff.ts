@@ -1,4 +1,4 @@
-import { customers as customersTable, db, bookings, staff, trainerProfiles } from "@localos/db";
+import { customers as customersTable, db, bookings, services, staff, trainerProfiles } from "@localos/db";
 import { and, eq, gte, lt, ne, inArray } from "drizzle-orm";
 import { Router } from "express";
 import { DateTime } from "luxon";
@@ -124,6 +124,16 @@ staffRouter.get("/staff/me/schedule", async (req, res) => {
         .where(inArray(customersTable.id, staffBookings.map((b) => b.customerId)))
     : [];
 
+  // Services moved from config.json into the database this round (see
+  // packages/db's `services` table) — same DB lookup as the customer names
+  // above instead of a config.services scan.
+  const serviceRows = staffBookings.length > 0
+    ? await db
+        .select({ id: services.id, name: services.name })
+        .from(services)
+        .where(inArray(services.id, staffBookings.map((b) => b.serviceId)))
+    : [];
+
   // Combine and sort all items
   const items = [
     ...staffBookings.map((b) => {
@@ -136,7 +146,7 @@ staffRouter.get("/staff/me/schedule", async (req, res) => {
         type: "booking" as const,
         start: startISO || b.startTime.toISOString(),
         end: endISO || b.endTime.toISOString(),
-        label: clientConfig.services.find((s) => s.id === b.serviceId)?.name || b.serviceId,
+        label: serviceRows.find((s) => s.id === b.serviceId)?.name || b.serviceId,
         customerName,
       };
     }),
