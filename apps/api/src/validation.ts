@@ -200,3 +200,26 @@ export const CreateMembershipSchema = z.object({
   renewalDate: isoDate.optional(),
   creditsRemaining: z.number().int().nonnegative().optional(),
 });
+
+const BusinessHoursSlotShape = z
+  .object({
+    day: ClassScheduleSlotShape.shape.day,
+    openTime: z.string().regex(/^\d{2}:\d{2}$/, "expected HH:MM"),
+    closeTime: z.string().regex(/^\d{2}:\d{2}$/, "expected HH:MM"),
+  })
+  .refine((slot) => slot.closeTime > slot.openTime, {
+    message: "closeTime must be after openTime",
+    path: ["closeTime"],
+  });
+
+// PATCH /business-hours is replace-all (see routes/businessHours.ts), so
+// this validates the whole week array at once: closeTime>openTime moved
+// here from config-schema's assertBusinessHoursValid (business hours no
+// longer round-trips through parseClientConfig — see base.ts), and
+// duplicate days are rejected the same way a duplicate id would have been
+// rejected in config-schema, since `day` is now this table's primary key.
+export const CreateBusinessHoursSchema = z
+  .array(BusinessHoursSlotShape)
+  .refine((slots) => new Set(slots.map((slot) => slot.day)).size === slots.length, {
+    message: "each day may appear at most once",
+  });

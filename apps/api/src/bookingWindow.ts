@@ -1,6 +1,7 @@
 import type { Class, Service } from "@localos/db";
 import { DateTime } from "luxon";
 import { localTimeToInstant, localWeekday } from "./availability.js";
+import { getBusinessHours } from "./bookingRules.js";
 import { ApiError } from "./errors.js";
 import { clientConfig } from "./config.js";
 
@@ -11,7 +12,7 @@ export interface BookableSessionTimeParams {
   now?: DateTime;
 }
 
-export function assertBookableSessionTime(params: BookableSessionTimeParams): void {
+export async function assertBookableSessionTime(params: BookableSessionTimeParams): Promise<void> {
   const { service, startTime, endTime, now } = params;
   const timezone = clientConfig.business.timezone;
 
@@ -38,7 +39,8 @@ export function assertBookableSessionTime(params: BookableSessionTimeParams): vo
     throw new ApiError(400, "Invalid start time.");
   }
   const weekday = localWeekday(date, timezone);
-  const hoursSlot = clientConfig.businessHours.find((slot) => slot.day === weekday);
+  const businessHours = await getBusinessHours();
+  const hoursSlot = businessHours.find((slot) => slot.day === weekday);
   if (!hoursSlot) {
     throw new ApiError(400, "We are closed at that time.");
   }

@@ -90,28 +90,8 @@ export const BaseConfigSchema = z.object({
   business: BusinessSchema,
   contact: ContactSchema,
   booking: BookingSettingsSchema,
-  businessHours: z.array(BusinessHoursSlotSchema),
   features: BaseFeaturesSchema,
 });
-
-// Vertical-agnostic: every business type needs its hours checked, not just
-// gyms. BaseConfigSchema itself stays a plain ZodObject (so verticals can
-// still .extend() it), so this is called from each vertical's own
-// superRefine rather than attached here directly.
-export function assertBusinessHoursValid(
-  config: { businessHours: BusinessHoursSlot[] },
-  ctx: z.RefinementCtx,
-): void {
-  config.businessHours.forEach((slot, index) => {
-    if (slot.closeTime <= slot.openTime) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["businessHours", index, "closeTime"],
-        message: `closeTime "${slot.closeTime}" must be after openTime "${slot.openTime}"`,
-      });
-    }
-  });
-}
 
 export type Weekday = z.infer<typeof WeekdaySchema>;
 export type BusinessHoursSlot = z.infer<typeof BusinessHoursSlotSchema>;

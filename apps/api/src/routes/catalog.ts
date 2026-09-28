@@ -1,5 +1,5 @@
 import type { ClientConfig } from "@localos/config-schema";
-import { classes, db, services, staff, trainerProfiles } from "@localos/db";
+import { businessHours, classes, db, services, staff, trainerProfiles } from "@localos/db";
 import { Router } from "express";
 import { clientConfig } from "../config.js";
 import { ApiError } from "../errors.js";
@@ -51,6 +51,12 @@ const CLASS_COLUMNS = {
   schedule: classes.schedule,
 };
 
+const BUSINESS_HOURS_COLUMNS = {
+  day: businessHours.day,
+  openTime: businessHours.openTime,
+  closeTime: businessHours.closeTime,
+};
+
 function stripNulls<T extends Record<string, unknown>>(row: T): { [K in keyof T]: Exclude<T[K], null> } {
   return Object.fromEntries(Object.entries(row).filter(([, v]) => v !== null)) as {
     [K in keyof T]: Exclude<T[K], null>;
@@ -58,11 +64,12 @@ function stripNulls<T extends Record<string, unknown>>(row: T): { [K in keyof T]
 }
 
 catalogRouter.get("/catalog", async (_req, res) => {
-  const [staffRows, trainerRows, serviceRows, classRows] = await Promise.all([
+  const [staffRows, trainerRows, serviceRows, classRows, businessHoursRows] = await Promise.all([
     db.select(STAFF_COLUMNS).from(staff),
     db.select(TRAINER_COLUMNS).from(trainerProfiles),
     db.select(SERVICE_COLUMNS).from(services),
     db.select(CLASS_COLUMNS).from(classes),
+    db.select(BUSINESS_HOURS_COLUMNS).from(businessHours),
   ]);
 
   // classes moved out of config.json into the database this round too, but
@@ -88,6 +95,7 @@ catalogRouter.get("/catalog", async (_req, res) => {
     services: serviceRows.map((row) => stripNulls({ ...row, price: Number(row.price) })),
     // schedule is jsonb and round-trips natively — no cast needed like price.
     classes: classRows.map(stripNulls),
+    businessHours: businessHoursRows,
   };
   res.json(catalog);
 });

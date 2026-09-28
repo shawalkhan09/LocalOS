@@ -19,7 +19,7 @@ bookingsRouter.post("/bookings", async (req, res) => {
   const { customerId, serviceId, staffId, startTime, endTime } = parsed.data;
 
   const service = await findService(serviceId);
-  assertBookableSessionTime({
+  await assertBookableSessionTime({
     service,
     startTime: DateTime.fromJSDate(startTime),
     endTime: DateTime.fromJSDate(endTime),

@@ -19,21 +19,13 @@
       "country": "US"
     }
   },
-  "_note": "staff, trainer profiles, services, and classes moved to the database this round — see packages/db/scripts/migrate-staff-from-config.ts, migrate-services-from-config.ts, migrate-classes-from-config.ts, and the `staff`/`trainer_profiles`/`services`/`classes` tables in packages/db/src/schema.ts",
+  "_note": "staff, trainer profiles, services, classes, and business hours moved to the database this round — see packages/db/scripts/migrate-staff-from-config.ts, migrate-services-from-config.ts, migrate-classes-from-config.ts, migrate-business-hours-from-config.ts, and the `staff`/`trainer_profiles`/`services`/`classes`/`business_hours` tables in packages/db/src/schema.ts",
   "booking": {
     "advanceBookingDays": 14,
     "cancellationWindowHours": 12,
     "slotIntervalMinutes": 15,
     "requireDeposit": false
   },
-  "businessHours": [
-    { "day": "monday", "openTime": "05:00", "closeTime": "21:00" },
-    { "day": "tuesday", "openTime": "05:00", "closeTime": "21:00" },
-    { "day": "wednesday", "openTime": "05:00", "closeTime": "21:00" },
-    { "day": "thursday", "openTime": "05:00", "closeTime": "21:00" },
-    { "day": "friday", "openTime": "05:00", "closeTime": "20:00" },
-    { "day": "saturday", "openTime": "07:00", "closeTime": "16:00" }
-  ],
   "features": {
     "onlineBooking": true,
     "smsReminders": true,

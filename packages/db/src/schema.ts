@@ -124,6 +124,22 @@ export const classes = pgTable("classes", {
 
 export type Class = typeof classes.$inferSelect;
 
+// Business hours used to live in config.json too, but unlike
+// services/staff/classes it isn't an owner-managed list of arbitrary
+// records — it's a bounded 7-day settings object, so `day` (not a
+// generated id) is the natural primary key. A day with no row is closed —
+// same "no entry = closed" contract base.ts's BusinessHoursSlotSchema
+// already documents. day stays `text`, not a pgEnum: same runtime-checked
+// reasoning as classes.trainerId, and there's no existing pgEnum
+// precedent for weekday elsewhere in this file.
+export const businessHours = pgTable("business_hours", {
+  day: text("day").$type<Weekday>().primaryKey(),
+  openTime: text("open_time").notNull(),
+  closeTime: text("close_time").notNull(),
+});
+
+export type BusinessHours = typeof businessHours.$inferSelect;
+
 export const bookingStatusEnum = pgEnum("booking_status", [
   "confirmed",
   "cancelled",

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { assertBusinessHoursValid, BaseConfigSchema, BaseFeaturesSchema, WeekdaySchema } from "./base.js";
+import { BaseConfigSchema, BaseFeaturesSchema, WeekdaySchema } from "./base.js";
 
 export const GymFeaturesSchema = BaseFeaturesSchema.extend({
   classSchedule: z.boolean().default(true),
@@ -85,10 +85,14 @@ export const GymConfigObjectSchema = BaseConfigSchema.extend({
 // config.json into the `services` table (see packages/db's schema), whose
 // primary key already enforces uniqueness at the DB level — the same
 // reasoning staff/trainers already went through. classes went through the
-// same move this round (see packages/db's `classes` table).
+// same move this round (see packages/db's `classes` table). businessHours
+// went through the same move too (see packages/db's `business_hours`
+// table) — its closeTime>openTime check now lives in apps/api's
+// CreateBusinessHoursSchema instead, the same "runtime check, not a
+// config-time one" move classes.trainerId's existence check already went
+// through.
 export const GymConfigSchema = GymConfigObjectSchema.superRefine((config, ctx) => {
   assertUniqueIds(config.membershipPlans, "membershipPlans", ctx);
-  assertBusinessHoursValid(config, ctx);
 });
 
 export type GymFeatures = z.infer<typeof GymFeaturesSchema>;
