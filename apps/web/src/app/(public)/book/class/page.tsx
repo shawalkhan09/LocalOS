@@ -5,11 +5,10 @@ import { useEffect, useState } from "react";
 import type { ClientConfig } from "@localos/config-schema";
 import { ApiRequestError, createPublicClassBooking, getCatalog } from "@/lib/api";
 import { addDaysToDateString, formatDateInTimezone, getNextClassOccurrenceDate, localWeekday, nowTimeInTimezone, todayInTimezone } from "@/lib/time";
-import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
+import { PublicButton } from "../../_components/PublicButton";
+import { PublicPanel } from "../../_components/PublicPanel";
 import { BookingConfirmation } from "@/components/BookingConfirmation";
 import { PublicCustomerForm, type PublicCustomerInfo } from "@/components/PublicCustomerForm";
-import sharedStyles from "@/components/PublicShared.module.css";
 import styles from "./page.module.css";
 
 function formatSlotTime(time: string): string {
@@ -115,7 +114,7 @@ export default function BookClassPage() {
   if (loadError) {
     return (
       <div className={styles.wrap}>
-        <p className={sharedStyles.errorText}>{loadError}</p>
+        <p className={styles.errorText}>{loadError}</p>
       </div>
     );
   }
@@ -144,10 +143,10 @@ export default function BookClassPage() {
   if (config.classes.length === 0) {
     return (
       <div className={styles.wrap}>
-        <Link href="/" className={sharedStyles.backLink}>
+        <Link href="/" className={styles.backLink}>
           ← Back
         </Link>
-        <p className={sharedStyles.helperText}>No classes are available to book right now.</p>
+        <p className={styles.helperText}>No classes are available to book right now.</p>
       </div>
     );
   }
@@ -157,86 +156,92 @@ export default function BookClassPage() {
 
   return (
     <div className={styles.wrap}>
-      <Link href="/" className={sharedStyles.backLink}>
+      <Link href="/" className={styles.backLink}>
         ← Back
       </Link>
-      <h1 className={sharedStyles.sectionTitle}>Book a class</h1>
+      <p className="pubIndexLabel">BOOK</p>
+      <h1 className={styles.title}>Book a class</h1>
 
-      <div className={sharedStyles.field}>
-        <label htmlFor="class">Class</label>
-        <select
-          id="class"
-          value={classId}
-          onChange={(e) => {
-            setClassId(e.target.value);
-            setShowCustomerForm(false);
-            const selectedClass = config.classes.find((c) => c.id === e.target.value);
-            if (selectedClass) {
-              const today = todayInTimezone(timezone);
-              const maxDate = addDaysToDateString(today, config.booking.advanceBookingDays);
-              const time = nowTimeInTimezone(timezone);
-              const nextDate = getNextClassOccurrenceDate(selectedClass.schedule, today, maxDate, timezone, time);
-              setOccurrenceDate(nextDate ?? today);
-            }
-          }}
-        >
-          {config.classes.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <PublicPanel className={styles.panel}>
+        <div className={styles.field}>
+          <label htmlFor="class">Class</label>
+          <select
+            id="class"
+            value={classId}
+            onChange={(e) => {
+              setClassId(e.target.value);
+              setShowCustomerForm(false);
+              const selectedClass = config.classes.find((c) => c.id === e.target.value);
+              if (selectedClass) {
+                const today = todayInTimezone(timezone);
+                const maxDate = addDaysToDateString(today, config.booking.advanceBookingDays);
+                const time = nowTimeInTimezone(timezone);
+                const nextDate = getNextClassOccurrenceDate(selectedClass.schedule, today, maxDate, timezone, time);
+                setOccurrenceDate(nextDate ?? today);
+              }
+            }}
+          >
+            {config.classes.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      {gymClass && (
-        <p className={styles.scheduleNote}>
-          Meets{" "}
-          {gymClass.schedule
-            .map((slot) => `${capitalize(slot.day)} at ${formatSlotTime(slot.startTime)}`)
-            .join(", ")}
-        </p>
-      )}
+        {gymClass && (
+          <p className={styles.scheduleNote}>
+            Meets{" "}
+            {gymClass.schedule
+              .map((slot) => `${capitalize(slot.day)} at ${formatSlotTime(slot.startTime)}`)
+              .join(", ")}
+          </p>
+        )}
 
-      {!hasValidOccurrence ? (
-        <p className={sharedStyles.errorText}>
-          This class has no available dates to book within the next {config.booking.advanceBookingDays} days.
-        </p>
-      ) : (
-        <>
-          <div className={sharedStyles.field}>
-            <label htmlFor="occurrence-date">Date</label>
-            <Input
-              id="occurrence-date"
-              type="date"
-              value={occurrenceDate}
-              min={minDate}
-              max={maxDate}
-              onChange={(e) => {
-                setOccurrenceDate(e.target.value);
-                setShowCustomerForm(false);
-              }}
-            />
-            {!isDateValid && (
-              <p className={sharedStyles.errorText}>{invalidDateMessage}</p>
-            )}
-          </div>
+        {!hasValidOccurrence ? (
+          <p className={styles.errorText}>
+            This class has no available dates to book within the next {config.booking.advanceBookingDays} days.
+          </p>
+        ) : (
+          <>
+            <div className={styles.field}>
+              <label htmlFor="occurrence-date">Date</label>
+              <input
+                id="occurrence-date"
+                type="date"
+                value={occurrenceDate}
+                min={minDate}
+                max={maxDate}
+                onChange={(e) => {
+                  setOccurrenceDate(e.target.value);
+                  setShowCustomerForm(false);
+                }}
+              />
+              {!isDateValid && (
+                <p className={styles.errorText}>{invalidDateMessage}</p>
+              )}
+            </div>
 
-          {!showCustomerForm ? (
-            <Button
-              type="button"
-              disabled={!isDateValid}
-              onClick={() => setShowCustomerForm(true)}
-            >
-              Continue
-            </Button>
-          ) : (
-            <>
-              <h2 className={sharedStyles.sectionTitle}>Your details</h2>
-              {submitError && <p className={sharedStyles.errorText}>{submitError}</p>}
-              <PublicCustomerForm onSubmit={handleCustomerSubmit} submitting={submitting} submitLabel="Confirm booking" />
-            </>
-          )}
-        </>
+            {!showCustomerForm ? (
+              <PublicButton
+                type="button"
+                variant="primary"
+                disabled={!isDateValid}
+                onClick={() => setShowCustomerForm(true)}
+              >
+                Continue
+              </PublicButton>
+            ) : null}
+          </>
+        )}
+      </PublicPanel>
+
+      {hasValidOccurrence && showCustomerForm && (
+        <PublicPanel className={styles.panel}>
+          <h2 className={styles.subheading}>Your details</h2>
+          {submitError && <p className={styles.errorText}>{submitError}</p>}
+          <PublicCustomerForm onSubmit={handleCustomerSubmit} submitting={submitting} submitLabel="Confirm booking" />
+        </PublicPanel>
       )}
     </div>
   );

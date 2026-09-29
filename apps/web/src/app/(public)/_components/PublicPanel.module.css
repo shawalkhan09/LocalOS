@@ -1,0 +1,10 @@
+.panel {
+  background: var(--pub-surface);
+  border: 1px solid var(--pub-hairline);
+  border-radius: 0;
+  padding: 24px;
+}
+
+.goldAccent {
+  border-color: var(--pub-hairline-gold);
+}

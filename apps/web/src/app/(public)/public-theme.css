@@ -1,0 +1,57 @@
+/* "Disciplined Kinetic" design system — public marketing pages only.
+   Scoped to .publicTheme (the shell div in layout.tsx) so none of this
+   leaks into /dashboard or /login, which keep the chunk-8 rounded look. */
+.publicTheme {
+  --pub-bg: #08090d;
+  --pub-bg-gradient-top: #0b0d14;
+  --pub-surface: #12141c;
+  --pub-accent-red: #e63946;
+  --pub-accent-red-text: #f5f1ec;
+  --pub-accent-gold: #c9a24b;
+  --pub-text: #edeef2;
+  --pub-text-muted: #8a8f9c;
+  --pub-hairline: rgba(255, 255, 255, 0.1);
+  --pub-hairline-gold: rgba(201, 162, 75, 0.35);
+
+  --pub-font-sans: var(--font-plus-jakarta-sans), system-ui, sans-serif;
+  --pub-font-mono: var(--font-jetbrains-mono), monospace;
+
+  background: var(--pub-bg);
+  background-image: linear-gradient(to bottom, var(--pub-bg-gradient-top), var(--pub-bg) 520px);
+  color: var(--pub-text);
+  font-family: var(--pub-font-sans);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.publicTheme h1,
+.publicTheme h2,
+.publicTheme h3 {
+  font-family: var(--pub-font-mono);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+/* Numeric section marker (e.g. "01 / CLASSES") in place of tracked-out
+   ALL CAPS eyebrow text — see PUBLIC-DESIGN.md. */
+.publicTheme .pubIndexLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--pub-font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pub-accent-gold);
+  margin: 0 0 12px;
+}
+
+.publicTheme .pubIndexLabel::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px !important;
+  background: var(--pub-accent-red);
+  flex-shrink: 0;
+}

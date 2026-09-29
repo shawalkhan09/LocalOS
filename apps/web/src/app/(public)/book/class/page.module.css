@@ -1,17 +1,88 @@
 .wrap {
-  padding: var(--space-6) var(--space-4) var(--space-12);
-  max-width: 560px;
+  padding: 32px 16px 80px;
+  max-width: 640px;
   margin: 0 auto;
 }
 
+.backLink {
+  display: inline-block;
+  color: var(--pub-text-muted);
+  font-size: 14px;
+  text-decoration: none;
+  margin-bottom: 16px;
+}
+
+.backLink:hover {
+  color: var(--pub-text);
+}
+
+.title {
+  font-size: clamp(24px, 5vw, 32px);
+  margin: 0 0 24px;
+}
+
+.subheading {
+  font-size: 18px;
+  margin: 0 0 16px;
+}
+
+.panel {
+  margin-bottom: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pub-text-muted);
+}
+
+.field input,
+.field select {
+  background: var(--pub-bg);
+  border: 1px solid var(--pub-hairline);
+  border-radius: 0;
+  color: var(--pub-text);
+  font-family: var(--pub-font-sans);
+  font-size: 14px;
+  padding: 10px 12px;
+}
+
+.field input:focus-visible,
+.field select:focus-visible {
+  outline: none;
+  border-color: var(--pub-accent-gold);
+}
+
 .scheduleNote {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  margin: calc(var(--space-2) * -1) 0 var(--space-4);
+  color: var(--pub-text-muted);
+  font-size: 13px;
+  font-family: var(--pub-font-mono);
+  margin: -12px 0 20px;
+}
+
+.helperText {
+  color: var(--pub-text-muted);
+  font-size: 14px;
+}
+
+.errorText {
+  color: var(--pub-accent-red);
+  font-size: 14px;
 }
 
 @media (min-width: 720px) {
   .wrap {
-    padding: var(--space-8) var(--space-8) var(--space-12);
+    padding: 48px 40px 96px;
+  }
+
+  .panel {
+    padding: 32px;
   }
 }

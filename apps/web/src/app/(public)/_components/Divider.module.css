@@ -1,0 +1,12 @@
+.horizontal {
+  border: none;
+  border-top: 1px solid var(--pub-hairline);
+  margin: 0;
+}
+
+.vertical {
+  border: none;
+  border-left: 1px solid var(--pub-hairline);
+  align-self: stretch;
+  width: 0;
+}

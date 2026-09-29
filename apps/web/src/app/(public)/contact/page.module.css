@@ -1,0 +1,151 @@
+.wrap {
+  padding: 48px 16px 80px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: clamp(28px, 6vw, 40px);
+  margin: 0 0 12px;
+}
+
+.subtitle {
+  color: var(--pub-text-muted);
+  font-size: 15px;
+  margin: 0;
+}
+
+.errorText {
+  color: var(--pub-accent-red);
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.infoPanel,
+.formPanel {
+  display: flex;
+  flex-direction: column;
+}
+
+.panelHeading {
+  font-size: 16px;
+  margin: 0 0 16px;
+}
+
+.infoPanel .panelHeading:not(:first-child) {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--pub-hairline);
+}
+
+.contactLine {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.contactLine a {
+  color: var(--pub-text-muted);
+  text-decoration: none;
+}
+
+.contactLine a:hover {
+  color: var(--pub-text);
+}
+
+.address {
+  font-style: normal;
+  color: var(--pub-text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 12px 0 0;
+}
+
+.hoursTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.hoursTable td {
+  padding: 6px 0;
+  color: var(--pub-text-muted);
+  border-top: 1px solid var(--pub-hairline);
+}
+
+.hoursValue {
+  text-align: right;
+  font-family: var(--pub-font-mono);
+  color: var(--pub-text);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pub-text-muted);
+}
+
+.field input,
+.field textarea {
+  background: var(--pub-bg);
+  border: 1px solid var(--pub-hairline);
+  border-radius: 0;
+  color: var(--pub-text);
+  font-family: var(--pub-font-sans);
+  font-size: 14px;
+  padding: 10px 12px;
+}
+
+.field input:focus-visible,
+.field textarea:focus-visible {
+  outline: none;
+  border-color: var(--pub-accent-gold);
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+.submitButton {
+  align-self: flex-start;
+}
+
+@media (min-width: 720px) {
+  .wrap {
+    padding: 80px 40px 120px;
+  }
+
+  .grid {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .infoPanel,
+  .formPanel {
+    flex: 1;
+  }
+
+  .infoPanel,
+  .formPanel {
+    padding: 40px;
+  }
+}
