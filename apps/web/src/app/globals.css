@@ -1,13 +1,17 @@
 :root {
-  /* Color Tokens */
-  --color-bg: #0B0F1A;
-  --color-surface: #131826;
-  --color-surface-raised: #1A2030;
-  --color-border: #262D3D;
-  --color-text: #F5F7FA;
-  --color-text-muted: #9CA3AF;
-  --color-accent: #3B82F6; /* Fallback default until config loads */
-  --color-accent-foreground: #FFFFFF; /* Will be computed server-side based on accent luminance */
+  /* Color Tokens — "Disciplined Kinetic", shared with the public site's
+     --pub-* tokens (see (public)/public-theme.css). Fixed, not per-client
+     dynamic: the dashboard used to read config.business.primaryColor for
+     --color-accent, but that's been retired in favor of one consistent
+     look across dashboard and public pages. */
+  --color-bg: #08090D;
+  --color-surface: #12141C;
+  --color-surface-raised: #181A24;
+  --color-border: rgba(255, 255, 255, 0.1);
+  --color-text: #EDEEF2;
+  --color-text-muted: #8A8F9C;
+  --color-accent: #E63946;
+  --color-accent-foreground: #F5F1EC;
   --color-success: #22C55E;
   --color-warning: #F59E0B;
   --color-danger: #FE8A7B;
@@ -29,10 +33,11 @@
   --space-8: 32px;
   --space-12: 48px;
 
-  /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  /* Radius — flat everywhere, matching the public system's "square
+     corners" rule (no exceptions for buttons, inputs, panels, badges). */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
 
   /* Fonts */
   --font-sans: var(--font-plus-jakarta-sans), system-ui, sans-serif;
@@ -101,7 +106,9 @@ h1,
 h2,
 h3,
 .heading-font {
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 table {

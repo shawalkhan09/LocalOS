@@ -6,6 +6,17 @@ import { useEffect, useState, useRef } from "react";
 import { getCatalog, getMe, logout } from "@/lib/api";
 import styles from "./Sidebar.module.css";
 
+// First letter of up to the first two words — same pattern as the public
+// nav's logo monogram (see (public)/layout.tsx's getInitials).
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 const BASE_NAV_ITEMS = [
   { href: "/dashboard", label: "Today" },
   { href: "/dashboard/customers", label: "Customers" },
@@ -101,7 +112,12 @@ export function Sidebar() {
 
   return (
     <nav className={styles.sidebar} aria-label="Main">
-      <p className={styles.businessName}>{businessName ?? "LocalOS"}</p>
+      <div className={styles.brand}>
+        <span className={styles.brandMark} aria-hidden="true">
+          {getInitials(businessName ?? "LocalOS")}
+        </span>
+        <p className={styles.businessName}>{businessName ?? "LocalOS"}</p>
+      </div>
       <div className={styles.nav}>
         {navItems.map((item) => {
           const isActive = item.href === "/dashboard" ? pathname === item.href : pathname.startsWith(item.href);

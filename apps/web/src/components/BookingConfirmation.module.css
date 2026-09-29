@@ -7,8 +7,8 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--public-accent);
-  color: #ffffff;
+  background: var(--pub-accent-red);
+  color: var(--pub-accent-red-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -43,18 +43,18 @@
 
 .detail {
   font-size: 15px;
-  color: var(--public-ink-muted);
+  color: var(--pub-text-muted);
   margin: 4px 0;
 }
 
 .detail strong {
-  color: var(--public-ink);
+  color: var(--pub-text);
 }
 
 .backLink {
   display: inline-block;
   margin-top: 20px;
-  color: var(--public-accent);
+  color: var(--pub-accent-red);
   font-weight: 600;
   text-decoration: none;
 }
