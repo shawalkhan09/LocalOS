@@ -3,6 +3,7 @@
   overflow: hidden;
   padding: 64px 16px 48px;
   max-width: 1200px;
+  margin: 0 auto;
 }
 
 /* Layer order, back to front: real hero photo (chunk 17) -> its
