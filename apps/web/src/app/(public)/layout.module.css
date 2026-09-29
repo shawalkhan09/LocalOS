@@ -82,8 +82,8 @@
   top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 999px;
   background: var(--pub-accent-red);
 }
