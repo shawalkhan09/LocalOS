@@ -42,21 +42,52 @@ function getNextClassToday(
   return best;
 }
 
+function ClassesIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--pub-accent-gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="5" width="18" height="16" />
+      <path d="M3 10h18" />
+      <path d="M8 3v4M16 3v4" />
+    </svg>
+  );
+}
+
+function TrainersIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--pub-accent-gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+    </svg>
+  );
+}
+
+function MembershipIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--pub-accent-gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="6" width="18" height="12" />
+      <path d="M9 6v12" strokeDasharray="2 2" />
+    </svg>
+  );
+}
+
 const TEASERS = [
   {
     href: "/classes",
     title: "Classes",
     body: "Structured strength and conditioning sessions, programmed and scheduled every week.",
+    Icon: ClassesIcon,
   },
   {
     href: "/trainers",
     title: "Trainers",
     body: "Coaches with the certifications and specialties to back up every rep they call out.",
+    Icon: TrainersIcon,
   },
   {
     href: "/membership",
     title: "Membership",
     body: "Straightforward monthly and annual plans, no hidden fees.",
+    Icon: MembershipIcon,
   },
 ] as const;
 
@@ -164,9 +195,13 @@ export default function PublicLandingPage() {
 
       <section className={styles.teaserSection}>
         <div className={styles.teaserGrid}>
-          {TEASERS.map((teaser) => (
+          {TEASERS.map((teaser, i) => (
             <Link key={teaser.href} href={teaser.href} className={styles.teaserLink}>
               <PublicPanel className={styles.teaserPanel}>
+                <span className={styles.teaserIndex}>{String(i + 1).padStart(2, "0")}</span>
+                <div className={styles.teaserIconTile}>
+                  <teaser.Icon />
+                </div>
                 <h2 className={styles.teaserTitle}>{teaser.title}</h2>
                 <p className={styles.teaserBody}>{teaser.body}</p>
                 <span className={styles.teaserArrow} aria-hidden="true">
