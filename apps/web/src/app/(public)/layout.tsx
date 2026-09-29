@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { ClientConfig, Weekday } from "@localos/config-schema";
 import { getCatalog } from "@/lib/api";
+import { localWeekday, nowTimeInTimezone, todayInTimezone } from "@/lib/time";
 import { PublicButton } from "./_components/PublicButton";
 import "./public-theme.css";
 import styles from "./layout.module.css";
@@ -56,6 +57,16 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
   }, []);
 
   const hoursByDay = new Map(config?.businessHours.map((h) => [h.day, h]));
+
+  let todayWeekday: Weekday | null = null;
+  let isOpenNow = false;
+  if (config) {
+    const timezone = config.business.timezone;
+    todayWeekday = localWeekday(todayInTimezone(timezone), timezone) as Weekday;
+    const todayHours = hoursByDay.get(todayWeekday);
+    const currentTime = nowTimeInTimezone(timezone);
+    isOpenNow = Boolean(todayHours && currentTime >= todayHours.openTime && currentTime < todayHours.closeTime);
+  }
 
   return (
     <div className={styles.shell + " publicTheme"}>
@@ -121,10 +132,16 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                 <tbody>
                   {WEEKDAYS.map((day) => {
                     const slot = hoursByDay.get(day);
+                    const isToday = day === todayWeekday;
                     return (
-                      <tr key={day}>
+                      <tr key={day} className={isToday ? styles.hoursRowToday : undefined}>
                         <td>{capitalize(day)}</td>
-                        <td className={styles.hoursValue}>{slot ? `${slot.openTime}–${slot.closeTime}` : "Closed"}</td>
+                        <td className={styles.hoursValue}>
+                          {slot ? `${slot.openTime}–${slot.closeTime}` : "Closed"}
+                          {isToday && (
+                            <span className={styles.hoursTodayPill}>{isOpenNow ? "Open now" : "Closed"}</span>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}

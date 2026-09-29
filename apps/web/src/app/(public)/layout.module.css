@@ -115,7 +115,8 @@
 }
 
 .footer {
-  border-top: 1px solid var(--pub-hairline);
+  border-top: 1px solid transparent;
+  border-image: linear-gradient(to right, transparent, var(--pub-accent-red), transparent) 1;
   padding: 48px 16px;
 }
 
@@ -183,6 +184,26 @@
   text-align: right;
   font-family: var(--pub-font-mono);
   color: var(--pub-text);
+}
+
+.hoursRowToday td {
+  font-weight: 700;
+}
+
+.hoursRowToday .hoursValue {
+  color: var(--pub-accent-gold);
+}
+
+.hoursTodayPill {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 6px;
+  font-family: var(--pub-font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pub-text);
+  border: 1px solid var(--pub-hairline);
+  vertical-align: middle;
 }
 
 .footerLinks {
