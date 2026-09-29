@@ -6,7 +6,7 @@ const COUNT_UP_MS = 900;
 
 // Fires once, on first scroll-into-view — never re-triggers if the stat
 // scrolls out and back in.
-export function CountUpStat({ value, label }: { value: number; label: string }) {
+export function CountUpStat({ value, label, indexLabel }: { value: number; label: string; indexLabel?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [display, setDisplay] = useState(0);
   const started = useRef(false);
@@ -19,6 +19,13 @@ export function CountUpStat({ value, label }: { value: number; label: string }) 
       (entries) => {
         if (!entries[0].isIntersecting || started.current) return;
         started.current = true;
+
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          setDisplay(value);
+          observer.disconnect();
+          return;
+        }
+
         const start = performance.now();
         function tick(now: number) {
           const progress = Math.min((now - start) / COUNT_UP_MS, 1);
@@ -36,6 +43,7 @@ export function CountUpStat({ value, label }: { value: number; label: string }) 
 
   return (
     <div ref={ref}>
+      {indexLabel && <p className="pubIndexLabel">{indexLabel}</p>}
       <div style={{ fontFamily: "var(--pub-font-mono)", fontWeight: 800, fontSize: "clamp(32px, 5vw, 48px)", letterSpacing: "-0.02em" }}>
         {display}
       </div>

@@ -154,11 +154,11 @@ export default function PublicLandingPage() {
 
       <section className={styles.statsSection}>
         <PublicPanel className={styles.statsPanel}>
-          <CountUpStat value={config.classes.length} label="Classes scheduled" />
+          <CountUpStat value={config.classes.length} label="Classes scheduled" indexLabel="01 / CLASSES" />
           <Divider direction="vertical" className={styles.statsDivider} />
-          <CountUpStat value={config.trainers.length} label="Coaches on staff" />
+          <CountUpStat value={config.trainers.length} label="Coaches on staff" indexLabel="02 / COACHES" />
           <Divider direction="vertical" className={styles.statsDivider} />
-          <CountUpStat value={disciplineCount} label="Training disciplines" />
+          <CountUpStat value={disciplineCount} label="Training disciplines" indexLabel="03 / DISCIPLINES" />
         </PublicPanel>
       </section>
 
