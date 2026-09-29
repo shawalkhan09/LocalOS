@@ -12,7 +12,6 @@ type FormState = {
   name: string;
   legalName: string;
   description: string;
-  primaryColor: string;
   logoUrl: string;
   contactEmail: string;
   contactPhone: string;
@@ -29,7 +28,6 @@ function formFromCatalog(config: ClientConfig): FormState {
     name: config.business.name,
     legalName: config.business.legalName ?? "",
     description: config.business.description ?? "",
-    primaryColor: config.business.primaryColor,
     logoUrl: config.business.logoUrl ?? "",
     contactEmail: config.contact.email,
     contactPhone: config.contact.phone,
@@ -84,7 +82,6 @@ export default function BusinessInfoPage() {
         name: form.name.trim(),
         legalName: form.legalName.trim() || undefined,
         description: form.description.trim() || undefined,
-        primaryColor: form.primaryColor,
         logoUrl: form.logoUrl.trim() || undefined,
         contactEmail: form.contactEmail.trim(),
         contactPhone: form.contactPhone.trim(),
@@ -159,23 +156,6 @@ export default function BusinessInfoPage() {
               value={form.description}
               onChange={(e) => updateField({ description: e.target.value })}
             />
-          </div>
-          <div className={formStyles.field}>
-            <label htmlFor="business-primary-color">Primary color</label>
-            <div style={{ display: "flex", gap: "var(--space-2)", alignItems: "center" }}>
-              <input
-                type="color"
-                id="business-primary-color"
-                value={form.primaryColor}
-                onChange={(e) => updateField({ primaryColor: e.target.value })}
-              />
-              <Input
-                value={form.primaryColor}
-                onChange={(e) => updateField({ primaryColor: e.target.value })}
-                pattern="^#[0-9a-fA-F]{6}$"
-                required
-              />
-            </div>
           </div>
           <div className={formStyles.field}>
             <label htmlFor="business-logo-url">Logo URL</label>

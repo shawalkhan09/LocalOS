@@ -7,7 +7,7 @@
   font-size: var(--text-xs);
   font-weight: 600;
   line-height: 1.4;
-  border-radius: 9999px;
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
   white-space: nowrap;
 }
