@@ -58,6 +58,10 @@ export default function ClassesPage() {
         <p className={styles.subtitle}>Programmed strength and conditioning sessions, run every week.</p>
       </header>
 
+      <div className={styles.sectionBreak} role="presentation">
+        <div className={styles.sectionBreakOverlay} />
+      </div>
+
       {config.classes.length === 0 ? (
         <p className={styles.empty}>No classes are scheduled right now.</p>
       ) : (
