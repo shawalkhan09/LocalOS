@@ -61,31 +61,35 @@ export default function PublicLandingPage() {
   return (
     <div>
       <section className={styles.hero}>
-        <p className={`pubIndexLabel ${styles.heroBadge}`}>
-          {config.business.name} // {config.contact.address.city}
-        </p>
-        <h1 className={styles.heroTitle}>Strength training, run with discipline.</h1>
-        <p className={styles.heroDescription}>
-          {config.business.description ??
-            "Programmed strength and conditioning coaching, built around measurable progress — not guesswork."}
-        </p>
-        <div className={styles.ctaRow}>
-          <PublicButton href="/book/session" variant="primary">
-            Book a session
-          </PublicButton>
-          <PublicButton href="/membership" variant="ghost">
-            View membership plans
-          </PublicButton>
+        <div className={styles.heroBg} aria-hidden="true" />
+        <div className={styles.heroBgOverlay} aria-hidden="true" />
+        <div className={styles.heroContent}>
+          <p className={`pubIndexLabel ${styles.heroBadge}`}>
+            {config.business.name} // {config.contact.address.city}
+          </p>
+          <h1 className={styles.heroTitle}>Strength training, run with discipline.</h1>
+          <p className={styles.heroDescription}>
+            {config.business.description ??
+              "Programmed strength and conditioning coaching, built around measurable progress — not guesswork."}
+          </p>
+          <div className={styles.ctaRow}>
+            <PublicButton href="/book/session" variant="primary">
+              Book a session
+            </PublicButton>
+            <PublicButton href="/membership" variant="ghost">
+              View membership plans
+            </PublicButton>
+          </div>
+          <p className={styles.hoursNote}>
+            {todayHours ? (
+              <>
+                Today: <strong>{todayHours.openTime}–{todayHours.closeTime}</strong>
+              </>
+            ) : (
+              <strong>Closed today</strong>
+            )}
+          </p>
         </div>
-        <p className={styles.hoursNote}>
-          {todayHours ? (
-            <>
-              Today: <strong>{todayHours.openTime}–{todayHours.closeTime}</strong>
-            </>
-          ) : (
-            <strong>Closed today</strong>
-          )}
-        </p>
       </section>
 
       <section className={styles.statsSection}>
