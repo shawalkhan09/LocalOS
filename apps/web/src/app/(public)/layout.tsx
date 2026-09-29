@@ -23,6 +23,17 @@ function capitalize(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
+// First letter of up to the first two words — "Ironclad Fitness" -> "IF",
+// a single-word name just yields that one initial.
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const [config, setConfig] = useState<ClientConfig | null>(null);
   const pathname = usePathname();
@@ -54,7 +65,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             // eslint-disable-next-line @next/next/no-img-element
             <img src={config.business.logoUrl} alt="" className={styles.logo} />
           ) : (
-            <span className={styles.logoPlaceholder} aria-hidden="true" />
+            <span className={styles.logoPlaceholder} aria-hidden="true">
+              {config?.business.name && getInitials(config.business.name)}
+            </span>
           )}
           <span className={styles.businessName}>{config?.business.name ?? "Loading…"}</span>
         </Link>
@@ -66,6 +79,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               href={link.href}
               className={`${styles.navLink} ${pathname === link.href ? styles.navLinkActive : ""}`}
             >
+              {pathname === link.href && <span className={styles.navLinkDot} aria-hidden="true" />}
               {link.label}
             </Link>
           ))}

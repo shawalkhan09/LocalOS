@@ -3,11 +3,17 @@
 }
 
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 16px 24px;
   padding: 16px;
+  background: rgba(8, 9, 13, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--pub-hairline);
 }
 
@@ -29,7 +35,15 @@
 .logoPlaceholder {
   height: 32px;
   width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--pub-accent-red);
+  color: var(--pub-accent-red-text);
+  font-family: var(--pub-font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: -0.02em;
   flex-shrink: 0;
 }
 
@@ -48,12 +62,11 @@
 }
 
 .navLink {
+  position: relative;
   font-size: 14px;
   font-weight: 600;
   color: var(--pub-text-muted);
   text-decoration: none;
-  padding-bottom: 4px;
-  border-bottom: 2px solid transparent;
 }
 
 .navLink:hover {
@@ -62,7 +75,17 @@
 
 .navLinkActive {
   color: var(--pub-text);
-  border-bottom-color: var(--pub-accent-red);
+}
+
+.navLinkDot {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--pub-accent-red);
 }
 
 .headerActions {
