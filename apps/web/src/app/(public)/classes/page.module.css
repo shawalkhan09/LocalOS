@@ -1,0 +1,113 @@
+.wrap {
+  padding: 48px 16px 80px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: clamp(28px, 6vw, 40px);
+  margin: 0 0 12px;
+}
+
+.subtitle {
+  color: var(--pub-text-muted);
+  font-size: 15px;
+  max-width: 60ch;
+  margin: 0;
+}
+
+.errorText {
+  color: var(--pub-accent-red);
+}
+
+.empty {
+  color: var(--pub-text-muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.classPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.classInfo {
+  min-width: 0;
+}
+
+.className {
+  font-size: 20px;
+  margin: 0 0 8px;
+}
+
+.classMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--pub-text-muted);
+  font-family: var(--pub-font-mono);
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.bookButton {
+  height: 40px;
+  padding: 0 16px;
+}
+
+.scheduleList {
+  list-style: none;
+  margin: 0;
+  padding: 16px 0 0;
+  border-top: 1px solid var(--pub-hairline);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.scheduleSlot {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  border: 1px solid var(--pub-hairline);
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.scheduleTime {
+  font-family: var(--pub-font-mono);
+  color: var(--pub-accent-gold);
+}
+
+@media (min-width: 720px) {
+  .wrap {
+    padding: 80px 40px 120px;
+  }
+
+  .classPanel {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .classInfo {
+    flex: 1;
+  }
+
+  .scheduleList {
+    border-top: none;
+    padding: 0;
+    flex-direction: column;
+    flex-shrink: 0;
+    min-width: 220px;
+  }
+}

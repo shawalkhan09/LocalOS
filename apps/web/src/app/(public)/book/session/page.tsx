@@ -11,11 +11,10 @@ import {
   getCatalog,
 } from "@/lib/api";
 import { addDaysToDateString, formatTimeInTimezone, todayInTimezone } from "@/lib/time";
-import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
+import { PublicButton } from "../../_components/PublicButton";
+import { PublicPanel } from "../../_components/PublicPanel";
 import { BookingConfirmation } from "@/components/BookingConfirmation";
 import { PublicCustomerForm, type PublicCustomerInfo } from "@/components/PublicCustomerForm";
-import sharedStyles from "@/components/PublicShared.module.css";
 import styles from "./page.module.css";
 
 export default function BookSessionPage() {
@@ -102,7 +101,7 @@ export default function BookSessionPage() {
   if (loadError) {
     return (
       <div className={styles.wrap}>
-        <p className={sharedStyles.errorText}>{loadError}</p>
+        <p className={styles.errorText}>{loadError}</p>
       </div>
     );
   }
@@ -133,80 +132,84 @@ export default function BookSessionPage() {
 
   return (
     <div className={styles.wrap}>
-      <Link href="/" className={sharedStyles.backLink}>
+      <Link href="/" className={styles.backLink}>
         ← Back
       </Link>
-      <h1 className={sharedStyles.sectionTitle}>Book a session</h1>
+      <p className="pubIndexLabel">BOOK</p>
+      <h1 className={styles.title}>Book a session</h1>
 
-      <div className={sharedStyles.field}>
-        <label htmlFor="service">Service</label>
-        <select id="service" value={serviceId} onChange={(e) => setServiceId(e.target.value)}>
-          {config.services.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name} ({s.durationMinutes} min)
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className={sharedStyles.field}>
-        <label htmlFor="staff">Trainer</label>
-        <select id="staff" value={staffId} onChange={(e) => setStaffId(e.target.value)}>
-          {isStaffRestricted ? (
-            <option value="" disabled>
-              Select a trainer
-            </option>
-          ) : (
-            <option value="">No preference</option>
-          )}
-          {eligibleStaff.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className={sharedStyles.field}>
-        <label htmlFor="date">Date</label>
-        <Input
-          id="date"
-          type="date"
-          value={date}
-          min={minDate}
-          max={maxDate}
-          onChange={(e) => setDate(e.target.value)}
-        />
-      </div>
-
-      {needsStaffSelection ? (
-        <p className={sharedStyles.helperText}>Choose a trainer to see available times.</p>
-      ) : slotsError ? (
-        <p className={sharedStyles.errorText}>{slotsError}</p>
-      ) : slots.length === 0 ? (
-        <p className={sharedStyles.helperText}>No open times for this selection.</p>
-      ) : (
-        <div className={styles.slots} role="group" aria-label="Available times">
-          {slots.map((slot) => (
-            <Button
-              key={slot.startTime}
-              type="button"
-              variant={selectedSlot?.startTime === slot.startTime ? "primary" : "secondary"}
-              aria-pressed={selectedSlot?.startTime === slot.startTime}
-              onClick={() => setSelectedSlot(slot)}
-            >
-              {formatTimeInTimezone(slot.startTime, timezone)}
-            </Button>
-          ))}
+      <PublicPanel className={styles.panel}>
+        <div className={styles.field}>
+          <label htmlFor="service">Service</label>
+          <select id="service" value={serviceId} onChange={(e) => setServiceId(e.target.value)}>
+            {config.services.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name} ({s.durationMinutes} min)
+              </option>
+            ))}
+          </select>
         </div>
-      )}
+
+        <div className={styles.field}>
+          <label htmlFor="staff">Trainer</label>
+          <select id="staff" value={staffId} onChange={(e) => setStaffId(e.target.value)}>
+            {isStaffRestricted ? (
+              <option value="" disabled>
+                Select a trainer
+              </option>
+            ) : (
+              <option value="">No preference</option>
+            )}
+            {eligibleStaff.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className={styles.field}>
+          <label htmlFor="date">Date</label>
+          <input
+            id="date"
+            type="date"
+            value={date}
+            min={minDate}
+            max={maxDate}
+            onChange={(e) => setDate(e.target.value)}
+          />
+        </div>
+
+        {needsStaffSelection ? (
+          <p className={styles.helperText}>Choose a trainer to see available times.</p>
+        ) : slotsError ? (
+          <p className={styles.errorText}>{slotsError}</p>
+        ) : slots.length === 0 ? (
+          <p className={styles.helperText}>No open times for this selection.</p>
+        ) : (
+          <div className={styles.slots} role="group" aria-label="Available times">
+            {slots.map((slot) => (
+              <PublicButton
+                key={slot.startTime}
+                type="button"
+                variant={selectedSlot?.startTime === slot.startTime ? "primary" : "ghost"}
+                aria-pressed={selectedSlot?.startTime === slot.startTime}
+                className={styles.slotButton}
+                onClick={() => setSelectedSlot(slot)}
+              >
+                {formatTimeInTimezone(slot.startTime, timezone)}
+              </PublicButton>
+            ))}
+          </div>
+        )}
+      </PublicPanel>
 
       {selectedSlot && (
-        <>
-          <h2 className={sharedStyles.sectionTitle}>Your details</h2>
-          {submitError && <p className={sharedStyles.errorText}>{submitError}</p>}
+        <PublicPanel className={styles.panel}>
+          <h2 className={styles.subheading}>Your details</h2>
+          {submitError && <p className={styles.errorText}>{submitError}</p>}
           <PublicCustomerForm onSubmit={handleCustomerSubmit} submitting={submitting} submitLabel="Confirm booking" />
-        </>
+        </PublicPanel>
       )}
     </div>
   );
