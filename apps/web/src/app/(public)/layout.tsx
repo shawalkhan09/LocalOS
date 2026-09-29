@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { ClientConfig, Weekday } from "@localos/config-schema";
 import { getCatalog } from "@/lib/api";
+import { localWeekday, nowTimeInTimezone, todayInTimezone } from "@/lib/time";
 import { PublicButton } from "./_components/PublicButton";
 import "./public-theme.css";
 import styles from "./layout.module.css";
@@ -21,6 +22,17 @@ const WEEKDAYS: Weekday[] = ["monday", "tuesday", "wednesday", "thursday", "frid
 
 function capitalize(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+// First letter of up to the first two words — "Ironclad Fitness" -> "IF",
+// a single-word name just yields that one initial.
+function getInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -46,6 +58,16 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
   const hoursByDay = new Map(config?.businessHours.map((h) => [h.day, h]));
 
+  let todayWeekday: Weekday | null = null;
+  let isOpenNow = false;
+  if (config) {
+    const timezone = config.business.timezone;
+    todayWeekday = localWeekday(todayInTimezone(timezone), timezone) as Weekday;
+    const todayHours = hoursByDay.get(todayWeekday);
+    const currentTime = nowTimeInTimezone(timezone);
+    isOpenNow = Boolean(todayHours && currentTime >= todayHours.openTime && currentTime < todayHours.closeTime);
+  }
+
   return (
     <div className={styles.shell + " publicTheme"}>
       <header className={styles.header}>
@@ -54,7 +76,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             // eslint-disable-next-line @next/next/no-img-element
             <img src={config.business.logoUrl} alt="" className={styles.logo} />
           ) : (
-            <span className={styles.logoPlaceholder} aria-hidden="true" />
+            <span className={styles.logoPlaceholder} aria-hidden="true">
+              {config?.business.name && getInitials(config.business.name)}
+            </span>
           )}
           <span className={styles.businessName}>{config?.business.name ?? "Loading…"}</span>
         </Link>
@@ -66,6 +90,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               href={link.href}
               className={`${styles.navLink} ${pathname === link.href ? styles.navLinkActive : ""}`}
             >
+              {pathname === link.href && <span className={styles.navLinkDot} aria-hidden="true" />}
               {link.label}
             </Link>
           ))}
@@ -107,10 +132,16 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                 <tbody>
                   {WEEKDAYS.map((day) => {
                     const slot = hoursByDay.get(day);
+                    const isToday = day === todayWeekday;
                     return (
-                      <tr key={day}>
+                      <tr key={day} className={isToday ? styles.hoursRowToday : undefined}>
                         <td>{capitalize(day)}</td>
-                        <td className={styles.hoursValue}>{slot ? `${slot.openTime}–${slot.closeTime}` : "Closed"}</td>
+                        <td className={styles.hoursValue}>
+                          {slot ? `${slot.openTime}–${slot.closeTime}` : "Closed"}
+                          {isToday && (
+                            <span className={styles.hoursTodayPill}>{isOpenNow ? "Open now" : "Closed"}</span>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
