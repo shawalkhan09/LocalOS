@@ -128,6 +128,8 @@ export default function PublicLandingPage() {
   return (
     <div>
       <section className={styles.hero}>
+        <div className={styles.heroBg} aria-hidden="true" />
+        <div className={styles.heroBgOverlay} aria-hidden="true" />
         <div className={styles.heroDecor} aria-hidden="true" />
         <div className={styles.heroInner}>
           <div className={styles.heroText}>

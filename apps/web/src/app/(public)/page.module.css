@@ -5,10 +5,32 @@
   max-width: 1200px;
 }
 
+/* Layer order, back to front: real hero photo (chunk 17) -> its
+   fade-to-bg gradient -> the faint grid/glow texture (chunk 18) -> the
+   text/glass-panel content. The photo is the base layer everything else
+   sits on top of, not a replacement for the grid/glow treatment. */
+.heroBg {
+  position: absolute;
+  inset: 0;
+  background-image: url("/atmosphere/portrait-1.jpg");
+  background-size: cover;
+  background-position: center 20%;
+  z-index: 0;
+}
+
+.heroBgOverlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, var(--pub-bg) 0%, rgba(8, 9, 13, 0.75) 45%, rgba(8, 9, 13, 0.35) 100%),
+    linear-gradient(to bottom, rgba(8, 9, 13, 0.25) 0%, var(--pub-bg) 100%);
+  z-index: 1;
+}
+
 .heroDecor {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 2;
   background-image:
     radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--pub-accent-red) 9%, transparent) 0%, transparent 55%),
     repeating-linear-gradient(
@@ -29,7 +51,7 @@
 
 .heroInner {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   display: flex;
   flex-direction: column;
   gap: 40px;
