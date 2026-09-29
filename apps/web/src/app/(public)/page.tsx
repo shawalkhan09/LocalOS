@@ -9,6 +9,7 @@ import { PublicButton } from "./_components/PublicButton";
 import { PublicPanel } from "./_components/PublicPanel";
 import { Divider } from "./_components/Divider";
 import { CountUpStat } from "./_components/CountUpStat";
+import { FadeUpOnScroll } from "./_components/FadeUpOnScroll";
 import styles from "./page.module.css";
 
 function formatSlotTime(time: string): string {
@@ -184,31 +185,35 @@ export default function PublicLandingPage() {
       </section>
 
       <section className={styles.statsSection}>
-        <PublicPanel className={styles.statsPanel}>
-          <CountUpStat value={config.classes.length} label="Classes scheduled" indexLabel="01 / CLASSES" />
-          <Divider direction="vertical" className={styles.statsDivider} />
-          <CountUpStat value={config.trainers.length} label="Coaches on staff" indexLabel="02 / COACHES" />
-          <Divider direction="vertical" className={styles.statsDivider} />
-          <CountUpStat value={disciplineCount} label="Training disciplines" indexLabel="03 / DISCIPLINES" />
-        </PublicPanel>
+        <FadeUpOnScroll>
+          <PublicPanel className={styles.statsPanel}>
+            <CountUpStat value={config.classes.length} label="Classes scheduled" indexLabel="01 / CLASSES" />
+            <Divider direction="vertical" className={styles.statsDivider} />
+            <CountUpStat value={config.trainers.length} label="Coaches on staff" indexLabel="02 / COACHES" />
+            <Divider direction="vertical" className={styles.statsDivider} />
+            <CountUpStat value={disciplineCount} label="Training disciplines" indexLabel="03 / DISCIPLINES" />
+          </PublicPanel>
+        </FadeUpOnScroll>
       </section>
 
       <section className={styles.teaserSection}>
         <div className={styles.teaserGrid}>
           {TEASERS.map((teaser, i) => (
-            <Link key={teaser.href} href={teaser.href} className={styles.teaserLink}>
-              <PublicPanel className={styles.teaserPanel}>
-                <span className={styles.teaserIndex}>{String(i + 1).padStart(2, "0")}</span>
-                <div className={styles.teaserIconTile}>
-                  <teaser.Icon />
-                </div>
-                <h2 className={styles.teaserTitle}>{teaser.title}</h2>
-                <p className={styles.teaserBody}>{teaser.body}</p>
-                <span className={styles.teaserArrow} aria-hidden="true">
-                  →
-                </span>
-              </PublicPanel>
-            </Link>
+            <FadeUpOnScroll key={teaser.href} className={styles.teaserFadeWrap}>
+              <Link href={teaser.href} className={styles.teaserLink}>
+                <PublicPanel className={styles.teaserPanel}>
+                  <span className={styles.teaserIndex}>{String(i + 1).padStart(2, "0")}</span>
+                  <div className={styles.teaserIconTile}>
+                    <teaser.Icon />
+                  </div>
+                  <h2 className={styles.teaserTitle}>{teaser.title}</h2>
+                  <p className={styles.teaserBody}>{teaser.body}</p>
+                  <span className={styles.teaserArrow} aria-hidden="true">
+                    →
+                  </span>
+                </PublicPanel>
+              </Link>
+            </FadeUpOnScroll>
           ))}
         </div>
       </section>

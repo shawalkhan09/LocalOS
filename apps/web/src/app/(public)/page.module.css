@@ -186,7 +186,12 @@
   margin: 0 auto;
 }
 
+.teaserFadeWrap {
+  height: 100%;
+}
+
 .teaserLink {
+  height: 100%;
   text-decoration: none;
   color: inherit;
   display: block;
