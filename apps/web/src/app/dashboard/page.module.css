@@ -1,75 +1,114 @@
+/* Shared by the Today page and the other dashboard pages (`../page.module.css`).
+   Class names are kept stable; values follow the light design contract. */
 .heading {
-  font-size: var(--text-xl);
-  font-weight: 600;
+  font-family: var(--font-heading);
+  font-size: clamp(40px, 5vw, 64px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .subheading {
   color: var(--color-text-muted);
-  margin: var(--space-1) 0 0;
-  font-size: var(--text-sm);
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-base);
 }
 
 .section {
   margin-top: var(--space-6);
 }
 
+/* A titled block (SectionTitle + card) on the Today page. */
+.block {
+  margin-top: var(--space-8);
+  min-width: 0;
+}
+
+.block > h2 {
+  margin-bottom: var(--space-4);
+}
+
 .sectionTitle {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  margin: 0 0 var(--space-2);
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-4);
 }
 
 .panel {
   padding: 0;
   overflow-x: auto;
+  border-radius: var(--radius-lg);
 }
 
 .panel table {
   min-width: 480px;
 }
 
+.tableCard {
+  border-radius: var(--radius-lg);
+}
+
+.tableCard table {
+  min-width: 480px;
+}
+
+.tableCard td {
+  white-space: nowrap;
+}
+
+.twoCol {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 var(--space-6);
+  align-items: start;
+}
+
+@media (min-width: 1000px) {
+  .twoCol {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
 .capacity {
   display: inline-flex;
   align-items: center;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
   font-size: var(--text-xs);
-  font-weight: 500;
-  background: var(--color-bg);
-  color: var(--color-text-muted);
+  font-weight: 700;
+  background: var(--color-muted-bg);
+  color: var(--color-muted-text);
 }
 
 .capacityFull {
-  background: color-mix(in srgb, var(--color-warning) 15%, transparent);
+  background: var(--color-warning-bg);
   color: var(--color-warning);
 }
 
 .error {
   color: var(--color-danger);
-  background: color-mix(in srgb, var(--color-danger) 15%, transparent);
-  border: 1px solid var(--color-danger);
+  background: var(--color-danger-bg);
   border-radius: var(--radius-sm);
   padding: var(--space-3) var(--space-4);
-  font-size: var(--text-sm);
-}
-
-.dateRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  font-size: var(--text-base);
+  font-weight: 500;
 }
 
 .dateLabel {
   font-size: var(--text-sm);
+  font-weight: 600;
   color: var(--color-text-muted);
 }
 
 .dateInput {
   width: auto;
-  height: auto;
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--text-sm);
+  height: 48px;
+  border-radius: var(--radius-pill);
+  padding: 0 var(--space-4);
 }
 
 .mutedRow {
@@ -78,35 +117,47 @@
 
 .confirmActions {
   display: flex;
-  gap: var(--space-3);
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
-.actionLink {
-  border: none;
-  background: none;
-  color: var(--color-accent);
+.actionLink,
+.actionLinkWarn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-sans);
   font-size: var(--text-sm);
-  font-weight: 500;
+  font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
-  padding: 0;
-}
-
-.actionLink:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .actionLinkWarn {
-  border: none;
-  background: none;
-  color: var(--color-warning);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0;
+  color: var(--color-danger);
 }
 
+.actionLink:hover:not(:disabled),
+.actionLinkWarn:hover:not(:disabled) {
+  background: var(--color-bg);
+  border-color: var(--color-text-muted);
+}
+
+.actionLink:disabled,
 .actionLinkWarn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+@media (max-width: 820px) {
+  .actionLink,
+  .actionLinkWarn {
+    min-height: 44px;
+  }
 }
