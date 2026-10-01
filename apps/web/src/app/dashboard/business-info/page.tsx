@@ -5,8 +5,8 @@ import type { ClientConfig } from "@localos/config-schema";
 import { ApiRequestError, getCatalog, getMe, updateBusinessInfo } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import formStyles from "@/components/FormField.module.css";
-import { Button, Card, Input } from "@/components";
-import pageStyles from "../page.module.css";
+import { Button, Card, Input, PageHeader } from "@/components";
+import m from "../manage.module.css";
 
 type FormState = {
   name: string;
@@ -105,8 +105,8 @@ export default function BusinessInfoPage() {
   if (forbidden) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Business info</h1>
-        <p className={`${pageStyles.error} ${pageStyles.section}`}>
+        <PageHeader eyebrow="Manage" title="Business info" />
+        <p className={`${m.error} ${m.section}`}>
           Only the account owner can manage business info.
         </p>
       </div>
@@ -116,8 +116,8 @@ export default function BusinessInfoPage() {
   if (loadError) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Business info</h1>
-        <p className={`${pageStyles.error} ${pageStyles.section}`}>{loadError}</p>
+        <PageHeader eyebrow="Manage" title="Business info" />
+        <p className={`${m.error} ${m.section}`}>{loadError}</p>
       </div>
     );
   }
@@ -125,18 +125,18 @@ export default function BusinessInfoPage() {
   if (!form) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Business info</h1>
+        <PageHeader eyebrow="Manage" title="Business info" />
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className={pageStyles.heading}>Business info</h1>
-      <p className={pageStyles.subheading}>Branding and contact details shown on the public booking site.</p>
+      <PageHeader eyebrow="Manage" title="Business info" />
+      <p className={m.sub}>Branding and contact details shown on the public booking site.</p>
 
-      <Card className={pageStyles.section}>
-        <form className={formStyles.form} onSubmit={handleSave} style={{ maxWidth: "none" }}>
+      <Card className={`${m.formCard} ${m.section}`}>
+        <form className={`${formStyles.form} ${m.grid}`} onSubmit={handleSave} style={{ maxWidth: "none" }}>
           <div className={formStyles.field}>
             <label htmlFor="business-name">Business name</label>
             <Input id="business-name" value={form.name} onChange={(e) => updateField({ name: e.target.value })} required />

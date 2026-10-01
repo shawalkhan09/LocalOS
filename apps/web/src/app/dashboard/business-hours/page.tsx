@@ -5,8 +5,8 @@ import type { BusinessHoursSlot, Weekday } from "@localos/config-schema";
 import { ApiRequestError, getCatalog, getMe, updateBusinessHours } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import formStyles from "@/components/FormField.module.css";
-import { Button, Card } from "@/components";
-import pageStyles from "../page.module.css";
+import { Button, Card, PageHeader } from "@/components";
+import m from "../manage.module.css";
 import styles from "./page.module.css";
 
 const WEEKDAYS: Weekday[] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
@@ -81,8 +81,8 @@ export default function BusinessHoursPage() {
   if (forbidden) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Business hours</h1>
-        <p className={`${pageStyles.error} ${pageStyles.section}`}>
+        <PageHeader eyebrow="Manage" title="Business hours" />
+        <p className={`${m.error} ${m.section}`}>
           Only the account owner can manage business hours.
         </p>
       </div>
@@ -92,8 +92,8 @@ export default function BusinessHoursPage() {
   if (loadError) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Business hours</h1>
-        <p className={`${pageStyles.error} ${pageStyles.section}`}>{loadError}</p>
+        <PageHeader eyebrow="Manage" title="Business hours" />
+        <p className={`${m.error} ${m.section}`}>{loadError}</p>
       </div>
     );
   }
@@ -101,17 +101,17 @@ export default function BusinessHoursPage() {
   if (!week) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Business hours</h1>
+        <PageHeader eyebrow="Manage" title="Business hours" />
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className={pageStyles.heading}>Business hours</h1>
-      <p className={pageStyles.subheading}>A day left closed won&apos;t take bookings.</p>
+      <PageHeader eyebrow="Manage" title="Business hours" />
+      <p className={m.sub}>A day left closed won&apos;t take bookings.</p>
 
-      <Card className={pageStyles.section}>
+      <Card className={`${m.formCard} ${m.section}`}>
         <form className={formStyles.form} onSubmit={handleSave} style={{ maxWidth: "none" }}>
           {WEEKDAYS.map((day) => (
             <div key={day} className={styles.dayRow}>
