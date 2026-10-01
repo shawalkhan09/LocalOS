@@ -9,13 +9,13 @@ import { Plans } from "./Plans";
 import { CtaBand } from "../cards/CtaBand";
 import styles from "./home.module.css";
 
-export function HomeSections({ hasHero }: { hasHero: boolean }) {
+export function HomeSections() {
   const cfg = useSiteCatalog();
   // Catalog failure leaves this null too; the page stays blank rather than broken.
   if (!cfg) return <div className={styles.page} style={{ minHeight: "60vh" }} />;
   return (
     <div className={styles.page}>
-      <Hero cfg={cfg} hasHero={hasHero} />
+      <Hero cfg={cfg} />
       <Marquee cfg={cfg} />
       <Classes cfg={cfg} />
       <Trainers cfg={cfg} />

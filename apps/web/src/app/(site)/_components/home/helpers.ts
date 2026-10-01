@@ -69,3 +69,11 @@ export function planPriceFormatter(currency: string) {
       minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
     }).format(n);
 }
+
+// Existing /atmosphere photos assigned by category keyword; gym-interior is the fallback.
+export function classImage(category?: string): string {
+  const c = (category ?? "").toLowerCase();
+  if (/box|fight|combat|martial|hiit|conditioning|cardio/.test(c)) return "/atmosphere/boxer.jpg";
+  if (/recover|mobility|yoga|stretch|pilates|flow/.test(c)) return "/atmosphere/portrait-2.jpg";
+  return "/atmosphere/gym-interior.jpg";
+}

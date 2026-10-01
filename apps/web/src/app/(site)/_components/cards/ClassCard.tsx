@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { ClientConfig } from "@localos/config-schema";
 import { Arrow } from "../home/Hero";
-import { classDays } from "../home/helpers";
+import { classDays, classImage } from "../home/helpers";
+
+const GRADIENT = "radial-gradient(120% 80% at 70% 10%, #3a3a36 0%, #1a1a18 55%, #0c0c0b 100%)";
 import styles from "./cards.module.css";
 
 type Props = { c: ClientConfig["classes"][number]; coach?: string; tz: string };
@@ -9,7 +11,7 @@ type Props = { c: ClientConfig["classes"][number]; coach?: string; tz: string };
 export function ClassCard({ c, coach, tz }: Props) {
   return (
     <div className={styles.classCard}>
-      <div className={`${styles.ph} ${styles.classPhoto}`}>
+      <div className={`${styles.ph} ${styles.classPhoto}`} style={{ backgroundImage: `url(${classImage(c.category)}), ${GRADIENT}` }}>
         {c.category && <span className={styles.chip}>{c.category}</span>}
       </div>
       <div className={styles.classBody}>

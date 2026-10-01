@@ -40,7 +40,7 @@ export default function MembershipPage() {
         ) : plans.length === 0 ? (
           <p className={styles.note}>No membership plans are published yet.</p>
         ) : (
-          <div className={styles.grid}>
+          <div className={styles.grid} style={{ "--n": Math.min(plans.length, 3) } as React.CSSProperties}>
             {plans.map((p, i) => (
               <PlanCard key={p.id} name={p.name} price={fmt(Number(p.price))} suffix={PLAN_SUFFIX[p.billingInterval]} perks={p.perks} popular={i === popular} />
             ))}

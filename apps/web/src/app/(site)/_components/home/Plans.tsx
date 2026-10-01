@@ -14,7 +14,7 @@ export function Plans({ cfg }: { cfg: ClientConfig }) {
         <span className={styles.eyebrow}>Membership</span>
         <h2 className={styles.h2}>Plans that fit how you train.</h2>
       </div>
-      <div className={styles.grid3}>
+      <div className={styles.grid3} style={{ "--n": Math.min(plans.length, 3) } as React.CSSProperties}>
         {plans.map((p, i) => (
           <PlanCard key={p.id} name={p.name} price={fmt(Number(p.price))} suffix={PLAN_SUFFIX[p.billingInterval]} perks={p.perks} popular={i === popular} />
         ))}

@@ -21,7 +21,7 @@
 .statV { font-family: var(--site-display); font-weight: 800; font-size: 36px; letter-spacing: -0.03em; }
 .statL { font-size: 13px; font-weight: 600; color: var(--site-muted); }
 .heroMedia { position: relative; }
-.heroPhoto { height: 700px; border-radius: var(--site-r-36); background-size: cover; background-position: center; }
+.heroPhoto { height: 700px; border-radius: var(--site-r-36); background: url(/atmosphere/gym-interior.jpg) center / cover no-repeat, radial-gradient(120% 80% at 70% 10%, #3a3a36 0%, #1a1a18 55%, #0c0c0b 100%); }
 .nextCard { position: absolute; left: -36px; bottom: 90px; background: #fff; border-radius: 22px; padding: 18px 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18); max-width: calc(100% - 24px); }
 .nextIcon { flex: none; width: 46px; height: 46px; border-radius: 14px; background: var(--site-accent); color: var(--site-accent-ink); display: flex; align-items: center; justify-content: center; }
 .nextText { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -50,8 +50,8 @@
 .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--site-muted); }
 .h2 { margin: 0; font-weight: 800; font-size: 64px; line-height: 1; letter-spacing: -0.035em; max-width: 760px; }
 .h3 { margin: 0; font-weight: 700; font-size: 26px; letter-spacing: -0.02em; }
-.grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; }
-.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
+.grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 20px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; align-items: stretch; max-width: calc(var(--n, 3) * 460px); margin: 0 auto; }
 
 @media (max-width: 820px) {
   .hero, .section { padding-left: 20px; padding-right: 20px; }

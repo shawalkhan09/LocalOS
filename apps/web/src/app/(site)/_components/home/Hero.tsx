@@ -6,7 +6,7 @@ import styles from "./home.module.css";
 const FALLBACK_COPY =
   "Coached strength, conditioning and recovery under one roof. Pick a plan, book your first session, and train with people who push you.";
 
-export function Hero({ cfg, hasHero }: { cfg: ClientConfig; hasHero: boolean }) {
+export function Hero({ cfg }: { cfg: ClientConfig }) {
   const slots = cfg.classes.reduce((n, c) => n + c.schedule.length, 0);
   const stats = [
     { v: slots, l: "Weekly classes" },
@@ -43,10 +43,7 @@ export function Hero({ cfg, hasHero }: { cfg: ClientConfig; hasHero: boolean }) 
         )}
       </div>
       <div className={styles.heroMedia}>
-        <div
-          className={`${styles.heroPhoto} ${hasHero ? "" : styles.ph}`}
-          style={hasHero ? { backgroundImage: "url(/images/hero.jpg)" } : undefined}
-        />
+        <div className={styles.heroPhoto} />
         {next && (
           <div className={styles.nextCard}>
             <span className={styles.nextIcon}>

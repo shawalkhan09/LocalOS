@@ -8,7 +8,7 @@
 
 /* Classes */
 .classCard { background: #fff; border-radius: var(--site-r-28); padding: 12px; display: flex; flex-direction: column; gap: 20px; }
-.classPhoto { height: 240px; border-radius: var(--site-r-20); padding: 16px; box-sizing: border-box; display: flex; align-items: flex-start; }
+.classPhoto { background-size: cover; background-position: center; height: 240px; border-radius: var(--site-r-20); padding: 16px; box-sizing: border-box; display: flex; align-items: flex-start; }
 .classBody { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
 .classP { margin: 0; font-size: 14px; line-height: 1.55; color: #5a5a54; }
 .classFoot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid #eceae4; font-size: 13px; font-weight: 600; }
