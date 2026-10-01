@@ -6,8 +6,8 @@ import { ApiRequestError, createService, deleteService, getCatalog, getMe, updat
 import { useToast } from "@/components/Toast";
 import tableStyles from "@/components/DataTable.module.css";
 import formStyles from "@/components/FormField.module.css";
-import { Button, Card, Input } from "@/components";
-import pageStyles from "../page.module.css";
+import { Button, Card, Input, PageHeader } from "@/components";
+import m from "../manage.module.css";
 import styles from "./page.module.css";
 
 type ServiceItem = ClientConfig["services"][number];
@@ -149,8 +149,8 @@ export default function ServicesPage() {
   if (forbidden) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Services</h1>
-        <p className={`${pageStyles.error} ${pageStyles.section}`}>Only the account owner can manage services.</p>
+        <PageHeader eyebrow="Manage" title="Services" />
+        <p className={`${m.error} ${m.section}`}>Only the account owner can manage services.</p>
       </div>
     );
   }
@@ -158,8 +158,8 @@ export default function ServicesPage() {
   if (loadError) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Services</h1>
-        <p className={`${pageStyles.error} ${pageStyles.section}`}>{loadError}</p>
+        <PageHeader eyebrow="Manage" title="Services" />
+        <p className={`${m.error} ${m.section}`}>{loadError}</p>
       </div>
     );
   }
@@ -167,17 +167,18 @@ export default function ServicesPage() {
   if (!config) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Services</h1>
+        <PageHeader eyebrow="Manage" title="Services" />
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className={pageStyles.heading}>Services</h1>
-      <p className={pageStyles.subheading}>{config.services.length} services</p>
+      <PageHeader eyebrow="Manage" title="Services" />
+      <p className={m.sub}>{config.services.length} services</p>
 
-      <Card className={`${pageStyles.panel} ${pageStyles.section}`}>
+      <Card className={`${tableStyles.tableCard} ${m.tableCard} ${m.section}`}>
+        <div className={tableStyles.tableWrap}>
         <table className={tableStyles.table}>
           <thead>
             <tr>
@@ -225,12 +226,13 @@ export default function ServicesPage() {
             )}
           </tbody>
         </table>
+        </div>
       </Card>
 
       {editing && (
-        <div className={pageStyles.section}>
-          <h2 className={pageStyles.sectionTitle}>Edit {editing.name || "service"}</h2>
-          <form className={formStyles.form} onSubmit={handleEditSubmit}>
+        <div className={`${m.formCard} ${m.section}`}>
+          <h2 className={m.sectionTitle}>Edit {editing.name || "service"}</h2>
+          <form className={`${formStyles.form} ${m.grid}`} onSubmit={handleEditSubmit}>
             <div className={formStyles.field}>
               <label htmlFor="edit-service-name">Name</label>
               <Input
@@ -299,9 +301,9 @@ export default function ServicesPage() {
         </div>
       )}
 
-      <div className={pageStyles.section}>
-        <h2 className={pageStyles.sectionTitle}>Add a service</h2>
-        <form className={formStyles.form} onSubmit={handleAddService}>
+      <div className={`${m.formCard} ${m.section}`}>
+        <h2 className={m.sectionTitle}>Add a service</h2>
+        <form className={`${formStyles.form} ${m.grid}`} onSubmit={handleAddService}>
           <div className={formStyles.field}>
             <label htmlFor="new-service-name">Name</label>
             <Input id="new-service-name" required value={newName} onChange={(e) => setNewName(e.target.value)} />
