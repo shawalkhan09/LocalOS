@@ -5,10 +5,10 @@ import { useEffect, useState } from "react";
 import type { ClientConfig } from "@localos/config-schema";
 import { ApiRequestError, createPublicClassBooking, getCatalog } from "@/lib/api";
 import { addDaysToDateString, formatDateInTimezone, getNextClassOccurrenceDate, localWeekday, nowTimeInTimezone, todayInTimezone } from "@/lib/time";
-import { PublicButton } from "../../_components/PublicButton";
-import { PublicPanel } from "../../_components/PublicPanel";
+import { PageHeader } from "../../_components/PageHeader";
 import { BookingConfirmation } from "@/components/BookingConfirmation";
 import { PublicCustomerForm, type PublicCustomerInfo } from "@/components/PublicCustomerForm";
+import shared from "@/components/PublicShared.module.css";
 import styles from "./page.module.css";
 
 function formatSlotTime(time: string): string {
@@ -113,21 +113,21 @@ export default function BookClassPage() {
 
   if (loadError) {
     return (
-      <div className={styles.wrap}>
-        <p className={styles.errorText}>{loadError}</p>
+      <div className={shared.body}>
+        <p className={shared.errorText}>{loadError}</p>
       </div>
     );
   }
 
   if (!config) {
-    return <div className={styles.wrap} />;
+    return <div className={shared.body} />;
   }
 
   const timezone = config.business.timezone;
 
   if (confirmedCustomerName && gymClass) {
     return (
-      <div className={styles.wrap}>
+      <div className={shared.body}>
         <BookingConfirmation
           title="You're booked"
           lines={[
@@ -142,12 +142,15 @@ export default function BookClassPage() {
 
   if (config.classes.length === 0) {
     return (
-      <div className={styles.wrap}>
-        <Link href="/" className={styles.backLink}>
-          ← Back
-        </Link>
-        <p className={styles.helperText}>No classes are available to book right now.</p>
-      </div>
+      <>
+        <PageHeader eyebrow="Book" title="Book a class" />
+        <div className={shared.body}>
+          <Link href="/" className={shared.backLink}>
+            ← Back
+          </Link>
+          <p className={shared.helperText}>No classes are available to book right now.</p>
+        </div>
+      </>
     );
   }
 
@@ -155,15 +158,15 @@ export default function BookClassPage() {
   const maxDate = addDaysToDateString(minDate, config.booking.advanceBookingDays);
 
   return (
-    <div className={styles.wrap}>
-      <Link href="/" className={styles.backLink}>
+    <>
+    <PageHeader eyebrow="Book" title="Book a class" />
+    <div className={shared.body}>
+      <Link href="/" className={shared.backLink}>
         ← Back
       </Link>
-      <p className="pubIndexLabel">BOOK</p>
-      <h1 className={styles.title}>Book a class</h1>
-
-      <PublicPanel className={styles.panel}>
-        <div className={styles.field}>
+      
+      <section className={shared.card}>
+        <div className={shared.field}>
           <label htmlFor="class">Class</label>
           <select
             id="class"
@@ -199,12 +202,12 @@ export default function BookClassPage() {
         )}
 
         {!hasValidOccurrence ? (
-          <p className={styles.errorText}>
+          <p className={shared.errorText}>
             This class has no available dates to book within the next {config.booking.advanceBookingDays} days.
           </p>
         ) : (
           <>
-            <div className={styles.field}>
+            <div className={shared.field}>
               <label htmlFor="occurrence-date">Date</label>
               <input
                 id="occurrence-date"
@@ -218,31 +221,32 @@ export default function BookClassPage() {
                 }}
               />
               {!isDateValid && (
-                <p className={styles.errorText}>{invalidDateMessage}</p>
+                <p className={shared.errorText}>{invalidDateMessage}</p>
               )}
             </div>
 
             {!showCustomerForm ? (
-              <PublicButton
+              <button
                 type="button"
-                variant="primary"
+                className={shared.pillButton}
                 disabled={!isDateValid}
                 onClick={() => setShowCustomerForm(true)}
               >
                 Continue
-              </PublicButton>
+              </button>
             ) : null}
           </>
         )}
-      </PublicPanel>
+      </section>
 
       {hasValidOccurrence && showCustomerForm && (
-        <PublicPanel className={styles.panel}>
-          <h2 className={styles.subheading}>Your details</h2>
-          {submitError && <p className={styles.errorText}>{submitError}</p>}
+        <section className={shared.card}>
+          <h2 className={shared.sectionTitle}>Your details</h2>
+          {submitError && <p className={shared.errorText}>{submitError}</p>}
           <PublicCustomerForm onSubmit={handleCustomerSubmit} submitting={submitting} submitLabel="Confirm booking" />
-        </PublicPanel>
+        </section>
       )}
     </div>
+    </>
   );
 }

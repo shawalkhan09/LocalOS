@@ -1,94 +1,34 @@
-.wrap {
-  padding: 32px 16px 80px;
-  max-width: 640px;
-  margin: 0 auto;
-}
-
-.backLink {
-  display: inline-block;
-  color: var(--pub-text-muted);
-  font-size: 14px;
-  text-decoration: none;
-  margin-bottom: 16px;
-}
-
-.backLink:hover {
-  color: var(--pub-text);
-}
-
-.title {
-  font-size: clamp(24px, 5vw, 32px);
-  margin: 0 0 24px;
-}
-
-.subheading {
-  font-size: 18px;
-  margin: 0 0 16px;
-}
-
-.panel {
-  margin-bottom: 16px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 20px;
-}
-
-.field label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--pub-text-muted);
-}
-
-.field input,
-.field select {
-  background: var(--pub-bg);
-  border: 1px solid var(--pub-hairline);
-  border-radius: 0;
-  color: var(--pub-text);
-  font-family: var(--pub-font-sans);
-  font-size: 14px;
-  padding: 10px 12px;
-}
-
-.field input:focus-visible,
-.field select:focus-visible {
-  outline: none;
-  border-color: var(--pub-accent-gold);
-}
-
-.helperText {
-  color: var(--pub-text-muted);
-  font-size: 14px;
-}
-
-.errorText {
-  color: var(--pub-accent-red);
-  font-size: 14px;
-}
-
 .slots {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .slotButton {
-  height: 40px;
-  padding: 0 14px;
-  font-family: var(--pub-font-mono);
-  font-size: 13px;
+  min-height: 48px;
+  min-width: 96px;
+  padding: 0 18px;
+  border: 1.5px solid var(--site-hairline);
+  border-radius: 999px;
+  background: var(--site-white);
+  color: var(--site-ink);
+  font-family: var(--site-body-font);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-@media (min-width: 720px) {
-  .wrap {
-    padding: 48px 40px 96px;
-  }
+.slotButton:hover {
+  border-color: var(--site-ink);
+}
 
-  .panel {
-    padding: 32px;
-  }
+.slotButton[aria-pressed="true"] {
+  background: var(--site-ink);
+  border-color: var(--site-ink);
+  color: #fff;
+}
+
+.slotButton:focus-visible {
+  outline: 3px solid var(--site-ink);
+  outline-offset: 2px;
 }

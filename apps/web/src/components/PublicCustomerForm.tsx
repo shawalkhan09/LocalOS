@@ -24,7 +24,7 @@ export function PublicCustomerForm({
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className={sharedStyles.form}>
       <div className={sharedStyles.field}>
         <label htmlFor="customer-name">Name</label>
         <input id="customer-name" required value={name} onChange={(e) => setName(e.target.value)} />

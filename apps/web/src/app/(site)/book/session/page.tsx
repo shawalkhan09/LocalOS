@@ -11,10 +11,10 @@ import {
   getCatalog,
 } from "@/lib/api";
 import { addDaysToDateString, formatTimeInTimezone, todayInTimezone } from "@/lib/time";
-import { PublicButton } from "../../_components/PublicButton";
-import { PublicPanel } from "../../_components/PublicPanel";
+import { PageHeader } from "../../_components/PageHeader";
 import { BookingConfirmation } from "@/components/BookingConfirmation";
 import { PublicCustomerForm, type PublicCustomerInfo } from "@/components/PublicCustomerForm";
+import shared from "@/components/PublicShared.module.css";
 import styles from "./page.module.css";
 
 export default function BookSessionPage() {
@@ -100,21 +100,21 @@ export default function BookSessionPage() {
 
   if (loadError) {
     return (
-      <div className={styles.wrap}>
-        <p className={styles.errorText}>{loadError}</p>
+      <div className={shared.body}>
+        <p className={shared.errorText}>{loadError}</p>
       </div>
     );
   }
 
   if (!config) {
-    return <div className={styles.wrap} />;
+    return <div className={shared.body} />;
   }
 
   const timezone = config.business.timezone;
 
   if (confirmedCustomerName && service && selectedSlot) {
     return (
-      <div className={styles.wrap}>
+      <div className={shared.body}>
         <BookingConfirmation
           title="You're booked"
           lines={[
@@ -131,15 +131,15 @@ export default function BookSessionPage() {
   const maxDate = addDaysToDateString(minDate, config.booking.advanceBookingDays);
 
   return (
-    <div className={styles.wrap}>
-      <Link href="/" className={styles.backLink}>
+    <>
+    <PageHeader eyebrow="Book" title="Book a session" />
+    <div className={shared.body}>
+      <Link href="/" className={shared.backLink}>
         ← Back
       </Link>
-      <p className="pubIndexLabel">BOOK</p>
-      <h1 className={styles.title}>Book a session</h1>
-
-      <PublicPanel className={styles.panel}>
-        <div className={styles.field}>
+      
+      <section className={shared.card}>
+        <div className={shared.field}>
           <label htmlFor="service">Service</label>
           <select id="service" value={serviceId} onChange={(e) => setServiceId(e.target.value)}>
             {config.services.map((s) => (
@@ -150,7 +150,7 @@ export default function BookSessionPage() {
           </select>
         </div>
 
-        <div className={styles.field}>
+        <div className={shared.field}>
           <label htmlFor="staff">Trainer</label>
           <select id="staff" value={staffId} onChange={(e) => setStaffId(e.target.value)}>
             {isStaffRestricted ? (
@@ -168,7 +168,7 @@ export default function BookSessionPage() {
           </select>
         </div>
 
-        <div className={styles.field}>
+        <div className={shared.field}>
           <label htmlFor="date">Date</label>
           <input
             id="date"
@@ -181,36 +181,36 @@ export default function BookSessionPage() {
         </div>
 
         {needsStaffSelection ? (
-          <p className={styles.helperText}>Choose a trainer to see available times.</p>
+          <p className={shared.helperText}>Choose a trainer to see available times.</p>
         ) : slotsError ? (
-          <p className={styles.errorText}>{slotsError}</p>
+          <p className={shared.errorText}>{slotsError}</p>
         ) : slots.length === 0 ? (
-          <p className={styles.helperText}>No open times for this selection.</p>
+          <p className={shared.helperText}>No open times for this selection.</p>
         ) : (
           <div className={styles.slots} role="group" aria-label="Available times">
             {slots.map((slot) => (
-              <PublicButton
+              <button
                 key={slot.startTime}
                 type="button"
-                variant={selectedSlot?.startTime === slot.startTime ? "primary" : "ghost"}
                 aria-pressed={selectedSlot?.startTime === slot.startTime}
                 className={styles.slotButton}
                 onClick={() => setSelectedSlot(slot)}
               >
                 {formatTimeInTimezone(slot.startTime, timezone)}
-              </PublicButton>
+              </button>
             ))}
           </div>
         )}
-      </PublicPanel>
+      </section>
 
       {selectedSlot && (
-        <PublicPanel className={styles.panel}>
-          <h2 className={styles.subheading}>Your details</h2>
-          {submitError && <p className={styles.errorText}>{submitError}</p>}
+        <section className={shared.card}>
+          <h2 className={shared.sectionTitle}>Your details</h2>
+          {submitError && <p className={shared.errorText}>{submitError}</p>}
           <PublicCustomerForm onSubmit={handleCustomerSubmit} submitting={submitting} submitLabel="Confirm booking" />
-        </PublicPanel>
+        </section>
       )}
     </div>
+    </>
   );
 }
