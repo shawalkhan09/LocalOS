@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiRequestError, getCatalog, login } from "@/lib/api";
 import { useToast } from "@/components/Toast";
-import { Button, Card, Input } from "@/components";
+import { Button, Input } from "@/components";
 import styles from "./page.module.css";
 
 export default function LoginPage() {
@@ -40,37 +40,53 @@ export default function LoginPage() {
 
   return (
     <div className={styles.page}>
-      <Card className={styles.card}>
-        {businessName && <p className={styles.businessName}>{businessName}</p>}
-        <h1 className={styles.heading}>Sign in</h1>
-        <form onSubmit={handleSubmit}>
-          <div className={styles.field}>
-            <label htmlFor="email">Email</label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+      <div className={styles.card}>
+        <div className={styles.brand}>
+          <span className={styles.logo} aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 9v6M8 6v12M16 6v12M20 9v6M8 12h8" />
+            </svg>
+          </span>
+          {businessName && <span className={styles.businessName}>{businessName}</span>}
+        </div>
+        <div className={styles.main}>
+          <div className={styles.intro}>
+            <h1 className={styles.heading}>Welcome back.</h1>
+            <p className={styles.sub}>Sign in to manage bookings, classes and your team.</p>
           </div>
-          <div className={styles.field}>
-            <label htmlFor="password">Password</label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <Button type="submit" className={styles.submit} disabled={submitting}>
-            {submitting ? "Signing in…" : "Sign in"}
-          </Button>
-        </form>
-      </Card>
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.field}>
+              <label htmlFor="email">Email</label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className={styles.field}>
+              <label htmlFor="password">Password</label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            <Button type="submit" className={styles.submit} disabled={submitting}>
+              {submitting ? "Signing in…" : "Sign in"}
+            </Button>
+          </form>
+        </div>
+        <p className={styles.footer}>Staff and owner access only.</p>
+      </div>
+      <div className={styles.photo}>
+        <span className={styles.badge}>Owner dashboard</span>
+      </div>
     </div>
   );
 }
