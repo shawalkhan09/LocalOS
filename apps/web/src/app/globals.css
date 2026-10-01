@@ -1,9 +1,8 @@
 :root {
-  /* Color Tokens — "Disciplined Kinetic", shared with the public site's
-     --pub-* tokens (see (public)/public-theme.css). Fixed, not per-client
-     dynamic: the dashboard used to read config.business.primaryColor for
-     --color-accent, but that's been retired in favor of one consistent
-     look across dashboard and public pages. */
+  /* Color Tokens — "Disciplined Kinetic" dark theme for the dashboard
+     and login. Fixed, not per-client: the dashboard no longer reads
+     config.business.primaryColor for --color-accent. The public site has
+     its own light tokens under .site. */
   --color-bg: #08090D;
   --color-surface: #12141C;
   --color-surface-raised: #181A24;

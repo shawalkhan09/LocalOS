@@ -1,123 +1,153 @@
-.pillButton {
+/* Public booking styles; tokens come from .site in (site)/site.css. */
+.body {
+  /* Form column: ~720px of content, centred; gutter comes from the shared token. */
+  box-sizing: border-box;
+  width: 100%;
+  max-width: calc(720px + 2 * var(--site-pad));
+  margin: 0 auto;
+  padding: clamp(28px, 3.5vw, 40px) var(--site-pad) clamp(64px, 7vw, 96px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.backLink {
+  align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: var(--space-3) var(--space-4);
-  border-radius: 999px;
-  border: none;
-  background: var(--color-accent);
-  color: var(--color-accent-foreground);
-  font-family: var(--font-sans);
+  min-height: 44px;
+  color: var(--site-muted);
+  font-size: 15px;
   font-weight: 600;
-  font-size: var(--text-base);
-  cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-  transition: filter 150ms ease-in-out;
 }
 
-.pillButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.pillButtonSecondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-3) var(--space-4);
-  border-radius: 999px;
-  border: 1.5px solid var(--color-border);
-  background: transparent;
-  color: var(--color-text);
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: var(--text-base);
-  cursor: pointer;
-  text-decoration: none;
-  text-align: center;
-  transition: background-color 150ms ease-in-out, border-color 150ms ease-in-out;
-}
-
-.pillButtonSecondary:hover:not(:disabled) {
-  background-color: var(--color-surface-raised);
-  border-color: var(--color-text-muted);
-}
-
-.pillButtonSecondary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.backLink:hover {
+  color: var(--site-ink);
 }
 
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
+  background: var(--site-white);
+  border-radius: var(--site-r-32);
+  padding: clamp(20px, 3vw, 36px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .sectionTitle {
-  font-family: var(--font-sans);
-  font-size: var(--text-xl);
-  font-weight: 700;
-  margin: 0 0 var(--space-4);
+  margin: 0;
+  font-size: clamp(21px, 2.5vw, 24px);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  letter-spacing: -0.02em;
 }
 
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  margin-bottom: var(--space-4);
+  gap: 8px;
 }
 
 .field label {
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--site-ink);
 }
 
 .field input,
 .field select {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-base);
-  font-family: var(--font-sans);
-  background: var(--color-surface);
-  color: var(--color-text);
-  transition: border-color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+  min-height: 52px;
+  padding: 0 18px;
+  border: 1.5px solid var(--site-hairline);
+  border-radius: 16px;
+  background: #fbfaf7;
+  color: var(--site-ink);
+  font-family: var(--site-body-font);
+  font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.field select {
+  cursor: pointer;
+}
+
+.field input:hover,
+.field select:hover {
+  border-color: rgba(0, 0, 0, 0.3);
 }
 
 .field input:focus-visible,
-.field select:focus-visible {
-  outline: none;
-  border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 40%, transparent);
+.field select:focus-visible,
+.pillButton:focus-visible,
+.slot:focus-visible,
+.backLink:focus-visible {
+  outline: 3px solid var(--site-ink);
+  outline-offset: 2px;
+}
+
+.field input:user-invalid {
+  border-color: #b42318;
 }
 
 .field input::placeholder {
-  color: var(--color-text-muted);
+  color: var(--site-muted);
+}
+
+.pillButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  min-height: 52px;
+  padding: 0 32px;
+  border: none;
+  border-radius: 999px;
+  background: var(--site-accent);
+  color: var(--site-accent-ink);
+  font-family: var(--site-body-font);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: filter 150ms ease;
+}
+
+.pillButton:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.pillButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .helperText {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
+  margin: 0;
+  color: var(--site-body);
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .errorText {
-  color: var(--color-danger);
-  font-size: var(--text-sm);
+  margin: 0;
+  color: #b42318;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
-.backLink {
-  display: inline-block;
-  color: var(--color-text-muted);
-  font-size: var(--text-base);
-  text-decoration: none;
-  margin-bottom: var(--space-4);
-  transition: color 150ms ease-in-out;
+@media (max-width: 600px) {
+  .card {
+    border-radius: var(--site-r-28);
+  }
+
+  .pillButton {
+    align-self: stretch;
+  }
 }
 
-.backLink:hover {
-  color: var(--color-text);
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }

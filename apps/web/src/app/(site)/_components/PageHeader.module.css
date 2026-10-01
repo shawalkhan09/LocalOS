@@ -1,0 +1,4 @@
+.head { padding: clamp(40px, 6vw, 72px) var(--site-pad) 0; display: flex; flex-direction: column; gap: 16px; }
+.eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--site-muted); }
+.title { margin: 0; font-weight: 800; font-size: clamp(36px, 6vw, 64px); line-height: 1; letter-spacing: -0.035em; overflow-wrap: anywhere; text-wrap: balance; }
+.sub { margin: 0; font-size: clamp(16px, 1vw + 12px, 18px); line-height: 1.55; color: var(--site-body); max-width: 560px; }

@@ -6,8 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import { getCatalog, getMe, logout } from "@/lib/api";
 import styles from "./Sidebar.module.css";
 
-// First letter of up to the first two words — same pattern as the public
-// nav's logo monogram (see (public)/layout.tsx's getInitials).
+// First letter of up to the first two words, for the logo monogram.
 function getInitials(name: string): string {
   return name
     .split(/\s+/)

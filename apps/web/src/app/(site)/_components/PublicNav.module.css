@@ -1,0 +1,145 @@
+.nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: clamp(20px, 2.5vw, 28px) var(--site-pad);
+}
+
+.brand {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--site-display);
+  font-weight: 800;
+  font-size: clamp(20px, 2.2vw, 24px);
+  letter-spacing: -0.02em;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.logoMark {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--site-ink);
+  color: var(--site-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logoImg {
+  height: 34px;
+  width: auto;
+  max-width: 120px;
+  object-fit: contain;
+}
+
+.pill {
+  display: flex;
+  gap: 4px;
+  flex: none;
+  background: var(--site-white);
+  border-radius: 999px;
+  padding: 6px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 clamp(12px, 1.5vw, 18px);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.link:hover {
+  opacity: 0.6;
+}
+
+.linkActive {
+  background: var(--site-ink);
+  color: var(--site-white);
+}
+
+.book {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  box-sizing: border-box;
+  flex: none;
+  padding: 0 clamp(16px, 1.8vw, 22px);
+  border-radius: 999px;
+  background: var(--site-accent);
+  color: var(--site-accent-ink);
+  font-size: 14px;
+  font-weight: 700;
+  transition: transform 0.2s;
+}
+
+.book:hover {
+  transform: translateY(-2px);
+}
+
+.menuButton {
+  display: none;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--site-white);
+  color: var(--site-ink);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  display: none;
+}
+
+@media (max-width: 900px) {
+
+  .pill,
+  .desktopBook {
+    display: none;
+  }
+
+  .menuButton {
+    display: inline-flex;
+  }
+
+  .panel {
+    position: absolute;
+    top: 100%;
+    left: var(--site-pad);
+    right: var(--site-pad);
+    max-height: calc(100dvh - 96px);
+    overflow-y: auto;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    background: var(--site-white);
+    border-radius: var(--site-r-28);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  }
+
+  .panel .link {
+    padding: 0 16px;
+  }
+
+  .panel .book {
+    margin-top: 8px;
+  }
+}
