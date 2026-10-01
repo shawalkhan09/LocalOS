@@ -6,7 +6,7 @@ import { Marquee } from "./Marquee";
 import { Classes } from "./Classes";
 import { Trainers } from "./Trainers";
 import { Plans } from "./Plans";
-import { CtaBand } from "./CtaBand";
+import { CtaBand } from "../cards/CtaBand";
 import styles from "./home.module.css";
 
 export function HomeSections({ hasHero }: { hasHero: boolean }) {
@@ -20,7 +20,7 @@ export function HomeSections({ hasHero }: { hasHero: boolean }) {
       <Classes cfg={cfg} />
       <Trainers cfg={cfg} />
       <Plans cfg={cfg} />
-      <CtaBand />
+      <CtaBand heading="Ready to train?" sub="Book a session, meet a coach, and see if it fits." buttonLabel="Book a session" href="/book/session" />
     </div>
   );
 }
