@@ -3,6 +3,5 @@
 .chips { display: flex; flex-wrap: wrap; gap: 10px; }
 .chip { min-height: 44px; padding: 0 20px; border-radius: 999px; border: 1.5px solid var(--site-ink); background: transparent; color: var(--site-ink); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
 .chip[aria-pressed="true"] { background: var(--site-ink); color: #fff; }
-.grid { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 20px; }
-@media (max-width: 900px) { .grid { justify-content: center; } }
+.grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
 .note { margin: 0; color: var(--site-body); font-size: 16px; }
