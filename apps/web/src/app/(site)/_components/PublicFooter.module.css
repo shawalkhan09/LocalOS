@@ -60,3 +60,9 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.col a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}

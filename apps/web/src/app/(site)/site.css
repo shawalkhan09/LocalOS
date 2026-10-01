@@ -38,7 +38,7 @@
   font-family: var(--site-display);
 }
 
-.site a {
+:where(.site) a {
   color: inherit;
   text-decoration: none;
 }
