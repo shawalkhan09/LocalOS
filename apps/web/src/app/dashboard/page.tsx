@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { ClientConfig } from "@localos/config-schema";
 import {
@@ -16,7 +17,8 @@ import {
 } from "@/lib/api";
 import { formatDateInTimezone, formatTimeInTimezone, todayInTimezone } from "@/lib/time";
 import tableStyles from "@/components/DataTable.module.css";
-import { Card, Input, StatusPill } from "@/components";
+import { Card, Input, PageHeader, SectionTitle, StatusPill } from "@/components";
+import buttonStyles from "@/components/Button.module.css";
 import type { StatusPillVariant } from "@/components/StatusPill";
 import styles from "./page.module.css";
 
@@ -50,8 +52,16 @@ function riskBucket(score: string | null): RiskBucket | null {
   return "high";
 }
 
-const RISK_LABEL: Record<RiskBucket, string> = { low: "Low", medium: "Medium", high: "High" };
-const RISK_VARIANT: Record<RiskBucket, StatusPillVariant> = { low: "muted", medium: "warning", high: "danger" };
+const RISK_LABEL: Record<RiskBucket, string> = {
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+};
+const RISK_VARIANT: Record<RiskBucket, StatusPillVariant> = {
+  low: "muted",
+  medium: "warning",
+  high: "danger",
+};
 
 function bookingStatusVariant(status: string): StatusPillVariant {
   if (status === "cancelled") {
@@ -84,7 +94,10 @@ export default function TodayPage() {
   const [error, setError] = useState<string | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<ConfirmTarget | null>(null);
   const [cancelling, setCancelling] = useState(false);
-  const [cancelError, setCancelError] = useState<{ kind: ConfirmTarget["kind"]; message: string } | null>(null);
+  const [cancelError, setCancelError] = useState<{
+    kind: ConfirmTarget["kind"];
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -174,7 +187,7 @@ export default function TodayPage() {
   if (error) {
     return (
       <div>
-        <h1 className={styles.heading}>Today</h1>
+        <PageHeader title="Today" />
         <p className={`${styles.error} ${styles.section}`}>{error}</p>
       </div>
     );
@@ -183,7 +196,7 @@ export default function TodayPage() {
   if (!config || selectedDate === null) {
     return (
       <div>
-        <h1 className={styles.heading}>Today</h1>
+        <PageHeader title="Today" />
       </div>
     );
   }
@@ -208,207 +221,245 @@ export default function TodayPage() {
 
   return (
     <div>
-      <h1 className={styles.heading}>{isToday ? "Today" : formatDateInTimezone(selectedDate, timezone)}</h1>
-      <p className={styles.subheading}>{formatDateInTimezone(selectedDate, timezone)}</p>
+      <PageHeader
+        eyebrow={formatDateInTimezone(selectedDate, timezone)}
+        title={isToday ? "Today" : formatDateInTimezone(selectedDate, timezone)}
+        actions={
+          <>
+            <label htmlFor="schedule-date" className={styles.dateLabel}>
+              Date
+            </label>
+            <Input
+              id="schedule-date"
+              type="date"
+              className={styles.dateInput}
+              value={selectedDate}
+              onChange={(e) => {
+                if (!ISO_DATE.test(e.target.value)) {
+                  return;
+                }
+                setSelectedDate(e.target.value);
+                setConfirmTarget(null);
+                setCancelError(null);
+              }}
+            />
+            <Link href="/dashboard/new-booking" className={`${buttonStyles.button} ${buttonStyles.primary}`}>
+              New booking
+            </Link>
+          </>
+        }
+      />
 
-      <div className={`${styles.dateRow} ${styles.section}`}>
-        <label htmlFor="schedule-date" className={styles.dateLabel}>
-          Date
-        </label>
-        <Input
-          id="schedule-date"
-          type="date"
-          className={styles.dateInput}
-          value={selectedDate}
-          onChange={(e) => {
-            if (!ISO_DATE.test(e.target.value)) {
-              return;
-            }
-            setSelectedDate(e.target.value);
-            setConfirmTarget(null);
-            setCancelError(null);
-          }}
-        />
-      </div>
-
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Bookings</h2>
-        <Card className={styles.panel}>
-          <table className={tableStyles.table}>
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Customer</th>
-                <th>Service</th>
-                <th>Staff</th>
-                <th>Status</th>
-                <th>No-show risk</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedBookings.length === 0 ? (
+      <div className={styles.block}>
+        <SectionTitle>Bookings</SectionTitle>
+        <Card className={`${tableStyles.tableCard} ${styles.tableCard}`}>
+          <div className={tableStyles.tableWrap}>
+            <table className={tableStyles.table}>
+              <thead>
                 <tr>
-                  <td colSpan={7} className={tableStyles.empty}>
-                    {isToday ? "No bookings today." : "No bookings on this date."}
-                  </td>
+                  <th>Time</th>
+                  <th>Customer</th>
+                  <th>Service</th>
+                  <th>Staff</th>
+                  <th>Status</th>
+                  <th>No-show risk</th>
+                  <th>Actions</th>
                 </tr>
-              ) : (
-                sortedBookings.map((b) => {
-                  const bucket = riskBucket(b.noShowRiskScore);
-                  const isCancelled = b.status === "cancelled";
-                  const isConfirming = confirmTarget?.kind === "booking" && confirmTarget.id === b.id;
-                  return (
-                    <tr key={b.id} className={isCancelled ? styles.mutedRow : ""}>
-                      <td>{formatTimeInTimezone(b.startTime, timezone)}</td>
-                      <td>{customerById.get(b.customerId)?.name ?? `Customer #${b.customerId}`}</td>
-                      <td>{serviceById.get(b.serviceId)?.name ?? b.serviceId}</td>
-                      <td>{b.staffId ? (staffById.get(b.staffId)?.name ?? b.staffId) : "Unassigned"}</td>
-                      <td>
-                        <StatusPill variant={bookingStatusVariant(b.status)}>{b.status}</StatusPill>
-                      </td>
-                      <td>
-                        {bucket && <StatusPill variant={RISK_VARIANT[bucket]}>{RISK_LABEL[bucket]}</StatusPill>}
-                      </td>
-                      <td>
-                        {b.status === "confirmed" &&
-                          (isConfirming ? (
-                            <div className={styles.confirmActions}>
+              </thead>
+              <tbody>
+                {sortedBookings.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className={tableStyles.empty}>
+                      {isToday ? "No bookings today." : "No bookings on this date."}
+                    </td>
+                  </tr>
+                ) : (
+                  sortedBookings.map((b) => {
+                    const bucket = riskBucket(b.noShowRiskScore);
+                    const isCancelled = b.status === "cancelled";
+                    const isConfirming = confirmTarget?.kind === "booking" && confirmTarget.id === b.id;
+                    return (
+                      <tr key={b.id} className={isCancelled ? styles.mutedRow : ""}>
+                        <td>{formatTimeInTimezone(b.startTime, timezone)}</td>
+                        <td>{customerById.get(b.customerId)?.name ?? `Customer #${b.customerId}`}</td>
+                        <td>{serviceById.get(b.serviceId)?.name ?? b.serviceId}</td>
+                        <td>{b.staffId ? (staffById.get(b.staffId)?.name ?? b.staffId) : "Unassigned"}</td>
+                        <td>
+                          <StatusPill variant={bookingStatusVariant(b.status)}>{b.status}</StatusPill>
+                        </td>
+                        <td>
+                          {bucket && <StatusPill variant={RISK_VARIANT[bucket]}>{RISK_LABEL[bucket]}</StatusPill>}
+                        </td>
+                        <td>
+                          {b.status === "confirmed" &&
+                            (isConfirming ? (
+                              <div className={styles.confirmActions}>
+                                <button
+                                  type="button"
+                                  className={styles.actionLinkWarn}
+                                  onClick={handleConfirmCancel}
+                                  disabled={cancelling}
+                                >
+                                  Confirm cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  className={styles.actionLink}
+                                  onClick={handleKeep}
+                                  disabled={cancelling}
+                                >
+                                  Keep
+                                </button>
+                              </div>
+                            ) : (
                               <button
                                 type="button"
                                 className={styles.actionLinkWarn}
-                                onClick={handleConfirmCancel}
-                                disabled={cancelling}
+                                onClick={() =>
+                                  setConfirmTarget({
+                                    kind: "booking",
+                                    id: b.id,
+                                  })
+                                }
                               >
-                                Confirm cancel
+                                Cancel
                               </button>
-                              <button type="button" className={styles.actionLink} onClick={handleKeep} disabled={cancelling}>
-                                Keep
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              className={styles.actionLinkWarn}
-                              onClick={() => setConfirmTarget({ kind: "booking", id: b.id })}
-                            >
-                              Cancel
-                            </button>
-                          ))}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
+                            ))}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
         </Card>
-        {cancelError?.kind === "booking" && <p className={`${styles.error} ${styles.section}`}>{cancelError.message}</p>}
+        {cancelError?.kind === "booking" && (
+          <p className={`${styles.error} ${styles.section}`}>{cancelError.message}</p>
+        )}
       </div>
 
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Classes</h2>
-        <Card className={styles.panel}>
-          <table className={tableStyles.table}>
-            <thead>
-              <tr>
-                <th>Class</th>
-                <th>Filled</th>
-              </tr>
-            </thead>
-            <tbody>
-              {classGroups.size === 0 ? (
-                <tr>
-                  <td colSpan={2} className={tableStyles.empty}>
-                    {isToday ? "No class bookings today." : "No class bookings on this date."}
-                  </td>
-                </tr>
-              ) : (
-                [...classGroups.entries()].map(([classId, count]) => {
-                  const gymClass = classById.get(classId);
-                  const capacity = gymClass?.capacity ?? count;
-                  const isFull = count >= capacity;
-                  return (
-                    <tr key={classId}>
-                      <td>{gymClass?.name ?? classId}</td>
-                      <td>
-                        <span className={`${styles.capacity} ${isFull ? styles.capacityFull : ""}`}>
-                          {count}/{capacity}
-                        </span>
+      <div className={styles.twoCol}>
+        <div className={styles.block}>
+          <SectionTitle>Classes</SectionTitle>
+          <Card className={`${tableStyles.tableCard} ${styles.tableCard}`}>
+            <div className={tableStyles.tableWrap}>
+              <table className={tableStyles.table}>
+                <thead>
+                  <tr>
+                    <th>Class</th>
+                    <th>Filled</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {classGroups.size === 0 ? (
+                    <tr>
+                      <td colSpan={2} className={tableStyles.empty}>
+                        {isToday ? "No class bookings today." : "No class bookings on this date."}
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </Card>
-      </div>
+                  ) : (
+                    [...classGroups.entries()].map(([classId, count]) => {
+                      const gymClass = classById.get(classId);
+                      const capacity = gymClass?.capacity ?? count;
+                      const isFull = count >= capacity;
+                      return (
+                        <tr key={classId}>
+                          <td>{gymClass?.name ?? classId}</td>
+                          <td>
+                            <span className={`${styles.capacity} ${isFull ? styles.capacityFull : ""}`}>
+                              {count}/{capacity}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
 
-      <div className={styles.section}>
-        <h2 className={styles.sectionTitle}>Class bookings</h2>
-        <Card className={styles.panel}>
-          <table className={tableStyles.table}>
-            <thead>
-              <tr>
-                <th>Class</th>
-                <th>Customer</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {classBookings.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className={tableStyles.empty}>
-                    {isToday ? "No class bookings today." : "No class bookings on this date."}
-                  </td>
-                </tr>
-              ) : (
-                classBookings.map((cb) => {
-                  const isCancelled = cb.status === "cancelled";
-                  const isConfirming = confirmTarget?.kind === "classBooking" && confirmTarget.id === cb.id;
-                  return (
-                    <tr key={cb.id} className={isCancelled ? styles.mutedRow : ""}>
-                      <td>{classById.get(cb.classId)?.name ?? cb.classId}</td>
-                      <td>{customerById.get(cb.customerId)?.name ?? `Customer #${cb.customerId}`}</td>
-                      <td>
-                        <StatusPill variant={bookingStatusVariant(cb.status)}>{cb.status}</StatusPill>
-                      </td>
-                      <td>
-                        {cb.status === "booked" &&
-                          (isConfirming ? (
-                            <div className={styles.confirmActions}>
-                              <button
-                                type="button"
-                                className={styles.actionLinkWarn}
-                                onClick={handleConfirmCancel}
-                                disabled={cancelling}
-                              >
-                                Confirm cancel
-                              </button>
-                              <button type="button" className={styles.actionLink} onClick={handleKeep} disabled={cancelling}>
-                                Keep
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              className={styles.actionLinkWarn}
-                              onClick={() => setConfirmTarget({ kind: "classBooking", id: cb.id })}
-                            >
-                              Cancel
-                            </button>
-                          ))}
+        <div className={styles.block}>
+          <SectionTitle>Class bookings</SectionTitle>
+          <Card className={`${tableStyles.tableCard} ${styles.tableCard}`}>
+            <div className={tableStyles.tableWrap}>
+              <table className={tableStyles.table}>
+                <thead>
+                  <tr>
+                    <th>Class</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {classBookings.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className={tableStyles.empty}>
+                        {isToday ? "No class bookings today." : "No class bookings on this date."}
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </Card>
-        {cancelError?.kind === "classBooking" && <p className={`${styles.error} ${styles.section}`}>{cancelError.message}</p>}
+                  ) : (
+                    classBookings.map((cb) => {
+                      const isCancelled = cb.status === "cancelled";
+                      const isConfirming = confirmTarget?.kind === "classBooking" && confirmTarget.id === cb.id;
+                      return (
+                        <tr key={cb.id} className={isCancelled ? styles.mutedRow : ""}>
+                          <td>{classById.get(cb.classId)?.name ?? cb.classId}</td>
+                          <td>{customerById.get(cb.customerId)?.name ?? `Customer #${cb.customerId}`}</td>
+                          <td>
+                            <StatusPill variant={bookingStatusVariant(cb.status)}>{cb.status}</StatusPill>
+                          </td>
+                          <td>
+                            {cb.status === "booked" &&
+                              (isConfirming ? (
+                                <div className={styles.confirmActions}>
+                                  <button
+                                    type="button"
+                                    className={styles.actionLinkWarn}
+                                    onClick={handleConfirmCancel}
+                                    disabled={cancelling}
+                                  >
+                                    Confirm cancel
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className={styles.actionLink}
+                                    onClick={handleKeep}
+                                    disabled={cancelling}
+                                  >
+                                    Keep
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className={styles.actionLinkWarn}
+                                  onClick={() =>
+                                    setConfirmTarget({
+                                      kind: "classBooking",
+                                      id: cb.id,
+                                    })
+                                  }
+                                >
+                                  Cancel
+                                </button>
+                              ))}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+          {cancelError?.kind === "classBooking" && (
+            <p className={`${styles.error} ${styles.section}`}>{cancelError.message}</p>
+          )}
+        </div>
       </div>
     </div>
   );

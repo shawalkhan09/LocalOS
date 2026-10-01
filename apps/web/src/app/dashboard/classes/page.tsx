@@ -6,8 +6,8 @@ import { ApiRequestError, createClass, deleteClass, getCatalog, getMe, updateCla
 import { useToast } from "@/components/Toast";
 import tableStyles from "@/components/DataTable.module.css";
 import formStyles from "@/components/FormField.module.css";
-import { Button, Card, Input } from "@/components";
-import pageStyles from "../page.module.css";
+import { Button, Card, Input, PageHeader } from "@/components";
+import m from "../manage.module.css";
 import styles from "./page.module.css";
 
 type ClassItem = ClientConfig["classes"][number];
@@ -204,8 +204,8 @@ export default function ClassesPage() {
   if (forbidden) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Classes</h1>
-        <p className={`${pageStyles.error} ${pageStyles.section}`}>Only the account owner can manage classes.</p>
+        <PageHeader eyebrow="Manage" title="Classes" />
+        <p className={`${m.error} ${m.section}`}>Only the account owner can manage classes.</p>
       </div>
     );
   }
@@ -213,8 +213,8 @@ export default function ClassesPage() {
   if (loadError) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Classes</h1>
-        <p className={`${pageStyles.error} ${pageStyles.section}`}>{loadError}</p>
+        <PageHeader eyebrow="Manage" title="Classes" />
+        <p className={`${m.error} ${m.section}`}>{loadError}</p>
       </div>
     );
   }
@@ -222,17 +222,18 @@ export default function ClassesPage() {
   if (!config) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Classes</h1>
+        <PageHeader eyebrow="Manage" title="Classes" />
       </div>
     );
   }
 
   return (
     <div>
-      <h1 className={pageStyles.heading}>Classes</h1>
-      <p className={pageStyles.subheading}>{config.classes.length} classes</p>
+      <PageHeader eyebrow="Manage" title="Classes" />
+      <p className={m.sub}>{config.classes.length} classes</p>
 
-      <Card className={`${pageStyles.panel} ${pageStyles.section}`}>
+      <Card className={`${tableStyles.tableCard} ${m.tableCard} ${m.section}`}>
+        <div className={tableStyles.tableWrap}>
         <table className={tableStyles.table}>
           <thead>
             <tr>
@@ -282,12 +283,13 @@ export default function ClassesPage() {
             )}
           </tbody>
         </table>
+        </div>
       </Card>
 
       {editing && (
-        <div className={pageStyles.section}>
-          <h2 className={pageStyles.sectionTitle}>Edit {editing.name || "class"}</h2>
-          <form className={formStyles.form} onSubmit={handleEditSubmit}>
+        <div className={`${m.formCard} ${m.section}`}>
+          <h2 className={m.sectionTitle}>Edit {editing.name || "class"}</h2>
+          <form className={`${formStyles.form} ${m.grid}`} onSubmit={handleEditSubmit}>
             <div className={formStyles.field}>
               <label htmlFor="edit-class-name">Name</label>
               <Input
@@ -360,9 +362,9 @@ export default function ClassesPage() {
         </div>
       )}
 
-      <div className={pageStyles.section}>
-        <h2 className={pageStyles.sectionTitle}>Add a class</h2>
-        <form className={formStyles.form} onSubmit={handleAddClass}>
+      <div className={`${m.formCard} ${m.section}`}>
+        <h2 className={m.sectionTitle}>Add a class</h2>
+        <form className={`${formStyles.form} ${m.grid}`} onSubmit={handleAddClass}>
           <div className={formStyles.field}>
             <label htmlFor="new-class-name">Name</label>
             <Input id="new-class-name" required value={newName} onChange={(e) => setNewName(e.target.value)} />

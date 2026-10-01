@@ -1,21 +1,23 @@
-.heading {
-  font-size: var(--text-xl);
-  font-weight: 600;
-  margin: 0;
-}
-
 .section {
-  margin-top: var(--space-6);
+  margin-top: var(--space-8);
 }
 
-.sectionTitle {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  margin: 0 0 var(--space-2);
+.section > h2 {
+  margin-bottom: var(--space-4);
+}
+
+.card {
+  max-width: 560px;
+}
+
+.card form {
+  margin-top: 0;
+  max-width: none;
 }
 
 .mismatch {
   color: var(--color-danger);
   font-size: var(--text-sm);
-  margin-top: var(--space-1);
+  font-weight: 500;
+  margin: 0;
 }

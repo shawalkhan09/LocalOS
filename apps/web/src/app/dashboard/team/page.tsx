@@ -6,8 +6,8 @@ import { type Account, ApiRequestError, createUser, getCatalog, getMe, getUsers,
 import { useToast } from "@/components/Toast";
 import tableStyles from "@/components/DataTable.module.css";
 import formStyles from "@/components/FormField.module.css";
-import { Button, Card, Input } from "@/components";
-import pageStyles from "../page.module.css";
+import { Button, Card, Input, PageHeader, StatusPill } from "@/components";
+import m from "../manage.module.css";
 import styles from "./page.module.css";
 
 function capitalize(word: string): string {
@@ -180,8 +180,8 @@ export default function TeamPage() {
   if (forbidden) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Team</h1>
-        <p className={`${pageStyles.error} ${pageStyles.section}`}>
+        <PageHeader eyebrow="Manage" title="Team" />
+        <p className={`${m.error} ${m.section}`}>
           Only the account owner can manage the team.
         </p>
       </div>
@@ -191,8 +191,8 @@ export default function TeamPage() {
   if (loadError) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Team</h1>
-        <p className={`${pageStyles.error} ${pageStyles.section}`}>{loadError}</p>
+        <PageHeader eyebrow="Manage" title="Team" />
+        <p className={`${m.error} ${m.section}`}>{loadError}</p>
       </div>
     );
   }
@@ -200,7 +200,7 @@ export default function TeamPage() {
   if (!config) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Team</h1>
+        <PageHeader eyebrow="Manage" title="Team" />
       </div>
     );
   }
@@ -209,10 +209,11 @@ export default function TeamPage() {
 
   return (
     <div>
-      <h1 className={pageStyles.heading}>Team</h1>
-      <p className={pageStyles.subheading}>{accounts.length} dashboard accounts</p>
+      <PageHeader eyebrow="Manage" title="Team" />
+      <p className={m.sub}>{accounts.length} dashboard accounts</p>
 
-      <Card className={`${pageStyles.panel} ${pageStyles.section}`}>
+      <Card className={`${tableStyles.tableCard} ${m.tableCard} ${m.section}`}>
+        <div className={tableStyles.tableWrap}>
         <table className={tableStyles.table}>
           <thead>
             <tr>
@@ -299,7 +300,9 @@ export default function TeamPage() {
                       )}
                     </td>
                     <td>{capitalize(a.role)}</td>
-                    <td>{capitalize(a.status)}</td>
+                    <td>
+                      <StatusPill variant={isDeactivated ? "muted" : "success"}>{capitalize(a.status)}</StatusPill>
+                    </td>
                     <td>
                       {isSelf ? (
                         a.staffId ? (staffById.get(a.staffId)?.name ?? a.staffId) : "—"
@@ -336,11 +339,12 @@ export default function TeamPage() {
             )}
           </tbody>
         </table>
+        </div>
       </Card>
 
-      <div className={pageStyles.section}>
-        <h2 className={pageStyles.sectionTitle}>Add a staff account</h2>
-        <form className={formStyles.form} onSubmit={handleSubmit}>
+      <div className={`${m.formCard} ${m.section}`}>
+        <h2 className={m.sectionTitle}>Add a staff account</h2>
+        <form className={`${formStyles.form} ${m.grid}`} onSubmit={handleSubmit}>
           <div className={formStyles.field}>
             <label htmlFor="team-email">Email</label>
             <Input

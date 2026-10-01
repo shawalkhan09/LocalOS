@@ -1,47 +1,8 @@
-.actions {
-  display: flex;
-  gap: var(--space-4);
-}
-
-.actionLink {
-  border: none;
-  background: none;
-  color: var(--color-accent);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0;
-}
-
-.deleteLink {
-  border: none;
-  background: none;
-  color: var(--color-danger);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0;
-}
-
-.deleteLink:disabled {
-  color: var(--color-text-muted);
-  cursor: not-allowed;
-}
-
-.formActions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-}
-
-.cancelLink {
-  border: none;
-  background: none;
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  cursor: pointer;
-  padding: 0;
-}
+.actions { composes: actions from "../manage.module.css"; }
+.actionLink { composes: pill from "../manage.module.css"; }
+.deleteLink { composes: pillDanger from "../manage.module.css"; }
+.cancelLink { composes: pillGhost from "../manage.module.css"; }
+.formActions { composes: formActions from "../manage.module.css"; }
 
 .scheduleEditor {
   display: flex;
@@ -51,10 +12,16 @@
 
 .scheduleRow {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
 }
 
 .scheduleRow select {
-  flex: 1 1 auto;
+  flex: 1 1 140px;
+}
+
+.scheduleRow input {
+  flex: 1 1 120px;
+  width: auto;
 }

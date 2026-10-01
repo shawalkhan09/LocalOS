@@ -1,17 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  ApiRequestError,
-  type Customer,
-  archiveCustomer,
-  getCustomers,
-  unarchiveCustomer,
-} from "@/lib/api";
+import { ApiRequestError, type Customer, archiveCustomer, getCustomers, unarchiveCustomer } from "@/lib/api";
 import { Modal } from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import tableStyles from "@/components/DataTable.module.css";
-import { Button, Card } from "@/components";
+import { Button, Card, PageHeader } from "@/components";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
 
@@ -111,17 +105,10 @@ export default function CustomersPage() {
 
   return (
     <div>
-      <h1 className={pageStyles.heading}>Customers</h1>
-      <p className={pageStyles.subheading}>
-        {customers.length} {view === "archived" ? "archived" : "total"}
-      </p>
+      <PageHeader eyebrow={`${customers.length} ${view === "archived" ? "archived" : "total"}`} title="Customers" />
 
       <div className={styles.viewToggle}>
-        <Button
-          type="button"
-          variant={view === "active" ? "primary" : "secondary"}
-          onClick={() => setView("active")}
-        >
+        <Button type="button" variant={view === "active" ? "primary" : "secondary"} onClick={() => setView("active")}>
           Active
         </Button>
         <Button
@@ -135,86 +122,75 @@ export default function CustomersPage() {
 
       {error && <p className={`${pageStyles.error} ${pageStyles.section}`}>{error}</p>}
 
-      <Card className={`${pageStyles.panel} ${pageStyles.section}`}>
-        <table className={tableStyles.table}>
-          <thead>
-            <tr>
-              {sortHeader("name", "Name")}
-              {sortHeader("email", "Email")}
-              {sortHeader("phone", "Phone")}
-              {sortHeader("createdAt", "Added")}
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.length === 0 ? (
+      <Card className={`${tableStyles.tableCard} ${styles.tableCard} ${pageStyles.section}`}>
+        <div className={tableStyles.tableWrap}>
+          <table className={tableStyles.table}>
+            <thead>
               <tr>
-                <td colSpan={5} className={tableStyles.empty}>
-                  {view === "archived" ? "No archived customers." : "No customers yet."}
-                </td>
+                {sortHeader("name", "Name")}
+                {sortHeader("email", "Email")}
+                {sortHeader("phone", "Phone")}
+                {sortHeader("createdAt", "Added")}
+                <th></th>
               </tr>
-            ) : (
-              sorted.map((c) => (
-                <tr key={c.id}>
-                  <td>{c.name}</td>
-                  <td>{c.email ?? "—"}</td>
-                  <td>{c.phone ?? "—"}</td>
-                  <td>
-                    {c.createdAt
-                      ? new Date(c.createdAt).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })
-                      : "—"}
-                  </td>
-                  <td>
-                    {view === "active" ? (
-                      <button
-                        type="button"
-                        className={`${styles.actionLink} ${styles.actionLinkWarn}`}
-                        onClick={() => setCustomerToArchive(c)}
-                      >
-                        Archive
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className={styles.actionLink}
-                        onClick={() => handleUnarchive(c)}
-                      >
-                        Unarchive
-                      </button>
-                    )}
+            </thead>
+            <tbody>
+              {sorted.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className={tableStyles.empty}>
+                    {view === "archived" ? "No archived customers." : "No customers yet."}
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                sorted.map((c) => (
+                  <tr key={c.id}>
+                    <td>{c.name}</td>
+                    <td>{c.email ?? "—"}</td>
+                    <td>{c.phone ?? "—"}</td>
+                    <td>
+                      {c.createdAt
+                        ? new Date(c.createdAt).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })
+                        : "—"}
+                    </td>
+                    <td>
+                      {view === "active" ? (
+                        <button
+                          type="button"
+                          className={`${styles.actionLink} ${styles.actionLinkWarn}`}
+                          onClick={() => setCustomerToArchive(c)}
+                        >
+                          Archive
+                        </button>
+                      ) : (
+                        <button type="button" className={styles.actionLink} onClick={() => handleUnarchive(c)}>
+                          Unarchive
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </Card>
 
       {customerToArchive && (
         <Modal title="Archive customer" onClose={() => setCustomerToArchive(null)}>
           <div className={styles.modalBody}>
             <p className={styles.modalText}>
-              Are you sure you want to archive <strong>{customerToArchive.name}</strong>? Their booking history will be kept.
+              Are you sure you want to archive <strong>{customerToArchive.name}</strong>? Their booking history will be
+              kept.
             </p>
             <div className={styles.modalActions}>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setCustomerToArchive(null)}
-                disabled={archiving}
-              >
+              <Button type="button" variant="secondary" onClick={() => setCustomerToArchive(null)} disabled={archiving}>
                 Cancel
               </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleConfirmArchive}
-                disabled={archiving}
-              >
+              <Button type="button" variant="destructive" onClick={handleConfirmArchive} disabled={archiving}>
                 {archiving ? "Archiving…" : "Archive customer"}
               </Button>
             </div>
