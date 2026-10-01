@@ -14,8 +14,8 @@ import {
 import { useToast } from "@/components/Toast";
 import tableStyles from "@/components/DataTable.module.css";
 import formStyles from "@/components/FormField.module.css";
-import { Button, Card, Input } from "@/components";
-import pageStyles from "../page.module.css";
+import { Button, Card, Input, PageHeader } from "@/components";
+import m from "../manage.module.css";
 import styles from "./page.module.css";
 
 type StaffMember = ClientConfig["staff"][number];
@@ -174,8 +174,8 @@ export default function StaffPage() {
   if (forbidden) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Staff</h1>
-        <p className={`${pageStyles.error} ${pageStyles.section}`}>Only the account owner can manage staff.</p>
+        <PageHeader eyebrow="Manage" title="Staff" />
+        <p className={`${m.error} ${m.section}`}>Only the account owner can manage staff.</p>
       </div>
     );
   }
@@ -183,8 +183,8 @@ export default function StaffPage() {
   if (loadError) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Staff</h1>
-        <p className={`${pageStyles.error} ${pageStyles.section}`}>{loadError}</p>
+        <PageHeader eyebrow="Manage" title="Staff" />
+        <p className={`${m.error} ${m.section}`}>{loadError}</p>
       </div>
     );
   }
@@ -192,7 +192,7 @@ export default function StaffPage() {
   if (!config) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>Staff</h1>
+        <PageHeader eyebrow="Manage" title="Staff" />
       </div>
     );
   }
@@ -201,10 +201,11 @@ export default function StaffPage() {
 
   return (
     <div>
-      <h1 className={pageStyles.heading}>Staff</h1>
-      <p className={pageStyles.subheading}>{config.staff.length} staff members</p>
+      <PageHeader eyebrow="Manage" title="Staff" />
+      <p className={m.sub}>{config.staff.length} staff members</p>
 
-      <Card className={`${pageStyles.panel} ${pageStyles.section}`}>
+      <Card className={`${tableStyles.tableCard} ${m.tableCard} ${m.section}`}>
+        <div className={tableStyles.tableWrap}>
         <table className={tableStyles.table}>
           <thead>
             <tr>
@@ -255,16 +256,17 @@ export default function StaffPage() {
             )}
           </tbody>
         </table>
+        </div>
       </Card>
 
       {editing && (
-        <div className={pageStyles.section}>
-          <h2 className={pageStyles.sectionTitle}>
+        <div className={`${m.formCard} ${m.section}`}>
+          <h2 className={m.sectionTitle}>
             {editing.kind === "staff"
               ? `Edit ${editing.name || "staff member"}`
               : `${editing.isNew ? "Add" : "Edit"} trainer profile: ${editing.staffName}`}
           </h2>
-          <form className={formStyles.form} onSubmit={handleEditSubmit}>
+          <form className={`${formStyles.form} ${m.grid}`} onSubmit={handleEditSubmit}>
             {editing.kind === "staff" ? (
               <>
                 <div className={formStyles.field}>
@@ -360,9 +362,9 @@ export default function StaffPage() {
         </div>
       )}
 
-      <div className={pageStyles.section}>
-        <h2 className={pageStyles.sectionTitle}>Add a staff member</h2>
-        <form className={formStyles.form} onSubmit={handleAddStaff}>
+      <div className={`${m.formCard} ${m.section}`}>
+        <h2 className={m.sectionTitle}>Add a staff member</h2>
+        <form className={`${formStyles.form} ${m.grid}`} onSubmit={handleAddStaff}>
           <div className={formStyles.field}>
             <label htmlFor="new-staff-name">Name</label>
             <Input id="new-staff-name" required value={newName} onChange={(e) => setNewName(e.target.value)} />
