@@ -1,20 +1,26 @@
 .shell {
-  display: flex;
-  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 272px minmax(0, 1fr);
+  align-items: start;
+  gap: 20px;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .content {
-  flex: 1;
   min-width: 0;
-  padding: var(--space-6) var(--space-8);
+  padding: 16px 20px 40px;
 }
 
-@media (max-width: 639px) {
+@media (max-width: 900px) {
   .shell {
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
   }
 
   .content {
-    padding: var(--space-4) var(--space-4) 80px;
+    padding: 16px 8px 40px;
   }
 }
