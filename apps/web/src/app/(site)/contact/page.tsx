@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import type { ClientConfig, Weekday } from "@localos/config-schema";
 import { ApiRequestError, getCatalog } from "@/lib/api";
-import { PublicButton } from "../_components/PublicButton";
-import { PublicPanel } from "../_components/PublicPanel";
+import { PageHeader } from "../_components/PageHeader";
+import { formatHHMM, isOpenNow } from "../_components/home/helpers";
+import { localWeekday, todayInTimezone } from "@/lib/time";
 import styles from "./page.module.css";
 
 const WEEKDAYS: Weekday[] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
@@ -28,17 +29,25 @@ export default function ContactPage() {
       });
   }, []);
 
-  if (error) {
+  if (!config && !error) return <div className={styles.page} style={{ minHeight: "60vh" }} />;
+
+  if (!config) {
     return (
-      <div className={styles.wrap}>
-        <p className={styles.errorText}>{error}</p>
+      <div className={styles.page}>
+        <PageHeader eyebrow="Contact" title="Get in touch" />
+        <div className={styles.body}>
+          <p className={styles.note}>{error}</p>
+        </div>
       </div>
     );
   }
 
-  if (!config) {
-    return <div className={styles.wrap} />;
-  }
+  const tz = config.business.timezone;
+  const today = localWeekday(todayInTimezone(tz), tz);
+  const open = isOpenNow(config);
+  const { email: mail, phone, address: a, website } = config.contact;
+  const cityLine = [a?.city, [a?.state, a?.zip].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+  const addressLines = [a?.street, cityLine, a?.country].filter(Boolean);
 
   const hoursByDay = new Map(config.businessHours.map((h) => [h.day, h]));
 
@@ -49,83 +58,91 @@ export default function ContactPage() {
     e.preventDefault();
     const subject = `Message from ${name || "the website"}`;
     const body = `${message}\n\n— ${name} (${email})`;
-    window.location.href = `mailto:${config!.contact.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:${mail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
   return (
-    <div className={styles.wrap}>
-      <header className={styles.header}>
-        <p className="pubIndexLabel">04 / CONTACT</p>
-        <h1 className={styles.title}>Get in touch</h1>
-        <p className={styles.subtitle}>{config.business.name}</p>
-      </header>
+    <div className={styles.page}>
+      <PageHeader eyebrow="Contact" title="Get in touch" subtitle={config.business.name} />
+      <div className={styles.body}>
+        {(addressLines.length > 0 || phone || mail) && (
+          <div className={styles.cards}>
+            {addressLines.length > 0 && (
+              <div className={styles.card}>
+                <span className={styles.label}>Address</span>
+                <address className={styles.value}>
+                  {addressLines.map((l, i) => (
+                    <span key={i}>
+                      {i > 0 && <br />}
+                      {l}
+                    </span>
+                  ))}
+                </address>
+              </div>
+            )}
+            {phone && (
+              <div className={styles.card}>
+                <span className={styles.label}>Phone</span>
+                <a className={styles.value} href={`tel:${phone}`}>{phone}</a>
+              </div>
+            )}
+            {mail && (
+              <div className={styles.card}>
+                <span className={styles.label}>Email</span>
+                <a className={styles.value} href={`mailto:${mail}`}>{mail}</a>
+              </div>
+            )}
+          </div>
+        )}
 
-      <div className={styles.grid}>
-        <PublicPanel className={styles.infoPanel}>
-          <h2 className={styles.panelHeading}>Contact</h2>
-          <p className={styles.contactLine}>
-            <a href={`mailto:${config.contact.email}`}>{config.contact.email}</a>
-          </p>
-          <p className={styles.contactLine}>
-            <a href={`tel:${config.contact.phone}`}>{config.contact.phone}</a>
-          </p>
-          {config.contact.website && (
-            <p className={styles.contactLine}>
-              <a href={config.contact.website} target="_blank" rel="noreferrer">
-                {config.contact.website}
-              </a>
-            </p>
-          )}
-          <address className={styles.address}>
-            {config.contact.address.street}
-            <br />
-            {config.contact.address.city}, {config.contact.address.state} {config.contact.address.zip}
-            <br />
-            {config.contact.address.country}
-          </address>
-
-          <h2 className={styles.panelHeading}>Business hours</h2>
-          <table className={styles.hoursTable}>
-            <tbody>
+        <div className={styles.split}>
+          <section className={styles.panel}>
+            <div className={styles.panelHead}>
+              <h2 className={styles.h2}>Opening hours</h2>
+              <span className={styles.pill}>
+                <span className={styles.dot} style={{ background: open ? "#16a34a" : "#9a9a92" }} />
+                {open ? "Open now" : "Closed"}
+              </span>
+            </div>
+            <ul className={styles.hours}>
               {WEEKDAYS.map((day) => {
                 const slot = hoursByDay.get(day);
                 return (
-                  <tr key={day}>
-                    <td>{capitalize(day)}</td>
-                    <td className={styles.hoursValue}>{slot ? `${slot.openTime}–${slot.closeTime}` : "Closed"}</td>
-                  </tr>
+                  <li key={day} className={`${styles.row} ${day === today ? styles.today : ""}`} aria-current={day === today ? "date" : undefined}>
+                    <span>{capitalize(day)}</span>
+                    <span>{slot ? `${formatHHMM(slot.openTime)} – ${formatHHMM(slot.closeTime)}` : "Closed"}</span>
+                  </li>
                 );
               })}
-            </tbody>
-          </table>
-        </PublicPanel>
+            </ul>
+            {website && (
+              <a className={styles.value} href={website} target="_blank" rel="noreferrer">
+                {website}
+              </a>
+            )}
+          </section>
 
-        <PublicPanel className={styles.formPanel}>
-          <h2 className={styles.panelHeading}>Send a message</h2>
-          <form onSubmit={handleSubmit} className={styles.form}>
-            <div className={styles.field}>
-              <label htmlFor="contact-name">Name</label>
-              <input id="contact-name" required value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="contact-email">Email</label>
-              <input
-                id="contact-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className={styles.field}>
-              <label htmlFor="contact-message">Message</label>
-              <textarea id="contact-message" required rows={5} value={message} onChange={(e) => setMessage(e.target.value)} />
-            </div>
-            <PublicButton type="submit" variant="primary" className={styles.submitButton}>
-              Send message
-            </PublicButton>
-          </form>
-        </PublicPanel>
+          <section className={styles.panel}>
+            <h2 className={styles.h2}>Send a message</h2>
+            <form onSubmit={handleSubmit} className={styles.form}>
+              <label className={styles.field}>
+                Name
+                <input id="contact-name" required value={name} onChange={(e) => setName(e.target.value)} />
+              </label>
+              <label className={styles.field}>
+                Email
+                <input id="contact-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              </label>
+              <label className={styles.field}>
+                Message
+                <textarea id="contact-message" required rows={5} value={message} onChange={(e) => setMessage(e.target.value)} />
+              </label>
+              <button type="submit" className={styles.submit}>
+                Send message
+              </button>
+            </form>
+          </section>
+        </div>
       </div>
     </div>
   );
