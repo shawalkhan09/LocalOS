@@ -23,6 +23,10 @@
   --s-8: 64px;
   --s-12: 96px;
 
+  /* Fluid page gutter and vertical rhythm shared by nav, footer, headers and bodies. */
+  --site-pad: clamp(20px, 4.5vw, 64px);
+  --site-section: clamp(72px, 10vw, 140px);
+
   --site-display: var(--font-bricolage), sans-serif;
   --site-body-font: var(--font-plus-jakarta-sans), system-ui, sans-serif;
 
