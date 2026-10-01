@@ -1,21 +1,49 @@
-:root {
-  /* Color Tokens — "Disciplined Kinetic" dark theme for the dashboard
-     and login. Fixed, not per-client: the dashboard no longer reads
-     config.business.primaryColor for --color-accent. The public site has
-     its own light tokens under .site. */
-  --color-bg: #08090D;
-  --color-surface: #12141C;
-  --color-surface-raised: #181A24;
-  --color-border: rgba(255, 255, 255, 0.1);
-  --color-text: #EDEEF2;
-  --color-text-muted: #8A8F9C;
-  --color-accent: #E63946;
-  --color-accent-foreground: #F5F1EC;
-  --color-success: #22C55E;
-  --color-warning: #F59E0B;
-  --color-danger: #FE8A7B;
+/* Dashboard + login design contract (light theme, scoped to .app).
+ *
+ * Wrapper: <div className={`${bricolage.variable} app`}> from
+ * src/app/app-fonts.ts, rendered by dashboard/layout.tsx and login/layout.tsx.
+ * All tokens below live on .app (not :root), so the public .site is untouched.
+ *
+ * Colors:  --color-bg #F2F0EA (ground)   --color-surface #fff (cards)
+ *          --color-surface-raised #faf9f6 (inputs)
+ *          --color-border #dcdad2   --color-hairline #eceae4 (table rows)
+ *          --color-text #111   --color-text-muted #6a6a63   --color-text-faint #8a8a82
+ *          --color-accent #E63946 + --color-accent-foreground (#111, by contrast)
+ *          --color-success/-warning/-danger (text) with --color-*-bg (soft pill bg);
+ *          --color-muted-bg #eceae4 / --color-muted-text #4a4a45
+ * Radius:  --radius-sm 14px  --radius-md 20px  --radius-lg 28px (cards)
+ *          --radius-xl 32px  --radius-pill 999px
+ * Fonts:   --font-sans (Plus Jakarta), --font-heading (Bricolage)
+ * Type:    --text-xs 12 / sm 13 / base 14 / lg 18 / xl 24 / 2xl 32
+ * Space:   --space-1..12 (4,8,12,16,24,32,48)
+ * Focus:   --focus-ring: 3px solid ink, offset 2px
+ * Components (src/components): Button, Card, Input, StatusPill, DataTable
+ *   styles, Modal, Toast, PageHeader, SectionTitle.
+ * Table pattern: wrap in <div className={card}><div className={tableWrap}>
+ *   (DataTable.module.css: .tableCard + .tableWrap scroll inside the card).
+ */
 
-  /* Typography Scale */
+.app {
+  --color-bg: #F2F0EA;
+  --color-surface: #ffffff;
+  --color-surface-raised: #faf9f6;
+  --color-border: #dcdad2;
+  --color-hairline: #eceae4;
+  --color-text: #111111;
+  --color-text-muted: #6a6a63;
+  --color-text-faint: #8a8a82;
+  --color-accent: #E63946;
+  /* accentTextColor("#E63946") from src/lib/color.ts picks ink. */
+  --color-accent-foreground: #111111;
+  --color-success: #14532d;
+  --color-success-bg: #e4f4e8;
+  --color-warning: #7a4a00;
+  --color-warning-bg: #fdf0d0;
+  --color-danger: #9b1c1c;
+  --color-danger-bg: #fde1de;
+  --color-muted-bg: #eceae4;
+  --color-muted-text: #4a4a45;
+
   --text-xs: 12px;
   --text-sm: 13px;
   --text-base: 14px;
@@ -23,7 +51,6 @@
   --text-xl: 24px;
   --text-2xl: 32px;
 
-  /* Spacing (8px base) */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -32,14 +59,14 @@
   --space-8: 32px;
   --space-12: 48px;
 
-  /* Radius — flat everywhere, matching the public system's "square
-     corners" rule (no exceptions for buttons, inputs, panels, badges). */
-  --radius-sm: 0;
-  --radius-md: 0;
-  --radius-lg: 0;
+  --radius-sm: 14px;
+  --radius-md: 20px;
+  --radius-lg: 28px;
+  --radius-xl: 32px;
+  --radius-pill: 999px;
 
-  /* Fonts */
   --font-sans: var(--font-plus-jakarta-sans), system-ui, sans-serif;
+  --font-heading: var(--font-bricolage-app), var(--font-plus-jakarta-sans), sans-serif;
   --font-mono: var(--font-jetbrains-mono), monospace;
 
   /* Aliases for backwards compatibility with legacy styles */
@@ -51,29 +78,15 @@
   --accent: var(--color-accent);
   --accent-ink: var(--color-accent-foreground);
   --warn: var(--color-warning);
-  --warn-bg: rgba(245, 158, 11, 0.15);
+  --warn-bg: var(--color-warning-bg);
   --error: var(--color-danger);
-  --error-bg: rgba(239, 68, 68, 0.15);
+  --error-bg: var(--color-danger-bg);
   --success: var(--color-success);
-  --success-bg: rgba(34, 197, 94, 0.15);
-  --focus-ring: var(--color-accent);
-  --font-heading: var(--font-sans);
+  --success-bg: var(--color-success-bg);
+  --focus-ring: #111111;
   --font-body: var(--font-sans);
-}
 
-* {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  padding: 0;
-  margin: 0;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-}
-
-body {
+  min-height: 100vh;
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
@@ -82,48 +95,61 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-input:not([class]),
-textarea:not([class]),
-select:not([class]) {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text);
-  padding: 8px 10px;
+/* Truly global resets. */
+* {
+  box-sizing: border-box;
 }
 
-input:not([class])::placeholder,
-textarea:not([class])::placeholder {
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+/* :where() keeps specificity at zero so module classes still win. */
+:where(.app) :is(input, textarea, select):not([class]) {
+  background: var(--color-surface-raised);
+  border: 1.5px solid var(--color-border);
+  border-radius: 16px;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 16px;
+  padding: 10px 14px;
+}
+
+:where(.app) :is(input, textarea):not([class])::placeholder {
   color: var(--color-text-muted);
 }
 
-.font-mono {
+:where(.app) .font-mono {
   font-family: var(--font-mono);
 }
 
-h1,
-h2,
-h3,
-.heading-font {
-  font-family: var(--font-mono);
+:where(.app) :is(h1, h2, h3, .heading-font) {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+:where(.app) :is(h2, h3) {
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-table {
+:where(.app) table {
   font-variant-numeric: tabular-nums;
 }
 
-a {
+:where(.app) a {
   color: inherit;
 }
 
-button {
+:where(.app) button {
   font-family: inherit;
 }
 
-:focus-visible {
-  outline: 2px solid var(--color-accent);
+.app :focus-visible {
+  outline: 3px solid #111111;
   outline-offset: 2px;
 }
 
@@ -139,7 +165,7 @@ button {
 
 @keyframes row-confirm {
   0% {
-    background-color: var(--success-bg);
+    background-color: #e4f4e8;
   }
   100% {
     background-color: transparent;
