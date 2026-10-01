@@ -15,11 +15,16 @@ import { addDaysToDateString, formatTimeInTimezone, todayInTimezone } from "@/li
 import { CustomerPickerModal } from "@/components/CustomerPickerModal";
 import formStyles from "@/components/FormField.module.css";
 import { useToast } from "@/components/Toast";
-import { Button, Input } from "@/components";
+import { Button, Card, Input, PageHeader, SectionTitle } from "@/components";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
 
-type ConfirmedEntry = { id: number; time: string; customerName: string; serviceName: string };
+type ConfirmedEntry = {
+  id: number;
+  time: string;
+  customerName: string;
+  serviceName: string;
+};
 
 export default function NewBookingPage() {
   const { showToast } = useToast();
@@ -107,7 +112,7 @@ export default function NewBookingPage() {
   if (loadError) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>New booking</h1>
+        <PageHeader title="New booking" />
         <p className={`${pageStyles.error} ${pageStyles.section}`}>{loadError}</p>
       </div>
     );
@@ -116,7 +121,7 @@ export default function NewBookingPage() {
   if (!config) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>New booking</h1>
+        <PageHeader title="New booking" />
       </div>
     );
   }
@@ -152,7 +157,11 @@ export default function NewBookingPage() {
       setSelectedSlot(null);
       setCustomer(null);
       // Re-check availability so the just-booked slot disappears from the list.
-      const res = await checkAvailability({ serviceId: service.id, date, staffId: staffId || undefined });
+      const res = await checkAvailability({
+        serviceId: service.id,
+        date,
+        staffId: staffId || undefined,
+      });
       setSlots(res.slots);
     } catch (err) {
       showToast(err instanceof ApiRequestError ? err.message : "Could not create booking.", "error");
@@ -163,96 +172,99 @@ export default function NewBookingPage() {
 
   return (
     <div>
-      <h1 className={pageStyles.heading}>New booking</h1>
-      <p className={pageStyles.subheading}>Book a one-off appointment for a customer.</p>
+      <PageHeader eyebrow="Book a one-off appointment for a customer." title="New booking" />
 
-      <div className={formStyles.form}>
-        <div className={formStyles.field}>
-          <label htmlFor="service">Service</label>
-          <select id="service" value={serviceId} onChange={(e) => setServiceId(e.target.value)}>
-            {config.services.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name} ({s.durationMinutes} min)
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className={formStyles.field}>
-          <label htmlFor="staff">Staff</label>
-          <select id="staff" value={staffId} onChange={(e) => setStaffId(e.target.value)}>
-            {isStaffRestricted ? (
-              <option value="" disabled>
-                Select a trainer
-              </option>
-            ) : (
-              <option value="">Any available</option>
-            )}
-            {eligibleStaff.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className={formStyles.field}>
-          <label htmlFor="date">Date</label>
-          <Input
-            id="date"
-            type="date"
-            value={date}
-            min={minDate}
-            max={maxDate}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </div>
-
-        <div className={formStyles.field}>
-          <span id="slots-label" className={formStyles.fieldLabel}>
-            Available times
-          </span>
-          {needsStaffSelection ? (
-            <p className={styles.slotsEmpty}>Select a trainer to see available times.</p>
-          ) : slotsError ? (
-            <p className={pageStyles.error}>{slotsError}</p>
-          ) : slots.length === 0 ? (
-            <p className={styles.slotsEmpty}>No open times for this selection.</p>
-          ) : (
-            <div className={styles.slots} role="group" aria-labelledby="slots-label">
-              {slots.map((slot) => (
-                <button
-                  key={slot.startTime}
-                  type="button"
-                  className={`${styles.slot} ${selectedSlot?.startTime === slot.startTime ? styles.slotSelected : ""}`}
-                  aria-pressed={selectedSlot?.startTime === slot.startTime}
-                  onClick={() => setSelectedSlot(slot)}
-                >
-                  {formatTimeInTimezone(slot.startTime, timezone)}
-                </button>
+      <Card className={styles.formCard}>
+        <div className={formStyles.form}>
+          <div className={formStyles.field}>
+            <label htmlFor="service">Service</label>
+            <select id="service" value={serviceId} onChange={(e) => setServiceId(e.target.value)}>
+              {config.services.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} ({s.durationMinutes} min)
+                </option>
               ))}
-            </div>
-          )}
-        </div>
-
-        <div className={formStyles.field}>
-          <span className={formStyles.fieldLabel}>Customer</span>
-          <div className={`${styles.customerRow} ${customer ? "" : styles.customerRowEmpty}`}>
-            {customer ? customer.name : "No customer selected"}
-            <button type="button" className={styles.linkButton} onClick={() => setShowCustomerModal(true)}>
-              {customer ? "Change" : "Choose customer"}
-            </button>
+            </select>
           </div>
-        </div>
 
-        <Button type="button" className={formStyles.submit} disabled={!canSubmit} onClick={handleSubmit}>
-          {submitting ? "Booking…" : "Confirm booking"}
-        </Button>
-      </div>
+          <div className={formStyles.field}>
+            <label htmlFor="staff">Staff</label>
+            <select id="staff" value={staffId} onChange={(e) => setStaffId(e.target.value)}>
+              {isStaffRestricted ? (
+                <option value="" disabled>
+                  Select a trainer
+                </option>
+              ) : (
+                <option value="">Any available</option>
+              )}
+              {eligibleStaff.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className={formStyles.field}>
+            <label htmlFor="date">Date</label>
+            <Input
+              id="date"
+              type="date"
+              value={date}
+              min={minDate}
+              max={maxDate}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+
+          <div className={formStyles.field}>
+            <span id="slots-label" className={formStyles.fieldLabel}>
+              Available times
+            </span>
+            {needsStaffSelection ? (
+              <p className={styles.slotsEmpty}>Select a trainer to see available times.</p>
+            ) : slotsError ? (
+              <p className={pageStyles.error} role="alert">
+                {slotsError}
+              </p>
+            ) : slots.length === 0 ? (
+              <p className={styles.slotsEmpty}>No open times for this selection.</p>
+            ) : (
+              <div className={styles.slots} role="group" aria-labelledby="slots-label">
+                {slots.map((slot) => (
+                  <button
+                    key={slot.startTime}
+                    type="button"
+                    className={`${styles.slot} ${selectedSlot?.startTime === slot.startTime ? styles.slotSelected : ""}`}
+                    aria-pressed={selectedSlot?.startTime === slot.startTime}
+                    onClick={() => setSelectedSlot(slot)}
+                  >
+                    {formatTimeInTimezone(slot.startTime, timezone)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className={formStyles.field}>
+            <span className={formStyles.fieldLabel}>Customer</span>
+            <div className={`${styles.customerRow} ${customer ? "" : styles.customerRowEmpty}`}>
+              {customer ? customer.name : "No customer selected"}
+              <button type="button" className={styles.linkButton} onClick={() => setShowCustomerModal(true)}>
+                {customer ? "Change" : "Choose customer"}
+              </button>
+            </div>
+          </div>
+
+          <Button type="button" className={formStyles.submit} disabled={!canSubmit} onClick={handleSubmit}>
+            {submitting ? "Booking…" : "Confirm booking"}
+          </Button>
+        </div>
+      </Card>
 
       {confirmed.length > 0 && (
         <div className={styles.confirmedSection}>
-          <p className={styles.confirmedTitle}>Confirmed this session</p>
+          <SectionTitle>Confirmed this session</SectionTitle>
           {confirmed.map((c) => (
             <div key={c.id} className={`${styles.confirmedRow} row-confirm`}>
               <span className={styles.confirmedTime}>{c.time}</span>
