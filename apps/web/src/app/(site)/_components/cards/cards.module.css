@@ -8,7 +8,7 @@
 
 /* Classes */
 .classCard { background: #fff; border-radius: var(--site-r-28); padding: 12px; display: flex; flex-direction: column; gap: 20px; }
-.classPhoto { background-size: cover; background-position: center; height: 240px; border-radius: var(--site-r-20); padding: 16px; box-sizing: border-box; display: flex; align-items: flex-start; }
+.classPhoto { background-size: cover; aspect-ratio: 4 / 3; border-radius: var(--site-r-20); padding: 16px; box-sizing: border-box; display: flex; align-items: flex-start; }
 .classBody { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
 .classP { margin: 0; font-size: 14px; line-height: 1.55; color: #5a5a54; }
 .classFoot { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 14px; border-top: 1px solid #eceae4; font-size: 13px; font-weight: 600; }
@@ -16,8 +16,8 @@
 
 /* Trainers */
 .trainer { display: flex; flex-direction: column; gap: 16px; }
-.trainerPhoto { height: 380px; border-radius: var(--site-r-28); overflow: hidden; }
-.trainerImg { width: 100%; height: 100%; object-fit: cover; display: block; }
+.trainerPhoto { width: 100%; aspect-ratio: 3 / 4; border-radius: var(--site-r-28); overflow: hidden; }
+.trainerImg { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; display: block; }
 .trainerPh { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.85); font-family: var(--site-display); font-weight: 800; font-size: 96px; letter-spacing: -0.04em; }
 .trainerInfo { display: flex; flex-direction: column; gap: 4px; padding: 0 6px; }
 .trainerName { font-family: var(--site-display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; }

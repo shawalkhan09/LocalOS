@@ -9,9 +9,10 @@ import styles from "./cards.module.css";
 type Props = { c: ClientConfig["classes"][number]; coach?: string; tz: string };
 
 export function ClassCard({ c, coach, tz }: Props) {
+  const img = classImage(c.category);
   return (
     <div className={styles.classCard}>
-      <div className={`${styles.ph} ${styles.classPhoto}`} style={{ backgroundImage: `url(${classImage(c.category)}), ${GRADIENT}` }}>
+      <div className={`${styles.ph} ${styles.classPhoto}`} style={{ backgroundImage: `url(${img.src}), ${GRADIENT}`, backgroundPosition: `${img.position}, center` }}>
         {c.category && <span className={styles.chip}>{c.category}</span>}
       </div>
       <div className={styles.classBody}>

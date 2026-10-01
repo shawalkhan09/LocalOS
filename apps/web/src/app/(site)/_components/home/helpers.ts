@@ -71,9 +71,10 @@ export function planPriceFormatter(currency: string) {
 }
 
 // Existing /atmosphere photos assigned by category keyword; gym-interior is the fallback.
-export function classImage(category?: string): string {
+// position keeps faces in frame: the portraits are tall, the interior is landscape.
+export function classImage(category?: string): { src: string; position: string } {
   const c = (category ?? "").toLowerCase();
-  if (/box|fight|combat|martial|hiit|conditioning|cardio/.test(c)) return "/atmosphere/boxer.jpg";
-  if (/recover|mobility|yoga|stretch|pilates|flow/.test(c)) return "/atmosphere/portrait-2.jpg";
-  return "/atmosphere/gym-interior.jpg";
+  if (/box|fight|combat|martial|hiit|conditioning|cardio/.test(c)) return { src: "/atmosphere/boxer.jpg", position: "center 25%" };
+  if (/recover|mobility|yoga|stretch|pilates|flow/.test(c)) return { src: "/atmosphere/portrait-2.jpg", position: "center 25%" };
+  return { src: "/atmosphere/gym-interior.jpg", position: "center" };
 }
