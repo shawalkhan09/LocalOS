@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSiteCatalog } from "./SiteShell";
 import styles from "./PublicNav.module.css";
 
@@ -18,10 +18,25 @@ export function PublicNav() {
   const config = useSiteCatalog();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  // Open: move focus into the menu. Escape closes it and returns focus to the toggle.
+  useEffect(() => {
+    if (!open) return;
+    panelRef.current?.querySelector<HTMLElement>("a")?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setOpen(false);
+      buttonRef.current?.focus();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
 
   const links = (
     <>
@@ -31,6 +46,7 @@ export function PublicNav() {
           href={l.href}
           className={`${styles.link} ${pathname === l.href ? styles.linkActive : ""}`}
           aria-current={pathname === l.href ? "page" : undefined}
+          onClick={() => setOpen(false)}
         >
           {l.label}
         </Link>
@@ -64,6 +80,7 @@ export function PublicNav() {
 
       <button
         type="button"
+        ref={buttonRef}
         className={styles.menuButton}
         aria-expanded={open}
         aria-controls="site-menu"
@@ -76,9 +93,9 @@ export function PublicNav() {
       </button>
 
       {open && (
-        <nav id="site-menu" className={styles.panel} aria-label="Menu">
+        <nav id="site-menu" ref={panelRef} className={styles.panel} aria-label="Menu">
           {links}
-          <Link href="/book/session" className={styles.book}>
+          <Link href="/book/session" className={styles.book} onClick={() => setOpen(false)}>
             Book a session
           </Link>
         </nav>
