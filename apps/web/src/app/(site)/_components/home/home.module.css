@@ -1,37 +1,37 @@
-.page { overflow-x: hidden; padding-bottom: 96px; }
+.page { overflow-x: hidden; padding-bottom: clamp(64px, 7vw, 96px); }
 .ph { background: radial-gradient(120% 80% at 70% 10%, #3a3a36 0%, #1a1a18 55%, #0c0c0b 100%); }
 
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; font-weight: 700; border-radius: 999px; transition: transform 0.2s; box-sizing: border-box; }
 .btn:hover { transform: translateY(-2px); }
-.btnDark { background: var(--site-ink); color: #fff; font-size: 16px; padding: 18px 28px; }
+.btnDark { background: var(--site-ink); color: #fff; font-size: 16px; padding: clamp(14px, 1.5vw, 18px) clamp(22px, 2.2vw, 28px); }
 .btnOutline { border: 1.5px solid var(--site-ink); font-size: 16px; padding: 16.5px 28px; }
 .btnSm { font-size: 15px; padding: 14px 24px; }
 .btnAccent { background: var(--site-accent); color: var(--site-accent-ink); font-size: 16px; padding: 18px 32px; }
 .chip { background: var(--site-accent); color: var(--site-accent-ink); border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 700; }
 
 /* Hero */
-.hero { padding: 24px 64px 0; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 48px; align-items: center; }
-.heroText { display: flex; flex-direction: column; gap: 32px; }
-.heroH { margin: 0; font-weight: 800; font-size: clamp(56px, 6.7vw, 96px); line-height: 0.95; letter-spacing: -0.04em; }
-.hl { background: var(--site-accent); color: var(--site-accent-ink); padding: 0 14px; border-radius: 18px; display: inline-block; transform: rotate(-2deg); }
-.heroP { margin: 0; font-size: 19px; line-height: 1.55; color: var(--site-body); max-width: 520px; }
+.hero { padding: 24px var(--site-pad) 0; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(32px, 4vw, 48px); align-items: center; }
+.heroText { display: flex; flex-direction: column; gap: clamp(20px, 2.5vw, 32px); min-width: 0; }
+.heroH { margin: 0; font-weight: 800; font-size: clamp(48px, 8.16vw - 24px, 96px); line-height: 0.95; letter-spacing: -0.04em; overflow-wrap: anywhere; }
+.hl { background: var(--site-accent); color: var(--site-accent-ink); padding: 0 0.14em; border-radius: 18px; display: inline-block; transform: rotate(-2deg); }
+.heroP { margin: 0; font-size: clamp(16px, 0.5vw + 13px, 19px); line-height: 1.55; color: var(--site-body); max-width: 520px; }
 .btnRow { display: flex; gap: 14px; flex-wrap: wrap; }
-.stats { display: flex; gap: 40px; padding-top: 12px; border-top: 1px solid var(--site-hairline); flex-wrap: wrap; }
+.stats { display: flex; gap: clamp(24px, 3vw, 40px); padding-top: 12px; border-top: 1px solid var(--site-hairline); flex-wrap: wrap; }
 .stat { display: flex; flex-direction: column; gap: 4px; padding-top: 20px; }
-.statV { font-family: var(--site-display); font-weight: 800; font-size: 36px; letter-spacing: -0.03em; }
+.statV { font-family: var(--site-display); font-weight: 800; font-size: clamp(28px, 3vw, 36px); letter-spacing: -0.03em; }
 .statL { font-size: 13px; font-weight: 600; color: var(--site-muted); }
-.heroMedia { position: relative; }
+.heroMedia { position: relative; min-width: 0; }
 .heroPhoto { aspect-ratio: 4 / 5; max-height: min(700px, 80vh); border-radius: var(--site-r-36); background: url(/atmosphere/gym-interior.jpg) center / cover no-repeat, radial-gradient(120% 80% at 70% 10%, #3a3a36 0%, #1a1a18 55%, #0c0c0b 100%); }
 .nextCard { position: absolute; left: -36px; bottom: 90px; background: #fff; border-radius: 22px; padding: 18px 20px; display: flex; align-items: center; gap: 14px; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18); max-width: calc(100% - 24px); }
 .nextIcon { flex: none; width: 46px; height: 46px; border-radius: 14px; background: var(--site-accent); color: var(--site-accent-ink); display: flex; align-items: center; justify-content: center; }
 .nextText { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .nextL { font-size: 12px; color: var(--site-muted); font-weight: 600; }
 .nextV { font-size: 15px; font-weight: 700; }
-.openChip { position: absolute; right: 24px; top: 24px; background: rgba(255, 255, 255, 0.92); border-radius: 999px; padding: 10px 16px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.openChip { position: absolute; right: clamp(12px, 2vw, 24px); top: clamp(12px, 2vw, 24px); background: rgba(255, 255, 255, 0.92); border-radius: 999px; padding: 10px 16px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 .dot { width: 8px; height: 8px; border-radius: 99px; }
 
 /* Marquee */
-.marquee { margin-top: 96px; background: var(--site-ink); color: #fff; padding: 26px 0; overflow: hidden; white-space: nowrap; transform: rotate(-1deg); }
+.marquee { margin-top: clamp(64px, 7vw, 96px); background: var(--site-ink); color: #fff; padding: 26px 0; overflow: hidden; white-space: nowrap; transform: rotate(-1deg); }
 .marqueeTrack { display: flex; width: max-content; animation: scroll 40s linear infinite; }
 .marqueeRun { display: flex; flex: none; font-family: var(--site-display); font-weight: 700; font-size: 28px; letter-spacing: -0.01em; }
 .marqueeItem { display: flex; align-items: center; gap: 48px; padding-right: 48px; }
@@ -43,26 +43,33 @@
 }
 
 /* Sections */
-.section { padding: 140px 64px 0; }
-.headRow { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; margin-bottom: 48px; flex-wrap: wrap; }
-.headCol { display: flex; flex-direction: column; gap: 16px; margin-bottom: 48px; }
-.center { text-align: center; align-items: center; margin-bottom: 56px; }
+.section { padding: var(--site-section) var(--site-pad) 0; }
+.headRow { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px 32px; margin-bottom: clamp(32px, 4vw, 48px); flex-wrap: wrap; }
+.headCol { display: flex; flex-direction: column; gap: 16px; margin-bottom: clamp(32px, 4vw, 48px); }
+.center { text-align: center; align-items: center; margin-bottom: clamp(36px, 4.5vw, 56px); }
 .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--site-muted); }
-.h2 { margin: 0; font-weight: 800; font-size: 64px; line-height: 1; letter-spacing: -0.035em; max-width: 760px; }
+.h2 { margin: 0; font-weight: 800; font-size: clamp(32px, 6vw, 64px); line-height: 1; letter-spacing: -0.035em; max-width: 760px; overflow-wrap: anywhere; text-wrap: balance; }
 .h3 { margin: 0; font-weight: 700; font-size: 26px; letter-spacing: -0.02em; }
 .grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 20px; }
-.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; align-items: stretch; max-width: calc(var(--n, 3) * 460px); margin: 0 auto; }
+/* Trainers: portrait cards stay 220-300px wide and centre, so they never balloon on tablets. */
+.gridTrainers { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 20px; }
+@media (max-width: 900px) { .gridTrainers { justify-content: center; } }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 20px; align-items: stretch; max-width: calc(var(--n, 3) * 460px); margin: 0 auto; }
 
-@media (max-width: 820px) {
-  .hero, .section { padding-left: 20px; padding-right: 20px; }
-  .hero { grid-template-columns: minmax(0, 1fr); gap: 40px; }
-  .heroH { font-size: clamp(44px, 14vw, 56px); }
-  .heroPhoto { aspect-ratio: 4 / 3; max-height: 70vh; }
-  .nextCard { left: 12px; bottom: 16px; }
-  .section { padding-top: 72px; }
-  .marquee { margin-top: 64px; }
+@media (max-width: 1040px) {
+  .grid3 { grid-template-columns: minmax(0, 1fr); max-width: 520px; }
+}
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .heroH { font-size: clamp(34px, 11vw, 84px); }
+  .heroPhoto { aspect-ratio: 4 / 3; max-height: min(520px, 70vh); }
+  .nextCard { left: 12px; bottom: 12px; padding: 12px 14px; gap: 10px; border-radius: 18px; }
+  .nextIcon { width: 38px; height: 38px; border-radius: 12px; }
+  .nextV { overflow-wrap: anywhere; }
   .marqueeRun { font-size: 22px; }
-  .h2 { font-size: 40px; }
-  .grid4, .grid3 { grid-template-columns: minmax(0, 1fr); }
-  .stats { gap: 28px; }
+}
+
+@media (max-width: 400px) {
+  .marqueeItem { gap: 32px; padding-right: 32px; }
 }

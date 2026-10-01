@@ -1,10 +1,14 @@
 /* Public booking styles; tokens come from .site in (site)/site.css. */
 .body {
-  padding: 40px 64px 96px;
+  /* Form column: ~720px of content, centred; gutter comes from the shared token. */
+  box-sizing: border-box;
+  width: 100%;
+  max-width: calc(720px + 2 * var(--site-pad));
+  margin: 0 auto;
+  padding: clamp(28px, 3.5vw, 40px) var(--site-pad) clamp(64px, 7vw, 96px);
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 760px;
 }
 
 .backLink {
@@ -24,7 +28,7 @@
 .card {
   background: var(--site-white);
   border-radius: var(--site-r-32);
-  padding: 36px;
+  padding: clamp(20px, 3vw, 36px);
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -32,8 +36,9 @@
 
 .sectionTitle {
   margin: 0;
-  font-size: 24px;
+  font-size: clamp(21px, 2.5vw, 24px);
   font-weight: 800;
+  overflow-wrap: anywhere;
   letter-spacing: -0.02em;
 }
 
@@ -131,13 +136,8 @@
   line-height: 1.4;
 }
 
-@media (max-width: 820px) {
-  .body {
-    padding: 28px 20px 64px;
-  }
-
+@media (max-width: 600px) {
   .card {
-    padding: 24px 20px;
     border-radius: var(--site-r-28);
   }
 

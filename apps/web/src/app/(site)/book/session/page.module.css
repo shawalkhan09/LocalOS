@@ -1,13 +1,13 @@
 .slots {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
   gap: 10px;
 }
 
 .slotButton {
   min-height: 48px;
-  min-width: 96px;
-  padding: 0 18px;
+  min-width: 0;
+  padding: 0 12px;
   border: 1.5px solid var(--site-hairline);
   border-radius: 999px;
   background: var(--site-white);

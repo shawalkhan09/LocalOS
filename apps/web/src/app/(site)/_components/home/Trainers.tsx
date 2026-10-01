@@ -14,7 +14,7 @@ export function Trainers({ cfg }: { cfg: ClientConfig }) {
         <span className={styles.eyebrow}>The coaches</span>
         <h2 className={styles.h2}>Real coaches. Real results.</h2>
       </div>
-      <div className={styles.grid4}>
+      <div className={styles.gridTrainers}>
         {list.map(({ t, s }) => (
           <TrainerCard key={t.id} name={s!.name} role={s!.role} photoUrl={t.photoUrl} />
         ))}
