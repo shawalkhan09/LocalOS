@@ -55,3 +55,17 @@ export function classDays(schedule: Slot[], tz: string): string {
   }
   return out.join(", ");
 }
+
+export const PLAN_SUFFIX = { monthly: "/ month", annual: "/ year", week: "/ week", day: "/ day" } as const;
+
+// Middle plan is highlighted only for an odd count of 3+.
+export const popularPlanIndex = (n: number) => (n >= 3 && n % 2 === 1 ? (n - 1) / 2 : -1);
+
+export function planPriceFormatter(currency: string) {
+  return (n: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
+    }).format(n);
+}
