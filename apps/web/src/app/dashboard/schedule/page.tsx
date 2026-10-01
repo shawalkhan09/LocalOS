@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getStaffSchedule, getCatalog, type StaffSchedule } from "@/lib/api";
 import { formatTimeInTimezone, formatDateInTimezone, dateStringInTimezone } from "@/lib/time";
 import { useToast } from "@/components/Toast";
+import { Card, PageHeader, SectionTitle } from "@/components";
 import pageStyles from "../page.module.css";
 import styles from "./page.module.css";
 
@@ -40,8 +41,8 @@ export default function SchedulePage() {
   if (loading) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>My schedule</h1>
-        <p>Loading…</p>
+        <PageHeader title="My schedule" />
+        <p className={`${styles.empty} ${pageStyles.section}`}>Loading…</p>
       </div>
     );
   }
@@ -49,8 +50,8 @@ export default function SchedulePage() {
   if (!schedule) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>My schedule</h1>
-        <p>Could not load schedule.</p>
+        <PageHeader title="My schedule" />
+        <p className={`${pageStyles.error} ${pageStyles.section}`}>Could not load schedule.</p>
       </div>
     );
   }
@@ -58,11 +59,13 @@ export default function SchedulePage() {
   if (!schedule.linked) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>My schedule</h1>
+        <PageHeader title="My schedule" />
         <div className={pageStyles.section}>
-          <p className={styles.notLinked}>
-            Your account is not linked to a staff member yet. Ask the owner to link it on the Team page.
-          </p>
+          <Card>
+            <p className={styles.notLinked}>
+              Your account is not linked to a staff member yet. Ask the owner to link it on the Team page.
+            </p>
+          </Card>
         </div>
       </div>
     );
@@ -71,9 +74,11 @@ export default function SchedulePage() {
   if (schedule.items.length === 0) {
     return (
       <div>
-        <h1 className={pageStyles.heading}>My schedule</h1>
+        <PageHeader title="My schedule" />
         <div className={pageStyles.section}>
-          <p className={styles.empty}>No upcoming sessions in the next 14 days.</p>
+          <Card>
+            <p className={styles.empty}>No upcoming sessions in the next 14 days.</p>
+          </Card>
         </div>
       </div>
     );
@@ -98,7 +103,7 @@ export default function SchedulePage() {
 
   return (
     <div>
-      <h1 className={pageStyles.heading}>My schedule</h1>
+      <PageHeader title="My schedule" />
 
       <div className={pageStyles.section}>
         {sortedDays.map((dayStr) => {
@@ -107,8 +112,8 @@ export default function SchedulePage() {
 
           return (
             <div key={dayStr} className={styles.day}>
-              <h2 className={styles.dayHeading}>{heading}</h2>
-              <div className={styles.items}>
+              <SectionTitle>{heading}</SectionTitle>
+              <Card className={styles.items}>
                 {dayItems.map((item, idx) => {
                   const startTime = formatTimeInTimezone(item.start, timezone!);
                   const endTime = formatTimeInTimezone(item.end, timezone!);
@@ -124,13 +129,16 @@ export default function SchedulePage() {
                           <div className={styles.detail}>{item.customerName}</div>
                         )}
                         {item.type === "class" && item.seatCount !== undefined && (
-                          <div className={styles.detail}>{item.seatCount} seat{item.seatCount === 1 ? "" : "s"}</div>
+                          <div className={styles.detail}>
+                            {item.seatCount} seat
+                            {item.seatCount === 1 ? "" : "s"}
+                          </div>
                         )}
                       </div>
                     </div>
                   );
                 })}
-              </div>
+              </Card>
             </div>
           );
         })}

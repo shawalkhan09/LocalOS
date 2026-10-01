@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ApiRequestError, changePassword } from "@/lib/api";
 import { useToast } from "@/components/Toast";
 import formStyles from "@/components/FormField.module.css";
-import { Button, Input } from "@/components";
+import { Button, Card, Input, PageHeader, SectionTitle } from "@/components";
 import pageStyles from "./page.module.css";
 
 export default function AccountPage() {
@@ -50,54 +50,56 @@ export default function AccountPage() {
 
   return (
     <div>
-      <h1 className={pageStyles.heading}>Account</h1>
+      <PageHeader title="Account" />
 
       <div className={pageStyles.section}>
-        <h2 className={pageStyles.sectionTitle}>Change password</h2>
-        <form className={formStyles.form} onSubmit={handleSubmit}>
-          <div className={formStyles.field}>
-            <label htmlFor="current-password">Current password</label>
-            <Input
-              id="current-password"
-              type="password"
-              required
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
-          </div>
-          <div className={formStyles.field}>
-            <label htmlFor="new-password">New password</label>
-            <Input
-              id="new-password"
-              type="password"
-              required
-              minLength={8}
-              value={newPassword}
-              onChange={(e) => {
-                setNewPassword(e.target.value);
-                setPasswordMismatch(false);
-              }}
-            />
-          </div>
-          <div className={formStyles.field}>
-            <label htmlFor="confirm-password">Confirm new password</label>
-            <Input
-              id="confirm-password"
-              type="password"
-              required
-              minLength={8}
-              value={confirmPassword}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value);
-                setPasswordMismatch(false);
-              }}
-            />
-            {passwordMismatch && <p className={pageStyles.mismatch}>Passwords do not match</p>}
-          </div>
-          <Button type="submit" className={formStyles.submit} disabled={submitting || passwordMismatch}>
-            {submitting ? "Changing…" : "Change password"}
-          </Button>
-        </form>
+        <SectionTitle>Change password</SectionTitle>
+        <Card className={pageStyles.card}>
+          <form className={formStyles.form} onSubmit={handleSubmit}>
+            <div className={formStyles.field}>
+              <label htmlFor="current-password">Current password</label>
+              <Input
+                id="current-password"
+                type="password"
+                required
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+              />
+            </div>
+            <div className={formStyles.field}>
+              <label htmlFor="new-password">New password</label>
+              <Input
+                id="new-password"
+                type="password"
+                required
+                minLength={8}
+                value={newPassword}
+                onChange={(e) => {
+                  setNewPassword(e.target.value);
+                  setPasswordMismatch(false);
+                }}
+              />
+            </div>
+            <div className={formStyles.field}>
+              <label htmlFor="confirm-password">Confirm new password</label>
+              <Input
+                id="confirm-password"
+                type="password"
+                required
+                minLength={8}
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  setPasswordMismatch(false);
+                }}
+              />
+              {passwordMismatch && <p className={pageStyles.mismatch}>Passwords do not match</p>}
+            </div>
+            <Button type="submit" className={formStyles.submit} disabled={submitting || passwordMismatch}>
+              {submitting ? "Changing…" : "Change password"}
+            </Button>
+          </form>
+        </Card>
       </div>
     </div>
   );
