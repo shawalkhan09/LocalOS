@@ -1,5 +1,6 @@
 // Responsive check. Usage: node scripts/check-responsive.mjs [baseUrl] [--shots]
 // --shots also writes full-page PNGs to docs/design/screenshots/responsive/.
+// Set APP_EMAIL and APP_PASSWORD (a local owner login) to also check the /dashboard routes.
 import { chromium } from "../../../node_modules/playwright/index.mjs";
 import { mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -10,6 +11,8 @@ const shots = args.includes("--shots");
 const base = (args.find((a) => a.startsWith("http")) || process.env.BASE_URL || "http://localhost:3001").replace(/\/$/, "");
 const PAGES = ["/", "/classes", "/trainers", "/membership", "/contact", "/book/session", "/book/class"];
 const WIDTHS = [320, 375, 390, 414, 600, 768, 820, 1024, 1280, 1440, 1920, 2560];
+const DASH = ["/dashboard", "/dashboard/customers", "/dashboard/new-booking", "/dashboard/schedule", "/dashboard/team", "/dashboard/staff", "/dashboard/services", "/dashboard/classes", "/dashboard/business-hours", "/dashboard/business-info", "/dashboard/membership-plans", "/dashboard/account"];
+const authed = Boolean(process.env.APP_EMAIL && process.env.APP_PASSWORD);
 const SHOT_WIDTHS = [320, 390, 768, 1024, 1440, 2560];
 const SHOT_PAGES = ["/", "/classes", "/trainers", "/membership", "/contact", "/book/session"];
 const VIEWPORTS = [...WIDTHS.map((w) => ({ w, h: 900 })), { w: 844, h: 390 }];
@@ -39,12 +42,25 @@ const inspect = () => {
 };
 
 const browser = await chromium.launch();
+// Sign in once and reuse the session: the API rate-limits logins per email and IP.
+let session;
+if (authed) {
+  const lc = await browser.newContext();
+  const lp = await lc.newPage();
+  await lp.goto(base + "/login", { waitUntil: "networkidle" });
+  await lp.fill("#email", process.env.APP_EMAIL);
+  await lp.fill("#password", process.env.APP_PASSWORD);
+  await lp.locator("button[type=submit]").click();
+  await lp.waitForURL("**/dashboard");
+  session = await lc.storageState();
+  await lc.close();
+}
 const rows = [];
 let hard = 0;
 for (const vp of VIEWPORTS) {
-  const ctx = await browser.newContext({ viewport: { width: vp.w, height: vp.h }, hasTouch: vp.w <= 820 });
+  const ctx = await browser.newContext({ viewport: { width: vp.w, height: vp.h }, hasTouch: vp.w <= 820, storageState: session });
   const page = await ctx.newPage();
-  for (const p of PAGES) {
+  for (const p of authed ? [...PAGES, ...DASH] : PAGES) {
     await page.goto(base + p, { waitUntil: "networkidle" });
     await page.waitForTimeout(1000);
     const r = await page.evaluate(inspect);
